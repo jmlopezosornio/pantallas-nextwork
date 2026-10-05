@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nextwork | Sistema de Pantallas</title>
+  <meta name="description" content="Sistema web de gestión de contenidos para pantallas LED" />
+  <style>
+    :root{--bg:#0b1220;--panel:#111827;--panel2:#172033;--text:#f3f4f6;--muted:#9ca3af;--line:#263247;--accent:#38bdf8;--ok:#22c55e}
+    *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+    .app{min-height:100vh;display:flex}aside{width:250px;background:#08101d;border-right:1px solid var(--line);padding:20px 14px}
+    .brand{font-size:22px;font-weight:700;padding:8px 10px 22px}.brand span{color:var(--accent)}nav a{display:block;color:#dbe4f0;text-decoration:none;padding:12px 14px;border-radius:10px;margin:4px 0}nav a:hover,nav a.active{background:var(--panel2)}
+    main{flex:1;padding:26px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}h1{font-size:28px;margin:0}.sub{color:var(--muted);margin-top:6px}.status{padding:9px 12px;border:1px solid #1d4d34;border-radius:999px;color:#bbf7d0;background:#0e2a1c;font-size:14px}
+    .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}.label{color:var(--muted);font-size:14px}.value{font-size:30px;font-weight:700;margin-top:8px}.section{margin-top:22px}.section h2{font-size:19px;margin:0 0 12px}
+    table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}th,td{text-align:left;padding:13px 14px;border-bottom:1px solid var(--line);font-size:14px}th{color:#cbd5e1;background:#0e1728}td{color:#e5e7eb}.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;background:var(--ok)}.pending{color:#fcd34d}.mobile-menu{display:none}
+    @media(max-width:900px){aside{display:none}main{padding:16px}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.mobile-menu{display:inline-block;color:var(--muted)}}
+    @media(max-width:560px){.cards{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}table,thead,tbody,tr,th,td{display:block}thead{display:none}tr{border-bottom:1px solid var(--line);padding:8px 0}td{border:none;padding:7px 14px}td:before{content:attr(data-label) ": ";color:var(--muted);font-weight:600}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">NEXT<span>WORK</span></div>
+    <nav>
+      <a class="active" href="#">Inicio</a><a href="#">Pantallas</a><a href="#">Campañas</a><a href="#">Clientes</a><a href="#">Reproducciones</a><a href="#">Usuarios</a>
+    </nav>
+  </aside>
+  <main>
+    <div class="top"><div><div class="mobile-menu">Sistema de Pantallas</div><h1>Panel de control</h1><div class="sub">Gestión web de pantallas LED y campañas</div></div><div class="status">● Sitio web funcionando</div></div>
+    <section class="cards">
+      <div class="card"><div class="label">Pantallas</div><div class="value">—</div></div>
+      <div class="card"><div class="label">Online</div><div class="value">—</div></div>
+      <div class="card"><div class="label">Campañas activas</div><div class="value">—</div></div>
+      <div class="card"><div class="label">Reproducciones hoy</div><div class="value">—</div></div>
+    </section>
+    <section class="section"><h2>Estado del proyecto</h2><table><thead><tr><th>Componente</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>
+      <tr><td data-label="Componente">Sitio web</td><td data-label="Estado"><span class="dot"></span>Activo</td><td data-label="Detalle">Publicado desde GitHub Pages</td></tr>
+      <tr><td data-label="Componente">Supabase</td><td data-label="Estado" class="pending">Pendiente de conectar</td><td data-label="Detalle">Se conectará en la próxima etapa</td></tr>
+      <tr><td data-label="Componente">Dominio</td><td data-label="Estado" class="pending">Pendiente</td><td data-label="Detalle">pantallas.nextwork.com.ar</td></tr>
+    </tbody></table></section>
+  </main>
+</div>
+</body>
+</html>
