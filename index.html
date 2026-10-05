@@ -353,6 +353,133 @@
       margin-bottom:14px;flex-wrap:wrap;
     }
     .screens-toolbar-note{font-size:13px;color:#64748b}
+
+    .campaigns-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+    }
+    .campaign-card{
+      background:linear-gradient(180deg,#fff 0%,#fbfcff 100%);
+      border:1px solid #e7ecf5;
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      transition:.2s ease;
+    }
+    .campaign-card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 16px 36px rgba(15,23,42,.11);
+    }
+    .campaign-card-head{
+      padding:18px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      border-bottom:1px solid #eef2f7;
+    }
+    .campaign-main{display:flex;gap:12px;min-width:0}
+    .campaign-icon{
+      width:46px;height:46px;border-radius:14px;
+      display:grid;place-items:center;flex:0 0 46px;
+      background:linear-gradient(135deg,#ede9fe,#e0e7ff);
+      color:#5b21b6;
+    }
+    .campaign-icon svg{
+      width:22px;height:22px;stroke:currentColor;fill:none;
+      stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+    }
+    .campaign-client{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.07em;
+      color:#7c3aed;
+      font-weight:900;
+      margin-bottom:4px;
+    }
+    .campaign-name{
+      font-size:17px;
+      font-weight:900;
+      color:#0f172a;
+      line-height:1.2;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:360px;
+    }
+    .campaign-body{padding:16px 18px 18px}
+    .campaign-info-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+    }
+    .campaign-info{
+      background:#f8fafc;
+      border:1px solid #edf1f6;
+      border-radius:13px;
+      padding:10px 11px;
+    }
+    .campaign-info-label{
+      font-size:9px;
+      text-transform:uppercase;
+      letter-spacing:.09em;
+      color:#94a3b8;
+      font-weight:900;
+      margin-bottom:5px;
+    }
+    .campaign-info-value{
+      font-size:12px;
+      color:#1e293b;
+      font-weight:800;
+      line-height:1.35;
+    }
+    .campaign-progress-wrap{margin-top:14px}
+    .campaign-progress-top{
+      display:flex;justify-content:space-between;align-items:center;
+      font-size:11px;color:#64748b;margin-bottom:7px;
+    }
+    .campaign-progress{
+      height:7px;border-radius:99px;background:#edf1f7;overflow:hidden;
+    }
+    .campaign-progress > span{
+      display:block;height:100%;
+      background:linear-gradient(90deg,#7c3aed,#4f46e5);
+      border-radius:99px;
+    }
+    .campaign-actions{
+      margin-top:15px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      padding-top:14px;
+      border-top:1px solid #eef2f7;
+    }
+    .campaign-actions .btn{
+      padding:8px 10px;
+      font-size:12px;
+      border-radius:10px;
+    }
+    .campaign-empty{
+      grid-column:1/-1;
+      background:white;
+      border:1px dashed #d8dee9;
+      border-radius:18px;
+      padding:34px;
+      text-align:center;
+      color:#64748b;
+    }
+    .campaigns-summary{
+      font-size:13px;
+      color:#64748b;
+      margin-bottom:14px;
+    }
+    @media(max-width:1050px){.campaigns-grid{grid-template-columns:1fr}}
+    @media(max-width:620px){
+      .campaign-info-grid{grid-template-columns:1fr 1fr}
+      .campaign-name{max-width:210px}
+    }
+
     @media(max-width:1200px){.screens-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:760px){.screens-grid{grid-template-columns:1fr}.screen-meta{grid-template-columns:1fr 1fr}}
 
@@ -499,9 +626,13 @@
 
       <section id="page-campanias" class="page hidden">
         <div class="section-title">
-          <h2>Campañas</h2>
-          <button class="btn btn-primary write-campaign" onclick="openCampaniaModal()">Nueva campaña</button>
+          <div>
+            <h2>Campañas</h2>
+            <div class="small" style="margin-top:4px">Gestioná vigencia, frecuencia y estado de cada campaña.</div>
+          </div>
+          <button class="btn btn-primary write-campaign" onclick="openCampaniaModal()">+ Nueva campaña</button>
         </div>
+
         <div class="toolbar">
           <input id="filtroCampania" placeholder="Buscar cliente o campaña">
           <select id="filtroEstado">
@@ -512,12 +643,9 @@
             <option value="finalizada">Finalizada</option>
           </select>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Cliente</th><th>Campaña</th><th>Contenido</th><th>Vigencia</th><th>%</th><th>Estado</th><th>Acciones</th></tr></thead>
-            <tbody id="campaniasBody"></tbody>
-          </table>
-        </div>
+
+        <div id="campaignsSummary" class="campaigns-summary"></div>
+        <div id="campaniasCards" class="campaigns-grid"></div>
       </section>
 
       <section id="page-clientes" class="page hidden">
@@ -823,30 +951,91 @@
       (!est || c.estado === est)
     );
 
-    $('campaniasBody').innerHTML = rows.length ? rows.map(c => {
+    const target = $('campaniasCards');
+    const summary = $('campaignsSummary');
+    if(!target) return;
+
+    if(summary){
+      const activeCount = rows.filter(c => c.estado === 'activa').length;
+      summary.textContent = `${rows.length} campaña${rows.length === 1 ? '' : 's'} mostrada${rows.length === 1 ? '' : 's'} · ${activeCount} activa${activeCount === 1 ? '' : 's'}`;
+    }
+
+    if(!rows.length){
+      target.innerHTML = `<div class="campaign-empty">No hay campañas que coincidan con los filtros.</div>`;
+      return;
+    }
+
+    target.innerHTML = rows.map(c => {
       let actions = '';
+
       if(canWriteCampaign()){
-        actions += `<button class="btn btn-ghost" onclick="editCampania('${c.id}')">✏️</button> `;
+        actions += `<button class="btn btn-outline" onclick="editCampania('${c.id}')">Editar</button>`;
         if(c.estado === 'pausada'){
-          actions += `<button class="btn btn-ghost" onclick="setPausa('${c.id}',false)">▶</button> `;
-        }else if(['activa','proxima'].includes(c.estado)){
-          actions += `<button class="btn btn-ghost" onclick="setPausa('${c.id}',true)">⏸</button> `;
+          actions += `<button class="btn btn-primary" onclick="setPausa('${c.id}',false)">Reactivar</button>`;
+        } else if(['activa','proxima'].includes(c.estado)){
+          actions += `<button class="btn btn-ghost" onclick="setPausa('${c.id}',true)">Pausar</button>`;
         }
       }
+
       if(isAdmin()){
-        actions += `<button class="btn btn-danger" onclick="deleteCampania('${c.id}')">🗑</button>`;
+        actions += `<button class="btn btn-danger" onclick="deleteCampania('${c.id}')">Eliminar</button>`;
       }
+
+      const tipo = (c.tipo_contenido || '').toLowerCase();
+      const icon = tipo === 'video'
+        ? `<svg viewBox="0 0 24 24"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="m17 10 4-2v8l-4-2z"/></svg>`
+        : tipo === 'imagen'
+          ? `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg>`
+          : `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg>`;
+
+      const contentLabel = tipo === 'video' ? 'Video' : tipo === 'imagen' ? 'Imagen' : 'Web';
+      const duration = Number(c.duracion_seg || 0);
+      const durationLabel = duration > 0 ? `${duration}s` : 'Automática';
+      const percent = Number(c.porcentaje || 0);
+
       return `
-      <tr>
-        <td>${c.cliente}</td>
-        <td>${c.campania}</td>
-        <td>${c.tipo_contenido} · ${c.duracion_seg}s</td>
-        <td>${fmtDate(c.fecha_desde)} — ${fmtDate(c.fecha_hasta)}</td>
-        <td>${c.porcentaje}%</td>
-        <td>${badge(c.estado)}</td>
-        <td>${actions}</td>
-      </tr>`;
-    }).join('') : `<tr><td colspan="7" class="empty">Sin campañas</td></tr>`;
+        <article class="campaign-card">
+          <div class="campaign-card-head">
+            <div class="campaign-main">
+              <div class="campaign-icon">${icon}</div>
+              <div style="min-width:0">
+                <div class="campaign-client">${escapeHtml(c.cliente || 'Sin cliente')}</div>
+                <div class="campaign-name" title="${escapeHtml(c.campania || '')}">${escapeHtml(c.campania || 'Sin nombre')}</div>
+              </div>
+            </div>
+            ${badge(c.estado)}
+          </div>
+
+          <div class="campaign-body">
+            <div class="campaign-info-grid">
+              <div class="campaign-info">
+                <div class="campaign-info-label">Contenido</div>
+                <div class="campaign-info-value">${contentLabel} · ${durationLabel}</div>
+              </div>
+              <div class="campaign-info">
+                <div class="campaign-info-label">Desde</div>
+                <div class="campaign-info-value">${fmtDate(c.fecha_desde)}</div>
+              </div>
+              <div class="campaign-info">
+                <div class="campaign-info-label">Hasta</div>
+                <div class="campaign-info-value">${fmtDate(c.fecha_hasta)}</div>
+              </div>
+            </div>
+
+            <div class="campaign-progress-wrap">
+              <div class="campaign-progress-top">
+                <span>Frecuencia de reproducción</span>
+                <strong>${percent}%</strong>
+              </div>
+              <div class="campaign-progress">
+                <span style="width:${Math.min(100, Math.max(0, percent))}%"></span>
+              </div>
+            </div>
+
+            ${actions ? `<div class="campaign-actions">${actions}</div>` : ''}
+          </div>
+        </article>`;
+    }).join('');
   }
 
   async function loadReproducciones(){
