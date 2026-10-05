@@ -274,6 +274,88 @@
     .soft-chip{display:inline-flex;align-items:center;gap:6px;background:#eef2ff;color:#4338ca;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800}
     .logo-tag{display:inline-flex;align-items:center;gap:8px;font-weight:800;color:#4338ca}
     .logo-tag .dot{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#4f46e5)}
+
+    .screens-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:16px;
+    }
+    .screen-card{
+      background:linear-gradient(180deg,#fff 0%,#fbfcff 100%);
+      border:1px solid #e7ecf5;
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      transition:.2s ease;
+    }
+    .screen-card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 16px 36px rgba(15,23,42,.11);
+    }
+    .screen-card-head{
+      padding:18px 18px 14px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      border-bottom:1px solid #eef2f7;
+    }
+    .screen-title-wrap{display:flex;gap:12px;min-width:0}
+    .screen-icon{
+      width:44px;height:44px;border-radius:14px;
+      display:grid;place-items:center;flex:0 0 44px;
+      background:linear-gradient(135deg,#ede9fe,#e0e7ff);
+      color:#5b21b6;
+    }
+    .screen-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .screen-name{font-size:16px;font-weight:900;line-height:1.2;margin:2px 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .screen-location{font-size:12px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .screen-status{
+      display:inline-flex;align-items:center;gap:6px;
+      border-radius:999px;padding:6px 9px;font-size:11px;font-weight:900;
+      white-space:nowrap;
+    }
+    .screen-status::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+    .screen-status.online{background:#dcfce7;color:#15803d}
+    .screen-status.offline{background:#fee2e2;color:#b91c1c}
+    .screen-status.sincronizando{background:#fef3c7;color:#b45309}
+    .screen-status.error{background:#fee2e2;color:#b91c1c}
+    .screen-card-body{padding:16px 18px}
+    .screen-meta{
+      display:grid;grid-template-columns:1fr 1fr;gap:12px;
+    }
+    .screen-meta-item{
+      background:#f8fafc;border:1px solid #edf1f6;border-radius:14px;padding:11px 12px;
+    }
+    .screen-meta-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;font-weight:900;margin-bottom:5px}
+    .screen-meta-value{font-size:13px;color:#1e293b;font-weight:800;line-height:1.35;word-break:break-word}
+    .screen-player{
+      margin-top:12px;padding:12px;border-radius:14px;
+      background:linear-gradient(135deg,#f5f3ff,#eef2ff);
+      border:1px solid #e5e7ff;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    }
+    .screen-player-main{display:flex;align-items:center;gap:10px;min-width:0}
+    .player-dot{width:9px;height:9px;border-radius:50%;background:#7c3aed;box-shadow:0 0 0 4px rgba(124,58,237,.12)}
+    .player-type{font-size:12px;font-weight:900;color:#4338ca}
+    .player-version{font-size:11px;color:#6b7280;margin-top:2px}
+    .screen-last{font-size:11px;color:#64748b;margin-top:12px}
+    .screen-actions{
+      margin-top:14px;display:flex;gap:8px;flex-wrap:wrap
+    }
+    .btn-sm{padding:8px 10px;border-radius:10px;font-size:12px}
+    .btn-outline{
+      background:#fff;color:#334155;border:1px solid #dbe2ec;
+    }
+    .btn-outline:hover{background:#f8fafc}
+    .screens-toolbar{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      margin-bottom:14px;flex-wrap:wrap;
+    }
+    .screens-toolbar-note{font-size:13px;color:#64748b}
+    @media(max-width:1200px){.screens-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:760px){.screens-grid{grid-template-columns:1fr}.screen-meta{grid-template-columns:1fr 1fr}}
+
     @media(max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)} .page-intro{flex-direction:column;align-items:flex-start}}
     @media(max-width:760px){
       .sidebar{width:84px;padding:14px 8px}
@@ -403,15 +485,16 @@
 
       <section id="page-pantallas" class="page hidden">
         <div class="section-title">
-          <h2>Pantallas</h2>
-          <button class="btn btn-primary admin-only" onclick="openPantallaModal()">Nueva pantalla</button>
+          <div>
+            <h2>Pantallas</h2>
+            <div class="small" style="margin-top:4px">Estado, configuración y tipo de reproductor de cada dispositivo.</div>
+          </div>
+          <button class="btn btn-primary admin-only" onclick="openPantallaModal()">+ Nueva pantalla</button>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Nombre</th><th>Ubicación</th><th>Resolución</th><th>Horario</th><th>Estado</th><th>Player</th></tr></thead>
-            <tbody id="pantallasBody"></tbody>
-          </table>
+        <div class="screens-toolbar">
+          <div class="screens-toolbar-note"><span id="screensSummary">Cargando pantallas…</span></div>
         </div>
+        <div id="pantallasCards" class="screens-grid"></div>
       </section>
 
       <section id="page-campanias" class="page hidden">
@@ -623,27 +706,107 @@
   }
 
   async function loadPantallas(){
-    const { data } = await sb
+    const { data, error } = await sb
       .from('pantallas')
-      .select('*, players(ultima_conexion, ultima_sincronizacion, tipo, version_player)')
+      .select('*, players(ultima_conexion, ultima_sincronizacion, tipo, version_player, proveedor, vnnox_player_id, vnnox_sn, vnnox_version, vnnox_online_status)')
       .order('nombre');
+
+    if(error){
+      console.error('Error cargando pantallas:', error);
+    }
+
     cachePantallas = data || [];
-    $('pantallasBody').innerHTML = cachePantallas.length ? cachePantallas.map(p => `
-      <tr>
-        <td>${p.nombre}</td>
-        <td>${p.ubicacion || ''}</td>
-        <td>${p.ancho}×${p.alto}</td>
-        <td>${p.hora_inicio?.slice(0,5)} a ${p.hora_fin?.slice(0,5)}</td>
-        <td>${badge(p.estado)}</td>
-        <td>
-          ${p.players?.length
-            ? `<span class="badge info">${p.players[0].tipo || 'player'} · ${p.players[0].version_player || 'sin versión'}</span>`
-            : (isAdmin()
-                ? `<button class="btn btn-primary" onclick="crearCodigoVinculacion('${p.id}','${escapeHtml(p.nombre)}')">Vincular Player</button>`
-                : '<span class="small">Sin Player</span>')}
-        </td>
-      </tr>
-    `).join('') : `<tr><td colspan="6" class="empty">Sin pantallas</td></tr>`;
+    renderPantallasCards();
+  }
+
+  function playerLabel(tipo){
+    const labels = {
+      windows:'Windows Player',
+      raspberry:'Raspberry Pi',
+      novastar_taurus:'NovaStar Taurus'
+    };
+    return labels[tipo] || tipo || 'Player';
+  }
+
+  function screenStatusClass(estado){
+    return ['online','offline','sincronizando','error'].includes(estado) ? estado : 'offline';
+  }
+
+  function renderPantallasCards(){
+    const target = $('pantallasCards');
+    const summary = $('screensSummary');
+    if(!target) return;
+
+    const online = cachePantallas.filter(p => p.estado === 'online').length;
+    if(summary){
+      summary.textContent = `${cachePantallas.length} pantalla${cachePantallas.length === 1 ? '' : 's'} · ${online} online`;
+    }
+
+    if(!cachePantallas.length){
+      target.innerHTML = `<div class="empty card" style="grid-column:1/-1">Sin pantallas cargadas</div>`;
+      return;
+    }
+
+    target.innerHTML = cachePantallas.map(p => {
+      const player = p.players?.[0] || null;
+      const tipo = playerLabel(player?.tipo);
+      const version = player?.vnnox_version || player?.version_player || 'Sin versión';
+      const provider = player?.proveedor === 'vnnox' ? 'VNNOX' : (player?.tipo ? 'Nextwork Player' : 'Sin vincular');
+      const last = player?.ultima_conexion ? fmtDateTime(player.ultima_conexion) : 'Sin registro';
+      const horario = `${p.hora_inicio?.slice(0,5) || '--:--'} a ${p.hora_fin?.slice(0,5) || '--:--'}`;
+      const statusText = p.estado ? p.estado.charAt(0).toUpperCase() + p.estado.slice(1) : 'Offline';
+
+      return `
+        <article class="screen-card">
+          <div class="screen-card-head">
+            <div class="screen-title-wrap">
+              <div class="screen-icon">
+                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+              </div>
+              <div style="min-width:0">
+                <div class="screen-name" title="${escapeHtml(p.nombre)}">${escapeHtml(p.nombre)}</div>
+                <div class="screen-location">${escapeHtml(p.ubicacion || 'Sin ubicación')}</div>
+              </div>
+            </div>
+            <span class="screen-status ${screenStatusClass(p.estado)}">${statusText}</span>
+          </div>
+
+          <div class="screen-card-body">
+            <div class="screen-meta">
+              <div class="screen-meta-item">
+                <div class="screen-meta-label">Resolución</div>
+                <div class="screen-meta-value">${p.ancho} × ${p.alto} px</div>
+              </div>
+              <div class="screen-meta-item">
+                <div class="screen-meta-label">Horario</div>
+                <div class="screen-meta-value">${horario}</div>
+              </div>
+            </div>
+
+            <div class="screen-player">
+              <div class="screen-player-main">
+                <span class="player-dot"></span>
+                <div>
+                  <div class="player-type">${escapeHtml(tipo)}</div>
+                  <div class="player-version">${escapeHtml(provider)} · ${escapeHtml(version)}</div>
+                </div>
+              </div>
+              ${player?.tipo === 'novastar_taurus' ? '<span class="soft-chip">Taurus</span>' : ''}
+            </div>
+
+            <div class="screen-last">Última conexión: <strong>${last}</strong></div>
+
+            <div class="screen-actions">
+              ${!player && isAdmin()
+                ? `<button class="btn btn-primary btn-sm" onclick="crearCodigoVinculacion('${p.id}','${escapeHtml(p.nombre)}')">Vincular Player</button>`
+                : ''}
+              ${player?.vnnox_player_id
+                ? `<span class="btn btn-outline btn-sm" style="cursor:default">VNNOX vinculado</span>`
+                : ''}
+            </div>
+          </div>
+        </article>`;
+    }).join('');
   }
 
   async function loadCampanias(){
