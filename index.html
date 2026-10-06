@@ -693,6 +693,8 @@
   // =========================================================
   const SUPABASE_URL = 'https://qkstdmskuiclbcrncfun.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_8aaldEBEij2Gqz1tdwet8g_nENYtVym';
+  const VNNOX_API_URL = `${SUPABASE_URL}/functions/v1/vnnox-api`;
+  const PLAYER_ONLINE_WINDOW_MS = 3 * 60 * 1000;
 
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -775,14 +777,17 @@
   }
 
   async function refreshAll(){
+    // Primero cargamos los datos base. Dashboard se calcula después
+    // para evitar que use caches todavía vacías.
     await Promise.all([
       loadClientes(),
-      loadPantallas(),
       loadCampanias(),
       loadReproducciones(),
-      loadUsuarios(),
-      loadDashboard()
+      loadUsuarios()
     ]);
+
+    await loadPantallas();
+    await loadDashboard();
   }
 
   async function loadDashboard(){
@@ -793,14 +798,15 @@
     const start = `${y}-${m}-${d}T00:00:00`;
     const end = `${y}-${m}-${d}T23:59:59.999`;
 
-    const [{ count: pCount }, { count: oCount }, { count: rCount }] = await Promise.all([
+    const [{ count: pCount }, { count: rCount }] = await Promise.all([
       sb.from('pantallas').select('*',{count:'exact',head:true}).eq('activo',true),
-      sb.from('pantallas').select('*',{count:'exact',head:true}).eq('estado','online').eq('activo',true),
       sb.from('reproducciones').select('*',{count:'exact',head:true}).gte('fecha_hora',start).lte('fecha_hora',end)
     ]);
 
+    const onlineCount = cachePantallas.filter(p => p._estadoReal === 'online').length;
+
     $('mPantallas').textContent = pCount || 0;
-    $('mOnline').textContent = oCount || 0;
+    $('mOnline').textContent = onlineCount;
     $('mCampanias').textContent = cacheCampanias.filter(x => x.estado === 'activa').length;
     $('mRepro').textContent = (rCount || 0).toLocaleString('es-AR');
 
@@ -809,8 +815,8 @@
         <td>${p.nombre}</td>
         <td>${p.ubicacion || ''}</td>
         <td>${p.ancho}×${p.alto}</td>
-        <td>${badge(p.estado)}</td>
-        <td>${fmtDateTime(p.players?.[0]?.ultima_conexion)}</td>
+        <td>${badge(p._estadoReal || 'offline')}</td>
+        <td>${p._ultimaConexionReal ? fmtDateTime(p._ultimaConexionReal) : 'Sin conexión reciente'}</td>
       </tr>`).join('') : `<tr><td colspan="5" class="empty">Sin pantallas cargadas</td></tr>`;
 
     const activas = cacheCampanias.filter(c => c.estado === 'activa').slice(0,10);
@@ -844,6 +850,50 @@
     }
 
     cachePantallas = data || [];
+
+    // Consultamos VNNOX en vivo para los Taurus.
+    let vnnoxMap = new Map();
+    try{
+      const response = await fetch(`${VNNOX_API_URL}?action=players`, { cache:'no-store' });
+      if(response.ok){
+        const payload = await response.json();
+        (payload.players || []).forEach(v => vnnoxMap.set(v.playerId, v));
+      }
+    }catch(err){
+      console.warn('No se pudo consultar VNNOX en vivo:', err);
+    }
+
+    const now = Date.now();
+
+    cachePantallas = cachePantallas.map(p => {
+      const player = p.players?.[0] || null;
+      let estadoReal = 'offline';
+      let ultimaConexionReal = player?.ultima_conexion || null;
+
+      if(player?.tipo === 'novastar_taurus' && player?.vnnox_player_id){
+        const live = vnnoxMap.get(player.vnnox_player_id);
+        if(live){
+          estadoReal = Number(live.onlineStatus) === 1 ? 'online' : 'offline';
+          ultimaConexionReal = live.lastOnlineTime
+            ? live.lastOnlineTime.replace(' ', 'T')
+            : ultimaConexionReal;
+        }else{
+          estadoReal = Number(player.vnnox_online_status) === 1 ? 'online' : 'offline';
+        }
+      }else if(player?.ultima_conexion){
+        const lastMs = new Date(player.ultima_conexion).getTime();
+        estadoReal = Number.isFinite(lastMs) && (now - lastMs) <= PLAYER_ONLINE_WINDOW_MS
+          ? 'online'
+          : 'offline';
+      }
+
+      return {
+        ...p,
+        _estadoReal: estadoReal,
+        _ultimaConexionReal: ultimaConexionReal
+      };
+    });
+
     renderPantallasCards();
   }
 
@@ -865,7 +915,7 @@
     const summary = $('screensSummary');
     if(!target) return;
 
-    const online = cachePantallas.filter(p => p.estado === 'online').length;
+    const online = cachePantallas.filter(p => p._estadoReal === 'online').length;
     if(summary){
       summary.textContent = `${cachePantallas.length} pantalla${cachePantallas.length === 1 ? '' : 's'} · ${online} online`;
     }
@@ -880,9 +930,10 @@
       const tipo = playerLabel(player?.tipo);
       const version = player?.vnnox_version || player?.version_player || 'Sin versión';
       const provider = player?.proveedor === 'vnnox' ? 'VNNOX' : (player?.tipo ? 'Nextwork Player' : 'Sin vincular');
-      const last = player?.ultima_conexion ? fmtDateTime(player.ultima_conexion) : 'Sin registro';
+      const last = p._ultimaConexionReal ? fmtDateTime(p._ultimaConexionReal) : 'Sin registro';
       const horario = `${p.hora_inicio?.slice(0,5) || '--:--'} a ${p.hora_fin?.slice(0,5) || '--:--'}`;
-      const statusText = p.estado ? p.estado.charAt(0).toUpperCase() + p.estado.slice(1) : 'Offline';
+      const realStatus = p._estadoReal || 'offline';
+      const statusText = realStatus.charAt(0).toUpperCase() + realStatus.slice(1);
 
       return `
         <article class="screen-card">
@@ -896,7 +947,7 @@
                 <div class="screen-location">${escapeHtml(p.ubicacion || 'Sin ubicación')}</div>
               </div>
             </div>
-            <span class="screen-status ${screenStatusClass(p.estado)}">${statusText}</span>
+            <span class="screen-status ${screenStatusClass(realStatus)}">${statusText}</span>
           </div>
 
           <div class="screen-card-body">
