@@ -1679,6 +1679,16 @@
   }
 
   $('btnLogin').addEventListener('click', login);
+
+  // Permitir iniciar sesión presionando Enter desde correo o contraseña.
+  ['loginEmail','loginPassword'].forEach(id => {
+    $(id).addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        login();
+      }
+    });
+  });
   $('btnLogout').addEventListener('click', logout);
   $('filtroCampania').addEventListener('input', renderCampanias);
   $('filtroEstado').addEventListener('change', renderCampanias);
