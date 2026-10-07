@@ -474,6 +474,75 @@
       color:#64748b;
       margin-bottom:14px;
     }
+
+    .groups-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:16px;
+    }
+    .group-card{
+      background:linear-gradient(180deg,#fff 0%,#fbfcff 100%);
+      border:1px solid #e7ecf5;
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      transition:.2s ease;
+    }
+    .group-card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 16px 36px rgba(15,23,42,.11);
+    }
+    .group-card-head{
+      padding:18px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      border-bottom:1px solid #eef2f7;
+    }
+    .group-title-wrap{display:flex;gap:12px;min-width:0}
+    .group-icon{
+      width:44px;height:44px;border-radius:14px;
+      display:grid;place-items:center;flex:0 0 44px;
+      background:linear-gradient(135deg,#ede9fe,#e0e7ff);
+      color:#5b21b6;
+    }
+    .group-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .group-name{font-size:17px;font-weight:900;color:#0f172a;line-height:1.2}
+    .group-desc{font-size:12px;color:#64748b;margin-top:5px;line-height:1.45}
+    .group-body{padding:16px 18px}
+    .group-stats{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:8px;
+    }
+    .group-stat{
+      background:#f8fafc;border:1px solid #edf1f6;border-radius:13px;
+      padding:10px;text-align:center;
+    }
+    .group-stat strong{display:block;font-size:18px;color:#0f172a}
+    .group-stat span{font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;font-weight:900}
+    .group-actions{
+      margin-top:14px;padding-top:14px;border-top:1px solid #eef2f7;
+      display:flex;gap:8px;flex-wrap:wrap;
+    }
+    .group-screen-list{
+      max-height:220px;
+      overflow:auto;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      padding:10px;
+      background:#f8fafc;
+    }
+    .group-screen-item{
+      display:flex;align-items:center;gap:8px;
+      padding:8px 6px;border-radius:10px;
+    }
+    .group-screen-item:hover{background:#fff}
+    .group-screen-item input{width:auto}
+    @media(max-width:1200px){.groups-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:760px){.groups-grid{grid-template-columns:1fr}.group-stats{grid-template-columns:repeat(2,1fr)}}
+
     @media(max-width:1050px){.campaigns-grid{grid-template-columns:1fr}}
     @media(max-width:620px){
       .campaign-info-grid{grid-template-columns:1fr 1fr}
@@ -558,6 +627,10 @@
     <button class="nav-btn" data-page="reproducciones">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4z"/></svg></span>
       <span class="nav-label">Reproducciones</span>
+    </button>
+    <button class="nav-btn superadmin-only" data-page="grupos">
+      <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 6h6v5H4z"/><path d="M14 6h6v5h-6z"/><path d="M9 15h6v5H9z"/><path d="M7 11v2h10v-2"/><path d="M12 13v2"/></svg></span>
+      <span class="nav-label">Grupos</span>
     </button>
     <button class="nav-btn admin-only" data-page="usuarios">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
@@ -671,6 +744,17 @@
         </div>
       </section>
 
+      <section id="page-grupos" class="page hidden">
+        <div class="section-title">
+          <div>
+            <h2>Grupos de acceso</h2>
+            <div class="small" style="margin-top:4px">Organizá pantallas, clientes, campañas y usuarios por ámbito de acceso.</div>
+          </div>
+          <button class="btn btn-primary superadmin-only" onclick="openGrupoModal()">+ Nuevo grupo</button>
+        </div>
+        <div id="gruposCards" class="groups-grid"></div>
+      </section>
+
       <section id="page-usuarios" class="page hidden">
         <div class="section-title"><h2>Usuarios</h2></div>
         <div class="table-wrap">
@@ -702,6 +786,7 @@
   let cacheClientes = [];
   let cachePantallas = [];
   let cacheCampanias = [];
+  let cacheGrupos = [];
   let pendingContentFile = null;
   let detectedVideoDuration = null;
   let localPreviewUrl = null;
@@ -729,6 +814,9 @@
   }
   function isAdmin(){
     return currentProfile?.rol === 'administrador';
+  }
+  function isSuperAdmin(){
+    return currentProfile?.es_superadmin === true;
   }
 
   async function login(){
@@ -768,6 +856,7 @@
     $('currentRole').textContent = `(${profile.rol})`;
 
     document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin()));
+    document.querySelectorAll('.superadmin-only').forEach(el => el.classList.toggle('hidden', !isSuperAdmin()));
     document.querySelectorAll('.write-campaign').forEach(el => el.classList.toggle('hidden', !canWriteCampaign()));
 
     $('loginView').classList.add('hidden');
@@ -783,7 +872,8 @@
       loadClientes(),
       loadCampanias(),
       loadReproducciones(),
-      loadUsuarios()
+      loadUsuarios(),
+      loadGrupos()
     ]);
 
     await loadPantallas();
@@ -1111,6 +1201,203 @@
     `).join('') : `<tr><td colspan="4" class="empty">Sin reproducciones</td></tr>`;
   }
 
+
+  async function loadGrupos(){
+    if(!isSuperAdmin()){
+      const target = $('gruposCards');
+      if(target) target.innerHTML = '';
+      return;
+    }
+
+    const [
+      { data: grupos, error: gruposError },
+      { data: gp },
+      { data: ug },
+      { data: clientes },
+      { data: campanias }
+    ] = await Promise.all([
+      sb.from('grupos').select('*').order('nombre'),
+      sb.from('grupos_pantallas').select('grupo_id,pantalla_id'),
+      sb.from('usuarios_grupos').select('grupo_id,usuario_id'),
+      sb.from('clientes').select('id,grupo_id'),
+      sb.from('campanias').select('id,grupo_id')
+    ]);
+
+    if(gruposError){
+      console.error('Error cargando grupos:', gruposError);
+      return;
+    }
+
+    cacheGrupos = grupos || [];
+    const target = $('gruposCards');
+    if(!target) return;
+
+    if(!cacheGrupos.length){
+      target.innerHTML = `<div class="campaign-empty">No hay grupos creados.</div>`;
+      return;
+    }
+
+    target.innerHTML = cacheGrupos.map(g => {
+      const pantallas = (gp || []).filter(x => x.grupo_id === g.id).length;
+      const usuarios = (ug || []).filter(x => x.grupo_id === g.id).length;
+      const clientesCount = (clientes || []).filter(x => x.grupo_id === g.id).length;
+      const campaniasCount = (campanias || []).filter(x => x.grupo_id === g.id).length;
+
+      return `
+        <article class="group-card">
+          <div class="group-card-head">
+            <div class="group-title-wrap">
+              <div class="group-icon">
+                <svg viewBox="0 0 24 24"><path d="M4 6h6v5H4z"/><path d="M14 6h6v5h-6z"/><path d="M9 15h6v5H9z"/><path d="M7 11v2h10v-2"/><path d="M12 13v2"/></svg>
+              </div>
+              <div>
+                <div class="group-name">${escapeHtml(g.nombre)}</div>
+                <div class="group-desc">${escapeHtml(g.descripcion || 'Sin descripción')}</div>
+              </div>
+            </div>
+            ${g.activo ? '<span class="badge ok">Activo</span>' : '<span class="badge off">Inactivo</span>'}
+          </div>
+
+          <div class="group-body">
+            <div class="group-stats">
+              <div class="group-stat"><strong>${pantallas}</strong><span>Pantallas</span></div>
+              <div class="group-stat"><strong>${usuarios}</strong><span>Usuarios</span></div>
+              <div class="group-stat"><strong>${clientesCount}</strong><span>Clientes</span></div>
+              <div class="group-stat"><strong>${campaniasCount}</strong><span>Campañas</span></div>
+            </div>
+
+            <div class="group-actions">
+              <button class="btn btn-outline btn-sm" onclick="openGrupoModal('${g.id}')">Editar</button>
+              ${g.nombre !== 'GENERAL'
+                ? `<button class="btn btn-ghost btn-sm" onclick="toggleGrupoActivo('${g.id}',${!g.activo})">${g.activo ? 'Desactivar' : 'Activar'}</button>`
+                : '<span class="soft-chip">Grupo base</span>'}
+            </div>
+          </div>
+        </article>`;
+    }).join('');
+  }
+
+  async function openGrupoModal(id=''){
+    if(!isSuperAdmin()) return;
+
+    let grupo = null;
+    let pantallasAsignadas = [];
+
+    if(id){
+      const [{ data: g, error }, { data: links }] = await Promise.all([
+        sb.from('grupos').select('*').eq('id',id).single(),
+        sb.from('grupos_pantallas').select('pantalla_id').eq('grupo_id',id)
+      ]);
+      if(error){ alert(error.message); return; }
+      grupo = g;
+      pantallasAsignadas = (links || []).map(x => x.pantalla_id);
+    }
+
+    const pantallasHtml = cachePantallas.length
+      ? cachePantallas.map(p => `
+          <label class="group-screen-item">
+            <input type="checkbox" class="groupScreenCheck" value="${p.id}" ${pantallasAsignadas.includes(p.id) ? 'checked' : ''}>
+            <span>${escapeHtml(p.nombre)} <span class="small">· ${escapeHtml(p.ubicacion || '')}</span></span>
+          </label>`).join('')
+      : '<div class="empty">No hay pantallas cargadas.</div>';
+
+    $('modalRoot').innerHTML = `
+      <div class="modal-backdrop">
+        <div class="modal">
+          <h3>${grupo ? 'Editar grupo' : 'Nuevo grupo'}</h3>
+
+          <div class="form-grid">
+            <div class="field">
+              <label>Nombre</label>
+              <input id="gNombre" value="${escapeHtml(grupo?.nombre || '')}" ${grupo?.nombre === 'GENERAL' ? 'readonly' : ''}>
+            </div>
+
+            <div class="field">
+              <label>Estado</label>
+              <select id="gActivo" ${grupo?.nombre === 'GENERAL' ? 'disabled' : ''}>
+                <option value="true" ${grupo?.activo !== false ? 'selected' : ''}>Activo</option>
+                <option value="false" ${grupo?.activo === false ? 'selected' : ''}>Inactivo</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <label>Descripción</label>
+              <input id="gDescripcion" value="${escapeHtml(grupo?.descripcion || '')}" placeholder="Ej. Pantallas y campañas de San Martín de los Andes">
+            </div>
+
+            <div class="field full">
+              <label>Pantallas asignadas</label>
+              <div class="group-screen-list">${pantallasHtml}</div>
+              <div class="small" style="margin-top:7px">Una pantalla puede pertenecer a más de un grupo.</div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveGrupo('${id}')">Guardar</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function saveGrupo(id=''){
+    if(!isSuperAdmin()) return;
+
+    const nombre = $('gNombre').value.trim();
+    const descripcion = $('gDescripcion').value.trim();
+    const activo = $('gActivo') ? $('gActivo').value === 'true' : true;
+    const pantallas = [...document.querySelectorAll('.groupScreenCheck:checked')].map(x => x.value);
+
+    if(!nombre){
+      alert('Ingresá un nombre para el grupo.');
+      return;
+    }
+
+    let grupoId = id;
+
+    if(id){
+      const payload = { descripcion };
+      if(nombre !== 'GENERAL'){
+        payload.nombre = nombre;
+        payload.activo = activo;
+      }
+      const { error } = await sb.from('grupos').update(payload).eq('id',id);
+      if(error){ alert(error.message); return; }
+    }else{
+      const { data, error } = await sb
+        .from('grupos')
+        .insert({ nombre, descripcion, activo })
+        .select('id')
+        .single();
+
+      if(error){ alert(error.message); return; }
+      grupoId = data.id;
+    }
+
+    const { error: deleteError } = await sb
+      .from('grupos_pantallas')
+      .delete()
+      .eq('grupo_id',grupoId);
+
+    if(deleteError){ alert(deleteError.message); return; }
+
+    if(pantallas.length){
+      const rows = pantallas.map(pantalla_id => ({ grupo_id:grupoId, pantalla_id }));
+      const { error: insertError } = await sb.from('grupos_pantallas').insert(rows);
+      if(insertError){ alert(insertError.message); return; }
+    }
+
+    closeModal();
+    await loadGrupos();
+  }
+
+  async function toggleGrupoActivo(id,activo){
+    if(!isSuperAdmin()) return;
+    const { error } = await sb.from('grupos').update({activo}).eq('id',id);
+    if(error){ alert(error.message); return; }
+    await loadGrupos();
+  }
+
   async function loadUsuarios(){
     if(!isAdmin()){
       $('usuariosBody').innerHTML = '';
@@ -1131,6 +1418,12 @@
             <label>Nombre</label>
             <input id="clienteNombre" placeholder="Ej. Sanchu Alvarez">
           </div>
+          <div class="field">
+            <label>Grupo</label>
+            <select id="clienteGrupo">
+              ${cacheGrupos.filter(g => g.activo).map(g => `<option value="${g.id}">${escapeHtml(g.nombre)}</option>`).join('')}
+            </select>
+          </div>
           <div class="actions">
             <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
             <button class="btn btn-primary" onclick="saveCliente()">Guardar</button>
@@ -1141,8 +1434,10 @@
 
   async function saveCliente(){
     const nombre = $('clienteNombre').value.trim();
+    const grupo_id = $('clienteGrupo')?.value;
     if(!nombre) return;
-    const { error } = await sb.from('clientes').insert({nombre});
+    if(!grupo_id){ alert('Seleccioná un grupo.'); return; }
+    const { error } = await sb.from('clientes').insert({nombre, grupo_id});
     if(error){ alert(error.message); return; }
     closeModal();
     await loadClientes();
@@ -1160,6 +1455,12 @@
             <div class="field"><label>Alto LED</label><input id="pAlto" type="number"></div>
             <div class="field"><label>Hora inicio</label><input id="pInicio" type="time" value="06:00"></div>
             <div class="field"><label>Hora fin</label><input id="pFin" type="time" value="01:00"></div>
+            <div class="field full">
+              <label>Grupo inicial</label>
+              <select id="pGrupo">
+                ${cacheGrupos.filter(g => g.activo).map(g => `<option value="${g.id}">${escapeHtml(g.nombre)}</option>`).join('')}
+              </select>
+            </div>
           </div>
           <div class="actions">
             <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
@@ -1178,8 +1479,23 @@
       hora_inicio:$('pInicio').value,
       hora_fin:$('pFin').value
     };
-    const { error } = await sb.from('pantallas').insert(payload);
+    const grupoId = $('pGrupo')?.value;
+    if(!grupoId){ alert('Seleccioná un grupo.'); return; }
+
+    const { data: nuevaPantalla, error } = await sb
+      .from('pantallas')
+      .insert(payload)
+      .select('id')
+      .single();
+
     if(error){ alert(error.message); return; }
+
+    const { error: linkError } = await sb
+      .from('grupos_pantallas')
+      .insert({grupo_id:grupoId, pantalla_id:nuevaPantalla.id});
+
+    if(linkError){ alert(linkError.message); return; }
+
     closeModal();
     await loadPantallas();
     await loadDashboard();
@@ -1193,14 +1509,21 @@
       localPreviewUrl = null;
     }
 
-    const optsClientes = cacheClientes.map(c => `<option value="${c.id}" ${existing?.cliente_id===c.id?'selected':''}>${c.nombre}</option>`).join('');
-    const optsPantallas = cachePantallas.map(p => `<label style="display:block;margin:6px 0"><input class="cpScreen" style="width:auto" type="checkbox" value="${p.id}"> ${p.nombre}</label>`).join('');
+    const selectedGroupId = existing?.grupo_id || cacheClientes.find(c => c.id === existing?.cliente_id)?.grupo_id || cacheGrupos.find(g => g.nombre === 'GENERAL')?.id || cacheGrupos[0]?.id || '';
+    const optsGrupos = cacheGrupos.filter(g => g.activo || g.id === selectedGroupId).map(g => `<option value="${g.id}" ${g.id===selectedGroupId?'selected':''}>${escapeHtml(g.nombre)}</option>`).join('');
+    const optsClientes = cacheClientes.filter(c => !selectedGroupId || c.grupo_id === selectedGroupId).map(c => `<option value="${c.id}" ${existing?.cliente_id===c.id?'selected':''}>${escapeHtml(c.nombre)}</option>`).join('');
+    const optsPantallas = cachePantallas.map(p => `<label style="display:block;margin:6px 0"><input class="cpScreen" style="width:auto" type="checkbox" value="${p.id}"> ${escapeHtml(p.nombre)}</label>`).join('');
 
     $('modalRoot').innerHTML = `
       <div class="modal-backdrop">
         <div class="modal" id="campaniaModal">
           <h3>${existing ? 'Editar':'Nueva'} campaña</h3>
           <div class="form-grid">
+            <div class="field">
+              <label>Grupo</label>
+              <select id="cGrupo" onchange="refreshCampaignClientOptions()">${optsGrupos}</select>
+            </div>
+
             <div class="field">
               <label>Cliente</label>
               <select id="cCliente">${optsClientes}</select>
@@ -1467,10 +1790,24 @@
     });
   }
 
+
+  function refreshCampaignClientOptions(){
+    const grupoId = $('cGrupo')?.value || '';
+    const current = $('cCliente')?.value || '';
+    const clientes = cacheClientes.filter(c => c.grupo_id === grupoId);
+
+    if($('cCliente')){
+      $('cCliente').innerHTML = clientes.map(c =>
+        `<option value="${c.id}" ${c.id===current?'selected':''}>${escapeHtml(c.nombre)}</option>`
+      ).join('');
+    }
+  }
+
   async function saveCampania(id=''){
     const tipo = $('cTipo').value;
     const screens = [...document.querySelectorAll('.cpScreen:checked')].map(x=>x.value);
 
+    const grupoId = $('cGrupo')?.value;
     const clienteId = $('cCliente').value;
     const nombre = $('cNombre').value.trim();
     const desde = $('cDesde').value;
@@ -1478,6 +1815,7 @@
     const porcentaje = Number($('cPorcentaje').value);
     const existingArchivo = $('cExistingArchivo').value.trim();
 
+    if(!grupoId){ alert('Seleccioná un grupo.'); return; }
     if(!clienteId){ alert('Seleccioná un cliente.'); return; }
     if(!nombre){ alert('Ingresá el nombre de la campaña.'); return; }
     if(!desde || !hasta){ alert('Completá las fechas de inicio y finalización.'); return; }
@@ -1533,6 +1871,7 @@
       }
 
       const payload = {
+        grupo_id:grupoId,
         cliente_id:clienteId,
         nombre,
         tipo_contenido:tipo,
@@ -1673,6 +2012,7 @@
       campanias:'Campañas',
       clientes:'Clientes',
       reproducciones:'Reproducciones',
+      grupos:'Grupos',
       usuarios:'Usuarios'
     };
     $('pageTitle').textContent = titles[page] || page;
@@ -1694,6 +2034,10 @@
   $('filtroEstado').addEventListener('change', renderCampanias);
   document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click',()=>showPage(b.dataset.page)));
 
+  window.openGrupoModal = openGrupoModal;
+  window.saveGrupo = saveGrupo;
+  window.toggleGrupoActivo = toggleGrupoActivo;
+  window.refreshCampaignClientOptions = refreshCampaignClientOptions;
   window.openClienteModal = openClienteModal;
   window.saveCliente = saveCliente;
   window.openPantallaModal = openPantallaModal;
