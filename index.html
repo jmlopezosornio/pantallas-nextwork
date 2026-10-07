@@ -543,6 +543,97 @@
     @media(max-width:1200px){.groups-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:760px){.groups-grid{grid-template-columns:1fr}.group-stats{grid-template-columns:repeat(2,1fr)}}
 
+    .user-access-list{
+      display:grid;
+      gap:12px;
+      margin-top:10px;
+    }
+    .user-access-group{
+      border:1px solid #e5e7eb;
+      border-radius:16px;
+      background:#f8fafc;
+      overflow:hidden;
+    }
+    .user-access-group-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 14px;
+      background:#fff;
+      border-bottom:1px solid #eef2f7;
+    }
+    .user-access-group-name{
+      display:flex;
+      align-items:center;
+      gap:9px;
+      font-weight:900;
+      color:#0f172a;
+    }
+    .user-access-body{
+      padding:12px 14px 14px;
+    }
+    .user-access-row{
+      display:grid;
+      grid-template-columns:170px 1fr;
+      gap:12px;
+      align-items:center;
+      margin-bottom:10px;
+    }
+    .user-access-row:last-child{margin-bottom:0}
+    .user-access-label{
+      font-size:12px;
+      font-weight:800;
+      color:#64748b;
+    }
+    .user-screen-options{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+    }
+    .user-screen-option{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:11px;
+      padding:8px 10px;
+      font-size:12px;
+    }
+    .user-screen-option input{width:auto}
+    .user-group-toggle{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      color:#475569;
+      font-weight:800;
+    }
+    .user-group-toggle input{width:auto}
+    .user-access-summary{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .user-chip{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:5px 8px;
+      border-radius:999px;
+      background:#eef2ff;
+      color:#4338ca;
+      font-size:11px;
+      font-weight:800;
+    }
+    @media(max-width:700px){
+      .user-access-row{grid-template-columns:1fr}
+      .user-screen-options{grid-template-columns:1fr}
+    }
+
+
     @media(max-width:1050px){.campaigns-grid{grid-template-columns:1fr}}
     @media(max-width:620px){
       .campaign-info-grid{grid-template-columns:1fr 1fr}
@@ -756,10 +847,15 @@
       </section>
 
       <section id="page-usuarios" class="page hidden">
-        <div class="section-title"><h2>Usuarios</h2></div>
+        <div class="section-title">
+          <div>
+            <h2>Usuarios</h2>
+            <div class="small" style="margin-top:4px">Asigná grupos, rol por grupo y pantallas autorizadas.</div>
+          </div>
+        </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Activo</th></tr></thead>
+            <thead><tr><th>Nombre</th><th>Email</th><th>Accesos</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody id="usuariosBody"></tbody>
           </table>
         </div>
@@ -1403,10 +1499,251 @@
       $('usuariosBody').innerHTML = '';
       return;
     }
-    const { data } = await sb.from('usuarios').select('*').order('nombre');
-    $('usuariosBody').innerHTML = (data || []).map(u => `
-      <tr><td>${u.nombre}</td><td>${u.email}</td><td>${u.rol}</td><td>${u.activo ? 'Sí':'No'}</td></tr>
-    `).join('');
+
+    const [
+      { data: usuarios, error: usuariosError },
+      { data: accesos },
+      { data: grupos }
+    ] = await Promise.all([
+      sb.from('usuarios').select('*').order('nombre'),
+      sb.from('usuarios_grupos').select('usuario_id,grupo_id,rol_grupo,acceso_todas_pantallas'),
+      sb.from('grupos').select('id,nombre')
+    ]);
+
+    if(usuariosError){
+      console.error('Error cargando usuarios:', usuariosError);
+      return;
+    }
+
+    const gruposMap = new Map((grupos || []).map(g => [g.id, g.nombre]));
+
+    $('usuariosBody').innerHTML = (usuarios || []).map(u => {
+      const ua = (accesos || []).filter(a => a.usuario_id === u.id);
+      const chips = ua.length
+        ? ua.map(a => `<span class="user-chip">${escapeHtml(gruposMap.get(a.grupo_id) || 'Grupo')} · ${escapeHtml(a.rol_grupo)}</span>`).join('')
+        : '<span class="small">Sin grupos asignados</span>';
+
+      return `
+        <tr>
+          <td>${escapeHtml(u.nombre || '')}${u.es_superadmin ? '<div class="small" style="color:#7c3aed;font-weight:800;margin-top:3px">Superadministrador</div>' : ''}</td>
+          <td>${escapeHtml(u.email || '')}</td>
+          <td><div class="user-access-summary">${chips}</div></td>
+          <td>${u.activo ? '<span class="badge ok">Activo</span>' : '<span class="badge off">Inactivo</span>'}</td>
+          <td>
+            ${isSuperAdmin()
+              ? `<button class="btn btn-outline btn-sm" onclick="openUsuarioAccesos('${u.id}')">Permisos</button>`
+              : ''}
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  async function openUsuarioAccesos(usuarioId){
+    if(!isSuperAdmin()) return;
+
+    const [
+      { data: usuario, error: userError },
+      { data: grupos },
+      { data: accesos },
+      { data: gruposPantallas },
+      { data: userPantallas }
+    ] = await Promise.all([
+      sb.from('usuarios').select('*').eq('id',usuarioId).single(),
+      sb.from('grupos').select('*').eq('activo',true).order('nombre'),
+      sb.from('usuarios_grupos').select('*').eq('usuario_id',usuarioId),
+      sb.from('grupos_pantallas').select('grupo_id,pantalla_id'),
+      sb.from('usuarios_pantallas').select('pantalla_id').eq('usuario_id',usuarioId)
+    ]);
+
+    if(userError){ alert(userError.message); return; }
+
+    const accessMap = new Map((accesos || []).map(a => [a.grupo_id, a]));
+    const userPantallaSet = new Set((userPantallas || []).map(x => x.pantalla_id));
+
+    const gruposHtml = (grupos || []).map(g => {
+      const access = accessMap.get(g.id);
+      const checked = !!access;
+      const allScreens = access?.acceso_todas_pantallas !== false;
+      const groupScreenIds = (gruposPantallas || []).filter(x => x.grupo_id === g.id).map(x => x.pantalla_id);
+      const pantallas = cachePantallas.filter(p => groupScreenIds.includes(p.id));
+
+      const screensHtml = pantallas.length
+        ? pantallas.map(p => `
+          <label class="user-screen-option">
+            <input
+              type="checkbox"
+              class="userSpecificScreen"
+              data-group-id="${g.id}"
+              value="${p.id}"
+              ${userPantallaSet.has(p.id) ? 'checked' : ''}
+              ${!checked || allScreens ? 'disabled' : ''}>
+            <span>${escapeHtml(p.nombre)} <span class="small">· ${escapeHtml(p.ubicacion || '')}</span></span>
+          </label>`).join('')
+        : '<div class="small">Este grupo no tiene pantallas asignadas.</div>';
+
+      return `
+        <div class="user-access-group" data-group-block="${g.id}">
+          <div class="user-access-group-head">
+            <div class="user-access-group-name">
+              <input
+                type="checkbox"
+                class="userGroupCheck"
+                data-group-id="${g.id}"
+                ${checked ? 'checked' : ''}
+                onchange="toggleUserGroupBlock('${g.id}')"
+                style="width:auto">
+              <span>${escapeHtml(g.nombre)}</span>
+            </div>
+            <span class="soft-chip">${pantallas.length} pantalla${pantallas.length===1?'':'s'}</span>
+          </div>
+
+          <div class="user-access-body ${checked ? '' : 'hidden'}" id="userGroupBody-${g.id}">
+            <div class="user-access-row">
+              <div class="user-access-label">Rol en este grupo</div>
+              <select class="userGroupRole" data-group-id="${g.id}">
+                <option value="administrador" ${access?.rol_grupo==='administrador'?'selected':''}>Administrador</option>
+                <option value="ventas" ${access?.rol_grupo==='ventas'?'selected':''}>Ventas</option>
+                <option value="auditor" ${!access || access?.rol_grupo==='auditor'?'selected':''}>Auditor</option>
+              </select>
+            </div>
+
+            <div class="user-access-row">
+              <div class="user-access-label">Alcance de pantallas</div>
+              <label class="user-group-toggle">
+                <input
+                  type="checkbox"
+                  class="userAllScreens"
+                  data-group-id="${g.id}"
+                  ${allScreens ? 'checked' : ''}
+                  onchange="toggleUserSpecificScreens('${g.id}')">
+                Todas las pantallas del grupo
+              </label>
+            </div>
+
+            <div id="userSpecificScreens-${g.id}" class="user-screen-options ${allScreens ? 'hidden' : ''}">
+              ${screensHtml}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    $('modalRoot').innerHTML = `
+      <div class="modal-backdrop">
+        <div class="modal" style="width:min(920px,100%)">
+          <h3>Permisos de usuario</h3>
+
+          <div class="card" style="margin-bottom:14px">
+            <div style="font-weight:900;font-size:16px">${escapeHtml(usuario.nombre || '')}</div>
+            <div class="small">${escapeHtml(usuario.email || '')}</div>
+          </div>
+
+          ${usuario.es_superadmin ? `
+            <div class="content-box" style="margin-bottom:14px">
+              <strong>Superadministrador</strong>
+              <div class="small" style="margin-top:5px">Este usuario conserva acceso global a todo el sistema. Las asignaciones de grupos se guardan igualmente para referencia.</div>
+            </div>` : ''}
+
+          <div class="field">
+            <label>Grupos y permisos</label>
+            <div class="user-access-list">${gruposHtml || '<div class="empty">No hay grupos activos.</div>'}</div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveUsuarioAccesos('${usuarioId}')">Guardar permisos</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function toggleUserGroupBlock(groupId){
+    const checked = document.querySelector(`.userGroupCheck[data-group-id="${groupId}"]`)?.checked;
+    const body = $(`userGroupBody-${groupId}`);
+    if(body) body.classList.toggle('hidden', !checked);
+
+    if(checked){
+      toggleUserSpecificScreens(groupId);
+    }
+  }
+
+  function toggleUserSpecificScreens(groupId){
+    const groupChecked = document.querySelector(`.userGroupCheck[data-group-id="${groupId}"]`)?.checked;
+    const allChecked = document.querySelector(`.userAllScreens[data-group-id="${groupId}"]`)?.checked ?? true;
+    const wrap = $(`userSpecificScreens-${groupId}`);
+
+    if(wrap) wrap.classList.toggle('hidden', allChecked || !groupChecked);
+
+    document.querySelectorAll(`.userSpecificScreen[data-group-id="${groupId}"]`).forEach(el => {
+      el.disabled = allChecked || !groupChecked;
+    });
+  }
+
+  async function saveUsuarioAccesos(usuarioId){
+    if(!isSuperAdmin()) return;
+
+    const groupChecks = [...document.querySelectorAll('.userGroupCheck:checked')];
+
+    const accessRows = groupChecks.map(chk => {
+      const groupId = chk.dataset.groupId;
+      const role = document.querySelector(`.userGroupRole[data-group-id="${groupId}"]`)?.value || 'auditor';
+      const allScreens = document.querySelector(`.userAllScreens[data-group-id="${groupId}"]`)?.checked ?? true;
+
+      return {
+        usuario_id: usuarioId,
+        grupo_id: groupId,
+        rol_grupo: role,
+        acceso_todas_pantallas: allScreens
+      };
+    });
+
+    const specificScreenIds = [];
+
+    groupChecks.forEach(chk => {
+      const groupId = chk.dataset.groupId;
+      const allScreens = document.querySelector(`.userAllScreens[data-group-id="${groupId}"]`)?.checked ?? true;
+
+      if(!allScreens){
+        document.querySelectorAll(`.userSpecificScreen[data-group-id="${groupId}"]:checked`).forEach(el => {
+          specificScreenIds.push(el.value);
+        });
+      }
+    });
+
+    const { error: deleteGroupsError } = await sb
+      .from('usuarios_grupos')
+      .delete()
+      .eq('usuario_id',usuarioId);
+
+    if(deleteGroupsError){ alert(deleteGroupsError.message); return; }
+
+    if(accessRows.length){
+      const { error: insertGroupsError } = await sb
+        .from('usuarios_grupos')
+        .insert(accessRows);
+
+      if(insertGroupsError){ alert(insertGroupsError.message); return; }
+    }
+
+    const { error: deleteScreensError } = await sb
+      .from('usuarios_pantallas')
+      .delete()
+      .eq('usuario_id',usuarioId);
+
+    if(deleteScreensError){ alert(deleteScreensError.message); return; }
+
+    if(specificScreenIds.length){
+      const uniqueIds = [...new Set(specificScreenIds)];
+      const rows = uniqueIds.map(pantalla_id => ({ usuario_id:usuarioId, pantalla_id }));
+
+      const { error: insertScreensError } = await sb
+        .from('usuarios_pantallas')
+        .insert(rows);
+
+      if(insertScreensError){ alert(insertScreensError.message); return; }
+    }
+
+    closeModal();
+    await Promise.all([loadUsuarios(), loadGrupos()]);
   }
 
   function openClienteModal(){
@@ -2034,6 +2371,10 @@
   $('filtroEstado').addEventListener('change', renderCampanias);
   document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click',()=>showPage(b.dataset.page)));
 
+  window.openUsuarioAccesos = openUsuarioAccesos;
+  window.saveUsuarioAccesos = saveUsuarioAccesos;
+  window.toggleUserGroupBlock = toggleUserGroupBlock;
+  window.toggleUserSpecificScreens = toggleUserSpecificScreens;
   window.openGrupoModal = openGrupoModal;
   window.saveGrupo = saveGrupo;
   window.toggleGrupoActivo = toggleGrupoActivo;
