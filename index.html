@@ -1102,16 +1102,37 @@
   }
 
   async function loadPantallas(){
-    const { data, error } = await sb
-      .from('pantallas')
-      .select('*, players(ultima_conexion, ultima_sincronizacion, tipo, version_player, proveedor, vnnox_player_id, vnnox_sn, vnnox_version, vnnox_online_status)')
-      .order('nombre');
+    // V14: cargamos pantallas y players por separado.
+    // Esto evita depender del embed PostgREST pantallas -> players,
+    // que puede devolver la relación vacía con determinadas políticas RLS.
+    const [
+      { data:pantallas, error:pantallasError },
+      { data:players, error:playersError }
+    ] = await Promise.all([
+      sb.from('pantallas').select('*').order('nombre'),
+      sb.from('players').select('id,pantalla_id,ultima_conexion,ultima_sincronizacion,tipo,version_player,proveedor,vnnox_player_id,vnnox_sn,vnnox_version,vnnox_online_status,estado')
+    ]);
 
-    if(error){
-      console.error('Error cargando pantallas:', error);
+    if(pantallasError){
+      console.error('Error cargando pantallas:', pantallasError);
+    }
+    if(playersError){
+      console.error('Error cargando players:', playersError);
     }
 
-    cachePantallas = data || [];
+    const playersByScreen = new Map();
+    (players || []).forEach(player => {
+      if(!player?.pantalla_id) return;
+      if(!playersByScreen.has(player.pantalla_id)){
+        playersByScreen.set(player.pantalla_id, []);
+      }
+      playersByScreen.get(player.pantalla_id).push(player);
+    });
+
+    cachePantallas = (pantallas || []).map(p => ({
+      ...p,
+      players: playersByScreen.get(p.id) || []
+    }));
 
     // Consultamos VNNOX en vivo para los Taurus.
     let vnnoxMap = new Map();
