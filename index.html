@@ -1025,6 +1025,82 @@
     `).join('') : `<tr><td colspan="2" class="empty">Sin clientes</td></tr>`;
   }
 
+
+  async function getVnnoxAuthHeaders(){
+    const { data } = await sb.auth.getSession();
+    const token = data?.session?.access_token;
+    return token ? { Authorization:`Bearer ${token}` } : {};
+  }
+
+  async function vnnoxRequest(url){
+    const headers = await getVnnoxAuthHeaders();
+    const response = await fetch(url, {
+      cache:'no-store',
+      headers
+    });
+
+    let payload = null;
+    try{
+      payload = await response.json();
+    }catch{
+      payload = { ok:false, error:`Respuesta VNNOX inválida (${response.status})` };
+    }
+
+    if(!response.ok){
+      throw new Error(payload?.error || `VNNOX respondió ${response.status}`);
+    }
+
+    return payload;
+  }
+
+  async function syncTaurusScreen(screenId, showResult=true){
+    try{
+      const payload = await vnnoxRequest(
+        `${VNNOX_API_URL}?action=sync-screen&screenId=${encodeURIComponent(screenId)}`
+      );
+
+      if(showResult){
+        if(payload.synced){
+          const count = payload.activeVideos?.length || 0;
+          alert(`Taurus sincronizado correctamente.\n\nCampañas de video activas: ${count}`);
+        }else{
+          alert(payload.message || 'No hubo cambios para sincronizar.');
+        }
+      }
+
+      return payload;
+    }catch(err){
+      console.error(err);
+      if(showResult){
+        alert(`No se pudo sincronizar el Taurus:\n${err.message || err}`);
+      }
+      return { ok:false, error:err.message || String(err) };
+    }
+  }
+
+  async function syncTaurusScreens(screenIds, showSummary=false){
+    const uniqueIds = [...new Set(screenIds || [])];
+    const taurusIds = uniqueIds.filter(id => {
+      const p = cachePantallas.find(x => x.id === id);
+      return p?.players?.[0]?.tipo === 'novastar_taurus';
+    });
+
+    if(!taurusIds.length) return [];
+
+    const results = [];
+    for(const id of taurusIds){
+      results.push(await syncTaurusScreen(id, false));
+    }
+
+    if(showSummary){
+      const ok = results.filter(r => r?.synced).length;
+      const pending = results.length - ok;
+      alert(`Sincronización Taurus terminada.\n\nCorrectas: ${ok}\nPendientes/error: ${pending}`);
+    }
+
+    return results;
+  }
+
   async function loadPantallas(){
     const { data, error } = await sb
       .from('pantallas')
@@ -1040,11 +1116,8 @@
     // Consultamos VNNOX en vivo para los Taurus.
     let vnnoxMap = new Map();
     try{
-      const response = await fetch(`${VNNOX_API_URL}?action=players`, { cache:'no-store' });
-      if(response.ok){
-        const payload = await response.json();
-        (payload.players || []).forEach(v => vnnoxMap.set(v.playerId, v));
-      }
+      const payload = await vnnoxRequest(`${VNNOX_API_URL}?action=players`);
+      (payload.players || []).forEach(v => vnnoxMap.set(v.playerId, v));
     }catch(err){
       console.warn('No se pudo consultar VNNOX en vivo:', err);
     }
@@ -1166,7 +1239,8 @@
                 ? `<button class="btn btn-primary btn-sm" onclick="crearCodigoVinculacion('${p.id}','${escapeHtml(p.nombre)}')">Vincular Player</button>`
                 : ''}
               ${player?.vnnox_player_id
-                ? `<span class="btn btn-outline btn-sm" style="cursor:default">VNNOX vinculado</span>`
+                ? `<button class="btn btn-primary btn-sm" onclick="syncTaurusScreen('${p.id}',true)">Sincronizar Taurus</button>
+                   <span class="btn btn-outline btn-sm" style="cursor:default">VNNOX vinculado</span>`
                 : ''}
             </div>
           </div>
@@ -2257,6 +2331,22 @@
       await loadCampanias();
       await loadDashboard();
 
+      // Si la campaña apunta a Taurus, publicamos automáticamente
+      // la lista completa activa de esa pantalla.
+      const syncResults = await syncTaurusScreens(screens, false);
+      const failedSyncs = syncResults.filter(r => !r?.synced && !r?.message);
+      if(syncResults.length){
+        const okSyncs = syncResults.filter(r => r?.synced).length;
+        if(okSyncs === syncResults.length){
+          alert('Campaña guardada y Taurus sincronizado correctamente.');
+        }else{
+          alert(`Campaña guardada.
+
+Taurus sincronizados: ${okSyncs}/${syncResults.length}.
+Podés reintentar desde Pantallas.`);
+        }
+      }
+
     }catch(err){
       console.error(err);
       alert(err.message || 'No se pudo guardar la campaña.');
@@ -2321,18 +2411,35 @@
   }
 
   async function setPausa(id,pausada){
+    const { data: links } = await sb
+      .from('campanias_pantallas')
+      .select('pantalla_id')
+      .eq('campania_id',id);
+
     const { error } = await sb.from('campanias').update({pausada}).eq('id',id);
     if(error){ alert(error.message); return; }
+
     await loadCampanias();
     await loadDashboard();
+    await syncTaurusScreens((links || []).map(x => x.pantalla_id), false);
   }
 
   async function deleteCampania(id){
     if(!confirm('¿Está seguro de eliminar esta campaña? Esta acción no se puede deshacer.')) return;
+
+    const { data: links } = await sb
+      .from('campanias_pantallas')
+      .select('pantalla_id')
+      .eq('campania_id',id);
+
+    const affectedScreens = (links || []).map(x => x.pantalla_id);
+
     const { error } = await sb.from('campanias').delete().eq('id',id);
     if(error){ alert(error.message); return; }
+
     await loadCampanias();
     await loadDashboard();
+    await syncTaurusScreens(affectedScreens, false);
   }
 
   function closeModal(){
@@ -2371,6 +2478,7 @@
   $('filtroEstado').addEventListener('change', renderCampanias);
   document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click',()=>showPage(b.dataset.page)));
 
+  window.syncTaurusScreen = syncTaurusScreen;
   window.openUsuarioAccesos = openUsuarioAccesos;
   window.saveUsuarioAccesos = saveUsuarioAccesos;
   window.toggleUserGroupBlock = toggleUserGroupBlock;
