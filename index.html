@@ -2446,7 +2446,9 @@ Podés reintentar desde Pantallas.`);
   }
 
   async function deleteCampania(id){
-    if(!confirm('¿Está seguro de eliminar esta campaña? Esta acción no se puede deshacer.')) return;
+    if(!confirm('¿Está seguro de eliminar esta campaña?
+
+Se archivará para conservar el historial de reproducciones y dejará de formar parte de la programación.')) return;
 
     const { data: links } = await sb
       .from('campanias_pantallas')
@@ -2455,12 +2457,33 @@ Podés reintentar desde Pantallas.`);
 
     const affectedScreens = (links || []).map(x => x.pantalla_id);
 
-    const { error } = await sb.from('campanias').delete().eq('id',id);
+    const { error } = await sb
+      .from('campanias')
+      .update({
+        eliminada:true,
+        pausada:true
+      })
+      .eq('id',id);
+
     if(error){ alert(error.message); return; }
 
     await loadCampanias();
     await loadDashboard();
-    await syncTaurusScreens(affectedScreens, false);
+
+    const results = await syncTaurusScreens(affectedScreens, false);
+
+    if(results.length){
+      const ok = results.filter(r => r?.synced).length;
+      if(ok === results.length){
+        alert('Campaña archivada y Taurus actualizado correctamente.');
+      }else{
+        alert(`Campaña archivada.
+
+Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas.`);
+      }
+    }else{
+      alert('Campaña archivada correctamente.');
+    }
   }
 
   function closeModal(){
