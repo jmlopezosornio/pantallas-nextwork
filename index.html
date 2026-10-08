@@ -1101,6 +1101,29 @@
     return results;
   }
 
+
+  async function diagnosticoTaurusConocido(){
+    try{
+      const payload = await vnnoxRequest(
+        `${VNNOX_API_URL}?action=diagnostic-known-good`
+      );
+
+      const success = payload?.vnnoxResponse?.success || [];
+      const fail = payload?.vnnoxResponse?.fail || [];
+
+      alert(
+        `Diagnóstico Taurus enviado.\n\n` +
+        `VNNOX status: ${payload?.vnnoxStatus ?? '-'}\n` +
+        `Success: ${success.join(', ') || 'ninguno'}\n` +
+        `Fail: ${fail.join(', ') || 'ninguno'}\n\n` +
+        `Esperá 30–60 segundos y verificá la pantalla.`
+      );
+    }catch(err){
+      console.error(err);
+      alert(`Error en diagnóstico Taurus:\n${err.message || err}`);
+    }
+  }
+
   async function loadPantallas(){
     // V14: cargamos pantallas y players por separado.
     // Esto evita depender del embed PostgREST pantallas -> players,
@@ -1261,6 +1284,7 @@
                 : ''}
               ${player?.vnnox_player_id
                 ? `<button class="btn btn-primary btn-sm" onclick="syncTaurusScreen('${p.id}',true)">Sincronizar Taurus</button>
+                   ${isSuperAdmin() ? `<button class="btn btn-outline btn-sm" onclick="diagnosticoTaurusConocido()">Prueba técnica</button>` : ''}
                    <span class="btn btn-outline btn-sm" style="cursor:default">VNNOX vinculado</span>`
                 : ''}
             </div>
@@ -2520,6 +2544,7 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
   $('filtroEstado').addEventListener('change', renderCampanias);
   document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click',()=>showPage(b.dataset.page)));
 
+  window.diagnosticoTaurusConocido = diagnosticoTaurusConocido;
   window.syncTaurusScreen = syncTaurusScreen;
   window.openUsuarioAccesos = openUsuarioAccesos;
   window.saveUsuarioAccesos = saveUsuarioAccesos;
