@@ -1103,6 +1103,48 @@
 
 
 
+
+  async function validarTaurus(screenId){
+    try{
+      const payload = await vnnoxRequest(
+        `${VNNOX_API_URL}?action=validate-screen&screenId=${encodeURIComponent(screenId)}`
+      );
+
+      const lines = [
+        `Validación Taurus`,
+        `Pantalla: ${payload?.screen?.name || '-'}`,
+        `Resolución: ${payload?.screen?.resolution || '-'}`,
+        ``,
+        payload?.compatible ? `RESULTADO: COMPATIBLE` : `RESULTADO: FUERA DE ESPECIFICACIÓN`,
+        ``,
+        `Videos analizados: ${payload?.campaigns?.length || 0}`
+      ];
+
+      (payload?.campaigns || []).forEach((c,i) => {
+        const m = c.metadataUsedForCheck || {};
+        lines.push(
+          `${i+1}. ${c.nombre} | ${m.width}x${m.height} | ${m.codec}/${m.postfix} | ${m.fps}fps | ${m.byteRate} Kbit/s`
+        );
+      });
+
+      if(payload?.validation?.overSpecDetail?.length){
+        lines.push(``, `DETALLE VNNOX:`);
+        payload.validation.overSpecDetail.forEach(d => {
+          lines.push(`Widget ${d.widgetId}: códigos ${(d.overSpecErrorCode || []).join(', ')}`);
+          if(d.recommend){
+            lines.push(`Recomendado: ${JSON.stringify(d.recommend)}`);
+          }
+        });
+      }
+
+      alert(lines.join('\\n'));
+      console.log('Validación VNNOX completa:', payload);
+    }catch(err){
+      console.error(err);
+      alert(`No se pudo validar el Taurus:\\n${err.message || err}`);
+    }
+  }
+
   async function diagnosticoEstadoTaurus(screenId){
     try{
       const payload = await vnnoxRequest(
@@ -1339,7 +1381,8 @@
               ${player?.vnnox_player_id
                 ? `<button class="btn btn-primary btn-sm" onclick="syncTaurusScreen('${p.id}',true)">Sincronizar Taurus</button>
                    ${isSuperAdmin() ? `<button class="btn btn-outline btn-sm" onclick="diagnosticoTaurusConocido()">Prueba técnica</button>
-                   <button class="btn btn-outline btn-sm" onclick="diagnosticoEstadoTaurus('${p.id}')">Diagnóstico</button>` : ''}
+                   <button class="btn btn-outline btn-sm" onclick="diagnosticoEstadoTaurus('${p.id}')">Diagnóstico</button>
+                   <button class="btn btn-outline btn-sm" onclick="validarTaurus('${p.id}')">Validar contenido</button>` : ''}
                    <span class="btn btn-outline btn-sm" style="cursor:default">VNNOX vinculado</span>`
                 : ''}
             </div>
@@ -2599,6 +2642,7 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
   $('filtroEstado').addEventListener('change', renderCampanias);
   document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click',()=>showPage(b.dataset.page)));
 
+  window.validarTaurus = validarTaurus;
   window.diagnosticoEstadoTaurus = diagnosticoEstadoTaurus;
   window.diagnosticoTaurusConocido = diagnosticoTaurusConocido;
   window.syncTaurusScreen = syncTaurusScreen;
