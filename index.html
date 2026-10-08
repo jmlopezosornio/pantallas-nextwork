@@ -2446,9 +2446,7 @@ Podés reintentar desde Pantallas.`);
   }
 
   async function deleteCampania(id){
-    if(!confirm('¿Está seguro de eliminar esta campaña?
-
-Se archivará para conservar el historial de reproducciones y dejará de formar parte de la programación.')) return;
+    if(!confirm('¿Está seguro de eliminar esta campaña?\n\nSe archivará para conservar el historial de reproducciones y dejará de formar parte de la programación.')) return;
 
     const { data: links } = await sb
       .from('campanias_pantallas')
