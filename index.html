@@ -1102,6 +1102,60 @@
   }
 
 
+
+  async function diagnosticoEstadoTaurus(screenId){
+    try{
+      const payload = await vnnoxRequest(
+        `${VNNOX_API_URL}?action=diagnostic-status&screenId=${encodeURIComponent(screenId)}`
+      );
+
+      const onlineRow = Array.isArray(payload?.online?.data)
+        ? payload.online.data[0]
+        : null;
+
+      const basic = payload?.running?.data?.basic || {};
+      const monitor = payload?.screenMonitor?.data || {};
+      const basics = payload?.basics?.data || {};
+
+      const lines = [
+        `Pantalla: ${payload?.screen?.name || '-'}`,
+        `Resolución NextWork: ${payload?.screen?.configuredResolution || '-'}`,
+        `Player ID: ${payload?.player?.id || '-'}`,
+        `SN: ${payload?.player?.sn || '-'}`,
+        ``,
+        `ONLINE`,
+        `onlineStatus: ${onlineRow?.onlineStatus ?? '-'}`,
+        `lastOnlineTime: ${onlineRow?.lastOnlineTime ?? '-'}`,
+        ``,
+        `RUNNING`,
+        `playingStatus: ${basic?.playingStatus ?? '-'}`,
+        `screenStatus: ${basic?.screenStatus ?? '-'}`,
+        `resolutionRatio: ${basic?.resolutionRatio ?? '-'}`,
+        `availableMemory: ${basic?.availableMemory ?? '-'}`,
+        `availableStorageSpace: ${basic?.availableStorageSpace ?? '-'}`,
+        `volume: ${basic?.volume ?? '-'}`,
+        ``,
+        `SCREEN MONITOR`,
+        `width: ${monitor?.width ?? '-'}`,
+        `height: ${monitor?.height ?? '-'}`,
+        `brightness: ${monitor?.brightness ?? '-'}`,
+        ``,
+        `BASICS`,
+        `status: ${basics?.status ?? '-'}`,
+        `signalSource: ${basics?.signalSource ?? '-'}`,
+        `version: ${basics?.version ?? '-'}`
+      ];
+
+      alert(lines.join('\\n'));
+      console.log('Diagnóstico Taurus completo:', payload);
+      return payload;
+    }catch(err){
+      console.error(err);
+      alert(`Error en diagnóstico de estado Taurus:\\n${err.message || err}`);
+      return null;
+    }
+  }
+
   async function diagnosticoTaurusConocido(){
     try{
       const payload = await vnnoxRequest(
@@ -1284,7 +1338,8 @@
                 : ''}
               ${player?.vnnox_player_id
                 ? `<button class="btn btn-primary btn-sm" onclick="syncTaurusScreen('${p.id}',true)">Sincronizar Taurus</button>
-                   ${isSuperAdmin() ? `<button class="btn btn-outline btn-sm" onclick="diagnosticoTaurusConocido()">Prueba técnica</button>` : ''}
+                   ${isSuperAdmin() ? `<button class="btn btn-outline btn-sm" onclick="diagnosticoTaurusConocido()">Prueba técnica</button>
+                   <button class="btn btn-outline btn-sm" onclick="diagnosticoEstadoTaurus('${p.id}')">Diagnóstico</button>` : ''}
                    <span class="btn btn-outline btn-sm" style="cursor:default">VNNOX vinculado</span>`
                 : ''}
             </div>
@@ -2544,6 +2599,7 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
   $('filtroEstado').addEventListener('change', renderCampanias);
   document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click',()=>showPage(b.dataset.page)));
 
+  window.diagnosticoEstadoTaurus = diagnosticoEstadoTaurus;
   window.diagnosticoTaurusConocido = diagnosticoTaurusConocido;
   window.syncTaurusScreen = syncTaurusScreen;
   window.openUsuarioAccesos = openUsuarioAccesos;
