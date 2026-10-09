@@ -1506,7 +1506,7 @@
       let actions = '';
 
       if(canWriteCampaign()){
-        if(getCampaignTaurusScreens(c.id).length && c.tipo_contenido === 'video'){
+        if(c.tipo_contenido === 'video'){
           actions += `<button class="btn btn-primary" onclick="openPlayCampaignNow('${c.id}')">Reproducir ahora</button>`;
         }
         actions += `<button class="btn btn-outline" onclick="editCampania('${c.id}')">Editar</button>`;
@@ -2640,17 +2640,47 @@ Podés reintentar desde Pantallas.`);
   }
 
 
-  function getCampaignTaurusScreens(campaignId){
-    const camp = cacheCampanias.find(c => c.id === campaignId);
-    if(!camp) return [];
+  async function getCampaignTaurusScreensLive(campaignId){
+    const { data: links, error: linksError } = await sb
+      .from('campanias_pantallas')
+      .select('pantalla_id')
+      .eq('campania_id', campaignId);
 
-    const assignedIds = (camp.campanias_pantallas || []).map(x => x.pantalla_id);
+    if(linksError){
+      console.error('Error leyendo pantallas de campaña:', linksError);
+      return [];
+    }
 
-    return cachePantallas.filter(p => {
-      if(!assignedIds.includes(p.id)) return false;
-      const player = p.players?.[0];
-      return player?.tipo === 'novastar_taurus' && player?.vnnox_player_id;
-    });
+    const ids = (links || []).map(x => x.pantalla_id);
+    if(!ids.length) return [];
+
+    const { data: pantallas, error: pantallasError } = await sb
+      .from('pantallas')
+      .select('id,nombre,ubicacion')
+      .in('id', ids);
+
+    if(pantallasError){
+      console.error('Error leyendo pantallas:', pantallasError);
+      return [];
+    }
+
+    const { data: players, error: playersError } = await sb
+      .from('players')
+      .select('pantalla_id,tipo,vnnox_player_id')
+      .in('pantalla_id', ids);
+
+    if(playersError){
+      console.error('Error leyendo players:', playersError);
+      return [];
+    }
+
+    const taurusByScreen = new Map(
+      (players || [])
+        .filter(p => p.tipo === 'novastar_taurus' && p.vnnox_player_id)
+        .map(p => [p.pantalla_id, p])
+    );
+
+    return (pantallas || []).filter(p => taurusByScreen.has(p.id));
   }
 
   async function playCampaignNowOnScreen(campaignId, screenId){
@@ -2682,7 +2712,7 @@ Podés reintentar desde Pantallas.`);
     }
   }
 
-  function openPlayCampaignNow(campaignId){
+  async function openPlayCampaignNow(campaignId){
     const camp = cacheCampanias.find(c => c.id === campaignId);
     if(!camp) return;
 
@@ -2691,10 +2721,10 @@ Podés reintentar desde Pantallas.`);
       return;
     }
 
-    const screens = getCampaignTaurusScreens(campaignId);
+    const screens = await getCampaignTaurusScreensLive(campaignId);
 
     if(!screens.length){
-      alert('Esta campaña no tiene una pantalla Taurus vinculada.');
+      alert('Esta campaña no tiene una pantalla Taurus vinculada o asignada. Revisá la asignación de pantallas de la campaña.');
       return;
     }
 
