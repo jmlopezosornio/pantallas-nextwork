@@ -1105,6 +1105,34 @@
 
 
 
+
+  async function pruebaInmediataTaurus(screenId){
+    try{
+      const payload = await vnnoxRequest(
+        `${VNNOX_API_URL}?action=emergency-test&screenId=${encodeURIComponent(screenId)}`
+      );
+
+      const success = payload?.vnnoxResponse?.success || [];
+      const fail = payload?.vnnoxResponse?.fail || [];
+
+      alert(
+        `Prueba inmediata Taurus\n\n` +
+        `Campaña: ${payload?.campaign?.nombre || '-'}\n` +
+        `HTTP: ${payload?.vnnoxStatus ?? '-'}\n` +
+        `Success: ${success.join(', ') || '-'}\n` +
+        `Fail: ${fail.join(', ') || '-'}\n\n` +
+        `Mirá la pantalla durante los próximos ${Math.round((payload?.campaign?.durationMs || 15000)/1000)} segundos.`
+      );
+
+      console.log('Prueba inmediata Taurus:', payload);
+      return payload;
+    }catch(err){
+      console.error(err);
+      alert(`No se pudo ejecutar la prueba inmediata:\n${err.message || err}`);
+      return null;
+    }
+  }
+
   async function reactivarTaurus(screenId){
     try{
       const payload = await vnnoxRequest(
@@ -1436,7 +1464,8 @@
                    ${isSuperAdmin() ? `<button class="btn btn-outline btn-sm" onclick="diagnosticoTaurusConocido()">Prueba técnica</button>
                    <button class="btn btn-outline btn-sm" onclick="diagnosticoEstadoTaurus('${p.id}')">Diagnóstico</button>
                    <button class="btn btn-outline btn-sm" onclick="validarTaurus('${p.id}')">Validar contenido</button>
-                   <button class="btn btn-primary btn-sm" onclick="reactivarTaurus('${p.id}')">Reactivar reproducción</button>` : ''}
+                   <button class="btn btn-primary btn-sm" onclick="reactivarTaurus('${p.id}')">Reactivar reproducción</button>
+                   <button class="btn btn-primary btn-sm" onclick="pruebaInmediataTaurus('${p.id}')">Prueba inmediata</button>` : ''}
                    <span class="btn btn-outline btn-sm" style="cursor:default">VNNOX vinculado</span>`
                 : ''}
             </div>
@@ -2696,6 +2725,7 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
   $('filtroEstado').addEventListener('change', renderCampanias);
   document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click',()=>showPage(b.dataset.page)));
 
+  window.pruebaInmediataTaurus = pruebaInmediataTaurus;
   window.reactivarTaurus = reactivarTaurus;
   window.validarTaurus = validarTaurus;
   window.diagnosticoEstadoTaurus = diagnosticoEstadoTaurus;
