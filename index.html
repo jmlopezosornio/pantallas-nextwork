@@ -1506,6 +1506,9 @@
       let actions = '';
 
       if(canWriteCampaign()){
+        if(getCampaignTaurusScreens(c.id).length && c.tipo_contenido === 'video'){
+          actions += `<button class="btn btn-primary" onclick="openPlayCampaignNow('${c.id}')">Reproducir ahora</button>`;
+        }
         actions += `<button class="btn btn-outline" onclick="editCampania('${c.id}')">Editar</button>`;
         if(c.estado === 'pausada'){
           actions += `<button class="btn btn-primary" onclick="setPausa('${c.id}',false)">Reactivar</button>`;
@@ -2636,6 +2639,100 @@ Podés reintentar desde Pantallas.`);
       </div>`;
   }
 
+
+  function getCampaignTaurusScreens(campaignId){
+    const camp = cacheCampanias.find(c => c.id === campaignId);
+    if(!camp) return [];
+
+    const assignedIds = (camp.campanias_pantallas || []).map(x => x.pantalla_id);
+
+    return cachePantallas.filter(p => {
+      if(!assignedIds.includes(p.id)) return false;
+      const player = p.players?.[0];
+      return player?.tipo === 'novastar_taurus' && player?.vnnox_player_id;
+    });
+  }
+
+  async function playCampaignNowOnScreen(campaignId, screenId){
+    try{
+      const payload = await vnnoxRequest(
+        `${VNNOX_API_URL}?action=play-campaign-now&campaignId=${encodeURIComponent(campaignId)}&screenId=${encodeURIComponent(screenId)}`
+      );
+
+      const success = payload?.vnnoxResponse?.success || [];
+      const fail = payload?.vnnoxResponse?.fail || [];
+
+      if(payload?.ok){
+        alert(
+          `Reproducción enviada correctamente.\n\n` +
+          `Campaña: ${payload?.campaign?.name || '-'}\n` +
+          `Pantalla: ${payload?.screen?.name || '-'}\n` +
+          `Duración: ${Math.round((payload?.campaign?.durationMs || 0)/1000)} s\n` +
+          `VNNOX: ${success.join(', ') || 'OK'}`
+        );
+      }else{
+        alert(
+          `VNNOX no confirmó la reproducción.\n\n` +
+          `Fail: ${fail.join(', ') || '-'}`
+        );
+      }
+    }catch(err){
+      console.error(err);
+      alert(`No se pudo reproducir la campaña:\n${err.message || err}`);
+    }
+  }
+
+  function openPlayCampaignNow(campaignId){
+    const camp = cacheCampanias.find(c => c.id === campaignId);
+    if(!camp) return;
+
+    if(camp.tipo_contenido !== 'video'){
+      alert('Por ahora Reproducir ahora en Taurus está disponible para campañas de video.');
+      return;
+    }
+
+    const screens = getCampaignTaurusScreens(campaignId);
+
+    if(!screens.length){
+      alert('Esta campaña no tiene una pantalla Taurus vinculada.');
+      return;
+    }
+
+    if(screens.length === 1){
+      playCampaignNowOnScreen(campaignId, screens[0].id);
+      return;
+    }
+
+    $('modalRoot').innerHTML = `
+      <div class="modal-backdrop">
+        <div class="modal">
+          <h3>Reproducir ahora</h3>
+          <div class="small" style="margin-bottom:12px">${escapeHtml(camp.nombre)}</div>
+
+          <div class="field">
+            <label>Pantalla Taurus</label>
+            <select id="playNowScreen">
+              ${screens.map(p =>
+                `<option value="${p.id}">${escapeHtml(p.nombre)} · ${escapeHtml(p.ubicacion || '')}</option>`
+              ).join('')}
+            </select>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="confirmPlayCampaignNow('${campaignId}')">Reproducir ahora</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function confirmPlayCampaignNow(campaignId){
+    const screenId = $('playNowScreen')?.value;
+    if(!screenId) return;
+    closeModal();
+    await playCampaignNowOnScreen(campaignId, screenId);
+  }
+
   async function setPausa(id,pausada){
     const { data: links } = await sb
       .from('campanias_pantallas')
@@ -2725,6 +2822,8 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
   $('filtroEstado').addEventListener('change', renderCampanias);
   document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click',()=>showPage(b.dataset.page)));
 
+  window.openPlayCampaignNow = openPlayCampaignNow;
+  window.confirmPlayCampaignNow = confirmPlayCampaignNow;
   window.pruebaInmediataTaurus = pruebaInmediataTaurus;
   window.reactivarTaurus = reactivarTaurus;
   window.validarTaurus = validarTaurus;
