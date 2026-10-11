@@ -3190,8 +3190,8 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
     });
   });
   $('btnLogout').addEventListener('click', logout);
-  $('filtroCampania').addEventListener('input', renderCampanias);
-  $('filtroEstado').addEventListener('change', renderCampanias);
+  $('filtroCampania')?.addEventListener('input', renderCampanias);
+  $('filtroTipo')?.addEventListener('change', renderCampanias);
   document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click',()=>showPage(b.dataset.page)));
 
   window.openPlayCampaignNow = openPlayCampaignNow;
