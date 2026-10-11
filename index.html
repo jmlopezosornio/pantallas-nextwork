@@ -835,7 +835,7 @@
       position:absolute;
       top:40px;
       left:0;
-      min-width:150px;
+      min-width:190px;
       background:#fff;
       border:1px solid #dbe3ee;
       border-radius:10px;
@@ -843,19 +843,24 @@
       padding:6px;
       z-index:30;
       display:none;
+      flex-direction:column;
+      align-items:stretch;
+      gap:2px;
     }
-    .campaign-menu.open{display:block}
+    .campaign-menu.open{display:flex}
     .campaign-menu button{
+      display:block;
       width:100%;
       border:0;
       background:transparent;
       text-align:left;
-      padding:9px 10px;
+      padding:10px 12px;
       border-radius:7px;
       cursor:pointer;
       color:#334155;
       font-size:13px;
       font-weight:700;
+      white-space:nowrap;
     }
     .campaign-menu button:hover{background:#f8fafc}
     .campaign-menu button.danger{color:#b91c1c}
