@@ -866,6 +866,117 @@
     .campaign-menu button.danger{color:#b91c1c}
     .campaign-menu button.danger:hover{background:#fef2f2}
 
+
+    /* ===== V25.6: evitar scroll horizontal en Campañas ===== */
+    html, body {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    .app,
+    .app-main,
+    .main,
+    .content,
+    .page,
+    #page-campanias {
+      min-width: 0 !important;
+      max-width: 100% !important;
+    }
+
+    .campaign-list-wrap{
+      width:100%;
+      max-width:100%;
+      overflow-x:hidden;
+    }
+
+    .campaign-list{
+      width:100%;
+      min-width:0 !important;
+      table-layout:fixed;
+    }
+
+    .campaign-list th,
+    .campaign-list td{
+      padding:10px 8px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .campaign-list th:nth-child(1),
+    .campaign-list td:nth-child(1){width:8%}
+    .campaign-list th:nth-child(2),
+    .campaign-list td:nth-child(2){width:14%}
+    .campaign-list th:nth-child(3),
+    .campaign-list td:nth-child(3){width:10%}
+    .campaign-list th:nth-child(4),
+    .campaign-list td:nth-child(4){width:22%}
+    .campaign-list th:nth-child(5),
+    .campaign-list td:nth-child(5){width:11%}
+    .campaign-list th:nth-child(6),
+    .campaign-list td:nth-child(6){width:11%}
+    .campaign-list th:nth-child(7),
+    .campaign-list td:nth-child(7){width:9%}
+    .campaign-list th:nth-child(8),
+    .campaign-list td:nth-child(8){width:9%}
+    .campaign-list th:nth-child(9),
+    .campaign-list td:nth-child(9){width:6%}
+
+    .campaign-screens-cell{
+      max-width:none;
+      white-space:normal !important;
+    }
+
+    .campaign-screens-cell .screen-pill{
+      max-width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      vertical-align:middle;
+    }
+
+    @media(max-width:1400px){
+      .campaign-list th,
+      .campaign-list td{
+        padding:9px 6px;
+        font-size:12px;
+      }
+
+      .campaign-list th{
+        font-size:10px;
+      }
+
+      .campaign-tab{
+        padding:12px 12px 10px;
+        font-size:13px;
+      }
+
+      .campaign-tab-count{
+        min-width:22px;
+        height:22px;
+        padding:0 6px;
+        font-size:10px;
+      }
+
+      .toolbar input,
+      .toolbar select{
+        min-width:0 !important;
+      }
+    }
+
+    @media(max-width:1100px){
+      .campaign-list th:nth-child(3),
+      .campaign-list td:nth-child(3){
+        display:none;
+      }
+
+      .campaign-list th:nth-child(2),
+      .campaign-list td:nth-child(2){width:18%}
+
+      .campaign-list th:nth-child(4),
+      .campaign-list td:nth-child(4){width:25%}
+    }
+
 </style>
 </head>
 <body>
