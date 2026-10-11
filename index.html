@@ -1130,6 +1130,277 @@
       }
     }
 
+
+    /* ===== V25.8: Pantallas en lista agrupada ===== */
+    .screens-list{
+      display:flex;
+      flex-direction:column;
+      gap:22px;
+      width:100%;
+    }
+
+    .screen-group-block{
+      background:#fff;
+      border-top:1px solid #e7ecf5;
+    }
+
+    .screen-group-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 4px 10px;
+      color:#64748b;
+    }
+
+    .screen-group-title{
+      display:flex;
+      align-items:center;
+      gap:9px;
+      font-size:13px;
+      font-weight:900;
+      color:#334155;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+
+    .screen-group-dot{
+      width:9px;
+      height:9px;
+      border-radius:999px;
+      background:#6d4aff;
+      box-shadow:0 0 0 4px #efeaff;
+    }
+
+    .screen-group-count{
+      font-size:12px;
+      color:#94a3b8;
+      font-weight:800;
+    }
+
+    .screen-list-table{
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+      background:#fff;
+    }
+
+    .screen-list-table th{
+      padding:10px 12px;
+      border-bottom:1px solid #e7ecf5;
+      color:#64748b;
+      font-size:10px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.055em;
+      text-align:left;
+      background:#f8fafc;
+    }
+
+    .screen-list-table td{
+      padding:13px 12px;
+      border-bottom:1px solid #edf1f6;
+      vertical-align:middle;
+      font-size:12.5px;
+      color:#334155;
+    }
+
+    .screen-list-row{
+      cursor:pointer;
+      transition:background .15s ease;
+    }
+
+    .screen-list-row:hover td{
+      background:#fafbff;
+    }
+
+    .screen-list-name{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+
+    .screen-list-icon{
+      width:34px;
+      height:34px;
+      border-radius:10px;
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+      background:#f1edff;
+      color:#5b35d5;
+    }
+
+    .screen-list-icon svg{
+      width:18px;
+      height:18px;
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.8;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+
+    .screen-list-main{
+      min-width:0;
+    }
+
+    .screen-list-title{
+      font-weight:900;
+      color:#0f172a;
+      white-space:normal;
+      line-height:1.2;
+    }
+
+    .screen-list-location{
+      margin-top:3px;
+      color:#64748b;
+      font-size:11.5px;
+    }
+
+    .screen-list-player{
+      font-weight:800;
+      color:#334155;
+    }
+
+    .screen-list-sub{
+      margin-top:3px;
+      color:#94a3b8;
+      font-size:11px;
+    }
+
+    .screen-open{
+      text-align:right;
+      font-size:22px;
+      color:#94a3b8;
+      font-weight:400;
+    }
+
+    .screen-list-table th:nth-child(1),
+    .screen-list-table td:nth-child(1){width:30%}
+    .screen-list-table th:nth-child(2),
+    .screen-list-table td:nth-child(2){width:16%}
+    .screen-list-table th:nth-child(3),
+    .screen-list-table td:nth-child(3){width:18%}
+    .screen-list-table th:nth-child(4),
+    .screen-list-table td:nth-child(4){width:15%}
+    .screen-list-table th:nth-child(5),
+    .screen-list-table td:nth-child(5){width:16%}
+    .screen-list-table th:nth-child(6),
+    .screen-list-table td:nth-child(6){width:5%}
+
+    .screen-detail-modal{
+      width:min(820px,100%);
+    }
+
+    .screen-detail-head{
+      display:flex;
+      justify-content:space-between;
+      gap:18px;
+      align-items:flex-start;
+      padding-bottom:18px;
+      border-bottom:1px solid #edf1f6;
+      margin-bottom:18px;
+    }
+
+    .screen-detail-title{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+
+    .screen-detail-title h3{
+      margin:0;
+    }
+
+    .screen-detail-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:18px;
+    }
+
+    .screen-detail-item{
+      padding:13px 14px;
+      border:1px solid #e7ecf5;
+      border-radius:13px;
+      background:#fafbff;
+    }
+
+    .screen-detail-label{
+      color:#94a3b8;
+      font-size:10px;
+      text-transform:uppercase;
+      font-weight:900;
+      letter-spacing:.06em;
+      margin-bottom:5px;
+    }
+
+    .screen-detail-value{
+      color:#1e293b;
+      font-size:13px;
+      font-weight:850;
+      overflow-wrap:anywhere;
+    }
+
+    .screen-detail-actions{
+      border-top:1px solid #edf1f6;
+      padding-top:17px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .screen-detail-actions-title{
+      width:100%;
+      margin-bottom:3px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:#94a3b8;
+      font-weight:900;
+    }
+
+    @media(max-width:1100px){
+      .screen-list-table th:nth-child(4),
+      .screen-list-table td:nth-child(4){
+        display:none;
+      }
+
+      .screen-list-table th:nth-child(1),
+      .screen-list-table td:nth-child(1){width:35%}
+      .screen-list-table th:nth-child(2),
+      .screen-list-table td:nth-child(2){width:18%}
+      .screen-list-table th:nth-child(3),
+      .screen-list-table td:nth-child(3){width:21%}
+      .screen-list-table th:nth-child(5),
+      .screen-list-table td:nth-child(5){width:21%}
+      .screen-list-table th:nth-child(6),
+      .screen-list-table td:nth-child(6){width:5%}
+    }
+
+    @media(max-width:760px){
+      .screen-list-table th:nth-child(3),
+      .screen-list-table td:nth-child(3),
+      .screen-list-table th:nth-child(5),
+      .screen-list-table td:nth-child(5){
+        display:none;
+      }
+
+      .screen-list-table th:nth-child(1),
+      .screen-list-table td:nth-child(1){width:62%}
+      .screen-list-table th:nth-child(2),
+      .screen-list-table td:nth-child(2){width:30%}
+      .screen-list-table th:nth-child(6),
+      .screen-list-table td:nth-child(6){width:8%}
+
+      .screen-detail-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
 </style>
 </head>
 <body>
@@ -1268,7 +1539,7 @@
         <div class="screens-toolbar">
           <div class="screens-toolbar-note"><span id="screensSummary">Cargando pantallas…</span></div>
         </div>
-        <div id="pantallasCards" class="screens-grid"></div>
+        <div id="pantallasCards" class="screens-list"></div>
       </section>
 
       <section id="page-campanias" class="page hidden">
@@ -1391,6 +1662,7 @@
   let cachePantallas = [];
   let cacheCampanias = [];
   let cacheGrupos = [];
+  let screenGroupsMap = {};
   let pendingContentFile = null;
   let detectedVideoDuration = null;
   let localPreviewUrl = null;
@@ -1899,10 +2171,12 @@
     // que puede devolver la relación vacía con determinadas políticas RLS.
     const [
       { data:pantallas, error:pantallasError },
-      { data:players, error:playersError }
+      { data:players, error:playersError },
+      { data:groupLinks, error:groupLinksError }
     ] = await Promise.all([
       sb.from('pantallas').select('*').order('nombre'),
-      sb.from('players').select('id,pantalla_id,ultima_conexion,ultima_sincronizacion,tipo,version_player,proveedor,vnnox_player_id,vnnox_sn,vnnox_version,vnnox_online_status,estado')
+      sb.from('players').select('id,pantalla_id,ultima_conexion,ultima_sincronizacion,tipo,version_player,proveedor,vnnox_player_id,vnnox_sn,vnnox_version,vnnox_online_status,estado'),
+      sb.from('grupos_pantallas').select('grupo_id,pantalla_id')
     ]);
 
     if(pantallasError){
@@ -1910,6 +2184,15 @@
     }
     if(playersError){
       console.error('Error cargando players:', playersError);
+    }
+    if(groupLinksError){
+      console.error('Error cargando grupos de pantallas:', groupLinksError);
+    }
+
+    screenGroupsMap = {};
+    for(const link of (groupLinks || [])){
+      if(!screenGroupsMap[link.pantalla_id]) screenGroupsMap[link.pantalla_id] = [];
+      screenGroupsMap[link.pantalla_id].push(link.grupo_id);
     }
 
     const playersByScreen = new Map();
@@ -1993,77 +2276,188 @@
     }
 
     if(!cachePantallas.length){
-      target.innerHTML = `<div class="empty card" style="grid-column:1/-1">Sin pantallas cargadas</div>`;
+      target.innerHTML = `<div class="empty">Sin pantallas cargadas</div>`;
       return;
     }
 
-    target.innerHTML = cachePantallas.map(p => {
-      const player = p.players?.[0] || null;
-      const tipo = playerLabel(player?.tipo);
-      const version = player?.vnnox_version || player?.version_player || 'Sin versión';
-      const provider = player?.proveedor === 'vnnox' ? 'VNNOX' : (player?.tipo ? 'Nextwork Player' : 'Sin vincular');
-      const last = p._ultimaConexionReal ? fmtDateTime(p._ultimaConexionReal) : 'Sin registro';
-      const horario = `${p.hora_inicio?.slice(0,5) || '--:--'} a ${p.hora_fin?.slice(0,5) || '--:--'}`;
-      const realStatus = p._estadoReal || 'offline';
-      const statusText = realStatus.charAt(0).toUpperCase() + realStatus.slice(1);
+    const groupById = Object.fromEntries((cacheGrupos || []).map(g => [g.id, g]));
+    const grouped = new Map();
 
-      return `
-        <article class="screen-card">
-          <div class="screen-card-head">
-            <div class="screen-title-wrap">
-              <div class="screen-icon">
+    for(const p of cachePantallas){
+      const groupIds = screenGroupsMap[p.id] || [];
+      if(!groupIds.length){
+        if(!grouped.has('__sin_grupo__')){
+          grouped.set('__sin_grupo__', { id:'__sin_grupo__', nombre:'Sin grupo', pantallas:[] });
+        }
+        grouped.get('__sin_grupo__').pantallas.push(p);
+        continue;
+      }
+
+      for(const groupId of groupIds){
+        const g = groupById[groupId] || { id:groupId, nombre:'Grupo' };
+        if(!grouped.has(groupId)){
+          grouped.set(groupId, { id:groupId, nombre:g.nombre || 'Grupo', pantallas:[] });
+        }
+        grouped.get(groupId).pantallas.push(p);
+      }
+    }
+
+    const groups = [...grouped.values()].sort((a,b) => {
+      if(a.id === '__sin_grupo__') return 1;
+      if(b.id === '__sin_grupo__') return -1;
+      return String(a.nombre).localeCompare(String(b.nombre),'es');
+    });
+
+    target.innerHTML = groups.map(group => `
+      <section class="screen-group-block">
+        <div class="screen-group-head">
+          <div class="screen-group-title">
+            <span class="screen-group-dot"></span>
+            ${escapeHtml(group.nombre)}
+          </div>
+          <div class="screen-group-count">${group.pantallas.length} pantalla${group.pantallas.length===1?'':'s'}</div>
+        </div>
+
+        <table class="screen-list-table">
+          <thead>
+            <tr>
+              <th>Pantalla</th>
+              <th>Estado</th>
+              <th>Reproductor</th>
+              <th>Resolución</th>
+              <th>Última conexión</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${group.pantallas.map(p => {
+              const player = p.players?.[0] || null;
+              const tipo = playerLabel(player?.tipo);
+              const version = player?.vnnox_version || player?.version_player || 'Sin versión';
+              const provider = player?.proveedor === 'vnnox' ? 'VNNOX' : (player?.tipo ? 'Nextwork Player' : 'Sin vincular');
+              const last = p._ultimaConexionReal ? fmtDateTime(p._ultimaConexionReal) : 'Sin registro';
+              const realStatus = p._estadoReal || 'offline';
+              const statusText = realStatus.charAt(0).toUpperCase() + realStatus.slice(1);
+
+              return `
+                <tr class="screen-list-row" onclick="openScreenDetail('${p.id}')">
+                  <td>
+                    <div class="screen-list-name">
+                      <div class="screen-list-icon">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+                      </div>
+                      <div class="screen-list-main">
+                        <div class="screen-list-title">${escapeHtml(p.nombre)}</div>
+                        <div class="screen-list-location">${escapeHtml(p.ubicacion || 'Sin ubicación')}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="screen-status ${screenStatusClass(realStatus)}">${statusText}</span></td>
+                  <td>
+                    <div class="screen-list-player">${escapeHtml(tipo)}</div>
+                    <div class="screen-list-sub">${escapeHtml(provider)} · ${escapeHtml(version)}</div>
+                  </td>
+                  <td><strong>${p.ancho} × ${p.alto} px</strong></td>
+                  <td>${last}</td>
+                  <td class="screen-open">›</td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </section>
+    `).join('');
+  }
+
+  function openScreenDetail(screenId){
+    const p = cachePantallas.find(x => x.id === screenId);
+    if(!p) return;
+
+    const player = p.players?.[0] || null;
+    const tipo = playerLabel(player?.tipo);
+    const version = player?.vnnox_version || player?.version_player || 'Sin versión';
+    const provider = player?.proveedor === 'vnnox' ? 'VNNOX' : (player?.tipo ? 'Nextwork Player' : 'Sin vincular');
+    const last = p._ultimaConexionReal ? fmtDateTime(p._ultimaConexionReal) : 'Sin registro';
+    const horario = `${p.hora_inicio?.slice(0,5) || '--:--'} a ${p.hora_fin?.slice(0,5) || '--:--'}`;
+    const realStatus = p._estadoReal || 'offline';
+    const statusText = realStatus.charAt(0).toUpperCase() + realStatus.slice(1);
+    const groups = (screenGroupsMap[p.id] || [])
+      .map(id => cacheGrupos.find(g => g.id === id)?.nombre)
+      .filter(Boolean)
+      .join(', ') || 'Sin grupo';
+
+    let actions = '';
+
+    if(!player && isAdmin()){
+      actions += `<button class="btn btn-primary btn-sm" onclick="crearCodigoVinculacion('${p.id}','${escapeHtml(p.nombre)}')">Vincular Player</button>`;
+    }
+
+    if(player?.vnnox_player_id){
+      actions += `<button class="btn btn-primary btn-sm" onclick="syncTaurusScreen('${p.id}',true)">Sincronizar Taurus</button>`;
+
+      if(isSuperAdmin()){
+        actions += `
+          <button class="btn btn-outline btn-sm" onclick="diagnosticoTaurusConocido()">Prueba técnica</button>
+          <button class="btn btn-outline btn-sm" onclick="diagnosticoEstadoTaurus('${p.id}')">Diagnóstico</button>
+          <button class="btn btn-outline btn-sm" onclick="validarTaurus('${p.id}')">Validar contenido</button>
+          <button class="btn btn-primary btn-sm" onclick="reactivarTaurus('${p.id}')">Reactivar reproducción</button>
+          <button class="btn btn-primary btn-sm" onclick="pruebaInmediataTaurus('${p.id}')">Prueba inmediata</button>`;
+      }
+    }
+
+    $('modalRoot').innerHTML = `
+      <div class="modal-backdrop" onclick="if(event.target===this) closeModal()">
+        <div class="modal screen-detail-modal">
+          <div class="screen-detail-head">
+            <div class="screen-detail-title">
+              <div class="screen-list-icon" style="width:46px;height:46px">
                 <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
               </div>
-              <div style="min-width:0">
-                <div class="screen-name" title="${escapeHtml(p.nombre)}">${escapeHtml(p.nombre)}</div>
-                <div class="screen-location">${escapeHtml(p.ubicacion || 'Sin ubicación')}</div>
+              <div>
+                <h3>${escapeHtml(p.nombre)}</h3>
+                <div class="small" style="margin-top:4px">${escapeHtml(p.ubicacion || 'Sin ubicación')}</div>
               </div>
             </div>
             <span class="screen-status ${screenStatusClass(realStatus)}">${statusText}</span>
           </div>
 
-          <div class="screen-card-body">
-            <div class="screen-meta">
-              <div class="screen-meta-item">
-                <div class="screen-meta-label">Resolución</div>
-                <div class="screen-meta-value">${p.ancho} × ${p.alto} px</div>
-              </div>
-              <div class="screen-meta-item">
-                <div class="screen-meta-label">Horario</div>
-                <div class="screen-meta-value">${horario}</div>
-              </div>
+          <div class="screen-detail-grid">
+            <div class="screen-detail-item">
+              <div class="screen-detail-label">Grupo</div>
+              <div class="screen-detail-value">${escapeHtml(groups)}</div>
             </div>
-
-            <div class="screen-player">
-              <div class="screen-player-main">
-                <span class="player-dot"></span>
-                <div>
-                  <div class="player-type">${escapeHtml(tipo)}</div>
-                  <div class="player-version">${escapeHtml(provider)} · ${escapeHtml(version)}</div>
-                </div>
-              </div>
-              ${player?.tipo === 'novastar_taurus' ? '<span class="soft-chip">Taurus</span>' : ''}
+            <div class="screen-detail-item">
+              <div class="screen-detail-label">Resolución</div>
+              <div class="screen-detail-value">${p.ancho} × ${p.alto} px</div>
             </div>
-
-            <div class="screen-last">Última conexión: <strong>${last}</strong></div>
-
-            <div class="screen-actions">
-              ${!player && isAdmin()
-                ? `<button class="btn btn-primary btn-sm" onclick="crearCodigoVinculacion('${p.id}','${escapeHtml(p.nombre)}')">Vincular Player</button>`
-                : ''}
-              ${player?.vnnox_player_id
-                ? `<button class="btn btn-primary btn-sm" onclick="syncTaurusScreen('${p.id}',true)">Sincronizar Taurus</button>
-                   ${isSuperAdmin() ? `<button class="btn btn-outline btn-sm" onclick="diagnosticoTaurusConocido()">Prueba técnica</button>
-                   <button class="btn btn-outline btn-sm" onclick="diagnosticoEstadoTaurus('${p.id}')">Diagnóstico</button>
-                   <button class="btn btn-outline btn-sm" onclick="validarTaurus('${p.id}')">Validar contenido</button>
-                   <button class="btn btn-primary btn-sm" onclick="reactivarTaurus('${p.id}')">Reactivar reproducción</button>
-                   <button class="btn btn-primary btn-sm" onclick="pruebaInmediataTaurus('${p.id}')">Prueba inmediata</button>` : ''}
-                   <span class="btn btn-outline btn-sm" style="cursor:default">VNNOX vinculado</span>`
-                : ''}
+            <div class="screen-detail-item">
+              <div class="screen-detail-label">Horario</div>
+              <div class="screen-detail-value">${horario}</div>
+            </div>
+            <div class="screen-detail-item">
+              <div class="screen-detail-label">Última conexión</div>
+              <div class="screen-detail-value">${last}</div>
+            </div>
+            <div class="screen-detail-item">
+              <div class="screen-detail-label">Reproductor</div>
+              <div class="screen-detail-value">${escapeHtml(tipo)}</div>
+            </div>
+            <div class="screen-detail-item">
+              <div class="screen-detail-label">Proveedor / versión</div>
+              <div class="screen-detail-value">${escapeHtml(provider)} · ${escapeHtml(version)}</div>
             </div>
           </div>
-        </article>`;
-    }).join('');
+
+          ${actions ? `
+            <div class="screen-detail-actions">
+              <div class="screen-detail-actions-title">Acciones</div>
+              ${actions}
+            </div>` : ''}
+
+          <div class="actions">
+            <button class="btn btn-ghost" onclick="closeModal()">Cerrar</button>
+          </div>
+        </div>
+      </div>`;
   }
 
   let campaignTab = 'vigentes';
