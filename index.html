@@ -814,6 +814,53 @@
       .campaign-tab{padding:13px 12px}
     }
 
+
+    .campaign-menu-wrap{position:relative;display:inline-block}
+    .campaign-kebab{
+      width:34px;
+      height:34px;
+      border:1px solid #dbe3ee;
+      border-radius:9px;
+      background:#fff;
+      color:#475569;
+      display:inline-grid;
+      place-items:center;
+      cursor:pointer;
+      font-size:22px;
+      line-height:1;
+      font-weight:800;
+    }
+    .campaign-kebab:hover{background:#f8fafc;color:#111827}
+    .campaign-menu{
+      position:absolute;
+      top:40px;
+      left:0;
+      min-width:150px;
+      background:#fff;
+      border:1px solid #dbe3ee;
+      border-radius:10px;
+      box-shadow:0 12px 30px rgba(15,23,42,.14);
+      padding:6px;
+      z-index:30;
+      display:none;
+    }
+    .campaign-menu.open{display:block}
+    .campaign-menu button{
+      width:100%;
+      border:0;
+      background:transparent;
+      text-align:left;
+      padding:9px 10px;
+      border-radius:7px;
+      cursor:pointer;
+      color:#334155;
+      font-size:13px;
+      font-weight:700;
+    }
+    .campaign-menu button:hover{background:#f8fafc}
+    .campaign-menu button.danger{color:#b91c1c}
+    .campaign-menu button.danger:hover{background:#fef2f2}
+
 </style>
 </head>
 <body>
@@ -1820,6 +1867,21 @@
     return campaignBucket(c) === campaignTab;
   }
 
+
+  function closeCampaignMenus(){
+    document.querySelectorAll('.campaign-menu.open').forEach(m => m.classList.remove('open'));
+  }
+
+  function toggleCampaignMenu(id, ev){
+    ev?.stopPropagation();
+    const menu = document.getElementById(`campaign-menu-${id}`);
+    const wasOpen = menu?.classList.contains('open');
+    closeCampaignMenus();
+    if(menu && !wasOpen) menu.classList.add('open');
+  }
+
+  document.addEventListener('click', closeCampaignMenus);
+
   function renderCampanias(){
     const q = ($('filtroCampania')?.value || '').trim().toLowerCase();
     const tipoFiltro = $('filtroTipo')?.value || '';
@@ -1872,25 +1934,28 @@
         ? screens.map(p => `<span class="screen-pill" title="${escapeHtml(p.ubicacion || '')}">${escapeHtml(p.nombre || 'Pantalla')}</span>`).join('')
         : `<span class="small">Sin pantalla asignada</span>`;
 
-      let actions = '';
+      let menuItems = '';
 
       if(canWriteCampaign()){
-        actions += `<button class="campaign-icon-btn" title="Editar" onclick="editCampania('${c.id}')">✎</button>`;
+        menuItems += `<button onclick="editCampania('${c.id}')">Editar</button>`;
 
         if(c.estado === 'pausada'){
-          actions += `<button class="campaign-icon-btn" title="Reactivar" onclick="setPausa('${c.id}',false)">▶</button>`;
+          menuItems += `<button onclick="setPausa('${c.id}',false)">Reactivar</button>`;
         }else if(['activa','proxima'].includes(c.estado)){
-          actions += `<button class="campaign-icon-btn" title="Pausar" onclick="setPausa('${c.id}',true)">Ⅱ</button>`;
-        }
-
-        if((c.tipo_contenido || '').toLowerCase() === 'video'){
-          actions += `<button class="campaign-icon-btn" title="Reproducir ahora" onclick="openPlayCampaignNow('${c.id}')">▷</button>`;
+          menuItems += `<button onclick="setPausa('${c.id}',true)">Pausar</button>`;
         }
       }
 
       if(isAdmin()){
-        actions += `<button class="campaign-icon-btn danger" title="Eliminar / archivar" onclick="deleteCampania('${c.id}')">🗑</button>`;
+        menuItems += `<button class="danger" onclick="deleteCampania('${c.id}')">Eliminar</button>`;
       }
+
+      const actions = menuItems
+        ? `<div class="campaign-menu-wrap">
+             <button class="campaign-kebab" title="Acciones" onclick="toggleCampaignMenu('${c.id}', event)">⋮</button>
+             <div id="campaign-menu-${c.id}" class="campaign-menu">${menuItems}</div>
+           </div>`
+        : `<span class="small">—</span>`;
 
       const tipo = (c.tipo_contenido || '').toLowerCase();
       const tipoLabel = tipo === 'imagen' ? 'Imagen' : tipo === 'web' ? 'Web' : 'Video';
