@@ -665,7 +665,156 @@
       .userbox{gap:8px}
       .userbox #currentRole{display:none}
     }
-  </style>
+  
+    /* ===== Campañas V25: listado compacto tipo grilla ===== */
+    .campaign-tabs{
+      display:flex;
+      align-items:flex-end;
+      gap:6px;
+      border-bottom:1px solid #dfe5ee;
+      margin:0 0 16px;
+      overflow-x:auto;
+      background:#fff;
+      border-radius:16px 16px 0 0;
+      padding:0 10px;
+    }
+    .campaign-tab{
+      appearance:none;
+      border:0;
+      background:transparent;
+      padding:15px 18px 13px;
+      font-size:14px;
+      font-weight:800;
+      color:#64748b;
+      cursor:pointer;
+      border-bottom:3px solid transparent;
+      white-space:nowrap;
+      position:relative;
+    }
+    .campaign-tab:hover{color:#334155;background:#f8fafc}
+    .campaign-tab.active{
+      color:#4f46e5;
+      border-bottom-color:#6366f1;
+      background:#f8f7ff;
+    }
+    .campaign-tab-count{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:24px;
+      height:24px;
+      padding:0 7px;
+      margin-left:6px;
+      border-radius:999px;
+      background:#e2e8f0;
+      color:#475569;
+      font-size:11px;
+      font-weight:900;
+    }
+    .campaign-tab.active .campaign-tab-count{
+      background:#6366f1;
+      color:#fff;
+    }
+    .campaign-list-wrap{
+      background:#fff;
+      border:1px solid #e7ecf5;
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      overflow:auto;
+    }
+    .campaign-list{
+      width:100%;
+      border-collapse:collapse;
+      min-width:1080px;
+    }
+    .campaign-list th{
+      position:sticky;
+      top:0;
+      z-index:1;
+      background:#f8fafc;
+      color:#64748b;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.055em;
+      padding:12px 14px;
+      border-bottom:1px solid #e7ecf5;
+    }
+    .campaign-list td{
+      padding:11px 14px;
+      border-bottom:1px solid #edf1f6;
+      vertical-align:middle;
+      font-size:13px;
+      color:#1e293b;
+      background:#fff;
+    }
+    .campaign-list tbody tr:hover td{background:#fafbff}
+    .campaign-list tbody tr:last-child td{border-bottom:0}
+    .campaign-name-cell{font-weight:850;color:#0f172a}
+    .campaign-client-cell{color:#475569}
+    .campaign-screens-cell{max-width:260px;color:#475569}
+    .campaign-screens-cell .screen-pill{
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
+      margin:2px 4px 2px 0;
+      background:#eef2ff;
+      color:#4338ca;
+      font-size:11px;
+      font-weight:800;
+    }
+    .campaign-type-chip{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:5px 8px;
+      border-radius:10px;
+      background:#f1f5f9;
+      color:#475569;
+      font-size:11px;
+      font-weight:800;
+      text-transform:capitalize;
+    }
+    .campaign-actions{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+    }
+    .campaign-icon-btn{
+      width:31px;
+      height:31px;
+      border:1px solid #dbe3ee;
+      border-radius:9px;
+      background:#fff;
+      color:#475569;
+      display:inline-grid;
+      place-items:center;
+      cursor:pointer;
+      font-size:16px;
+      line-height:1;
+    }
+    .campaign-icon-btn:hover{background:#f8fafc;color:#111827}
+    .campaign-icon-btn.danger{color:#b91c1c;border-color:#fecaca}
+    .campaign-icon-btn.danger:hover{background:#fef2f2}
+    .campaign-empty-row td{
+      text-align:center;
+      padding:30px 16px;
+      color:#94a3b8;
+    }
+    .campaign-summary-line{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin:8px 0 12px;
+      color:#64748b;
+      font-size:12px;
+    }
+    @media(max-width:900px){
+      .campaign-tab{padding:13px 12px}
+    }
+
+</style>
 </head>
 <body>
 
@@ -680,16 +829,38 @@
         <p>Administración web de campañas, pantallas y reproductores.</p>
       </div>
     </div>
-    <div class="field">
-      <label>Correo electrónico</label>
-      <input id="loginEmail" type="email" placeholder="usuario@dominio.com">
+    <div id="normalLoginForm">
+      <div class="field">
+        <label>Correo electrónico</label>
+        <input id="loginEmail" type="email" placeholder="usuario@dominio.com">
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input id="loginPassword" type="password" placeholder="••••••••">
+      </div>
+      <button id="btnLogin" class="btn btn-primary login-btn">Ingresar</button>
+      <button id="btnForgotPassword" class="btn btn-ghost login-btn" type="button" style="margin-top:8px">Olvidé mi contraseña</button>
+      <div id="loginError" class="error"></div>
+      <div id="loginInfo" class="small" style="margin-top:10px;color:#475569"></div>
     </div>
-    <div class="field">
-      <label>Contraseña</label>
-      <input id="loginPassword" type="password" placeholder="••••••••">
+
+    <div id="recoveryForm" class="hidden">
+      <div style="margin-bottom:14px">
+        <strong style="font-size:16px">Crear nueva contraseña</strong>
+        <div class="small" style="margin-top:5px">Ingresá una contraseña nueva para tu cuenta de NextWork.</div>
+      </div>
+      <div class="field">
+        <label>Nueva contraseña</label>
+        <input id="newPassword" type="password" placeholder="Mínimo 8 caracteres">
+      </div>
+      <div class="field">
+        <label>Confirmar contraseña</label>
+        <input id="confirmPassword" type="password" placeholder="Repetí la contraseña">
+      </div>
+      <button id="btnSavePassword" class="btn btn-primary login-btn" type="button">Guardar nueva contraseña</button>
+      <div id="recoveryError" class="error"></div>
+      <div id="recoveryInfo" class="small" style="margin-top:10px;color:#475569"></div>
     </div>
-    <button id="btnLogin" class="btn btn-primary login-btn">Ingresar</button>
-    <div id="loginError" class="error"></div>
   </div>
 </section>
 
@@ -792,24 +963,49 @@
         <div class="section-title">
           <div>
             <h2>Campañas</h2>
-            <div class="small" style="margin-top:4px">Gestioná vigencia, frecuencia y estado de cada campaña.</div>
+            <div class="small" style="margin-top:4px">Vista compacta por vigencia, estado y pantallas asignadas.</div>
           </div>
           <button class="btn btn-primary write-campaign" onclick="openCampaniaModal()">+ Nueva campaña</button>
         </div>
 
         <div class="toolbar">
-          <input id="filtroCampania" placeholder="Buscar cliente o campaña">
-          <select id="filtroEstado">
-            <option value="">Todos los estados</option>
-            <option value="activa">Activa</option>
-            <option value="proxima">Próxima</option>
-            <option value="pausada">Pausada</option>
-            <option value="finalizada">Finalizada</option>
+          <input id="filtroCampania" placeholder="Buscar campaña, cliente o pantalla" style="min-width:280px">
+          <select id="filtroTipo">
+            <option value="">Todos los contenidos</option>
+            <option value="video">Video</option>
+            <option value="imagen">Imagen</option>
+            <option value="web">Web</option>
           </select>
         </div>
 
-        <div id="campaignsSummary" class="campaigns-summary"></div>
-        <div id="campaniasCards" class="campaigns-grid"></div>
+        <div class="campaign-list-wrap">
+          <div class="campaign-tabs">
+            <button class="campaign-tab active" data-campaign-tab="todas" onclick="setCampaignTab('todas')">Todas <span id="ctTodas" class="campaign-tab-count">0</span></button>
+            <button class="campaign-tab" data-campaign-tab="vigentes" onclick="setCampaignTab('vigentes')">Vigentes <span id="ctVigentes" class="campaign-tab-count">0</span></button>
+            <button class="campaign-tab" data-campaign-tab="futuras" onclick="setCampaignTab('futuras')">Futuras <span id="ctFuturas" class="campaign-tab-count">0</span></button>
+            <button class="campaign-tab" data-campaign-tab="pasadas" onclick="setCampaignTab('pasadas')">Pasadas <span id="ctPasadas" class="campaign-tab-count">0</span></button>
+            <button class="campaign-tab" data-campaign-tab="pausadas" onclick="setCampaignTab('pausadas')">Pausadas <span id="ctPausadas" class="campaign-tab-count">0</span></button>
+          </div>
+
+          <div id="campaignsSummary" class="campaign-summary-line" style="padding:0 14px"></div>
+
+          <table class="campaign-list">
+            <thead>
+              <tr>
+                <th style="width:110px">Acciones</th>
+                <th>Campaña</th>
+                <th>Cliente</th>
+                <th>Pantalla / Grupo</th>
+                <th>Desde</th>
+                <th>Hasta</th>
+                <th>Frecuencia</th>
+                <th>Estado</th>
+                <th>Contenido</th>
+              </tr>
+            </thead>
+            <tbody id="campaniasBody"></tbody>
+          </table>
+        </div>
       </section>
 
       <section id="page-clientes" class="page hidden">
@@ -913,6 +1109,90 @@
   }
   function isSuperAdmin(){
     return currentProfile?.es_superadmin === true;
+  }
+
+
+  function showNormalLogin(message=''){
+    $('normalLoginForm').classList.remove('hidden');
+    $('recoveryForm').classList.add('hidden');
+    $('loginError').textContent = '';
+    $('loginInfo').textContent = message;
+  }
+
+  function showRecoveryForm(){
+    $('normalLoginForm').classList.add('hidden');
+    $('recoveryForm').classList.remove('hidden');
+    $('recoveryError').textContent = '';
+    $('recoveryInfo').textContent = '';
+  }
+
+  async function requestPasswordReset(){
+    $('loginError').textContent = '';
+    $('loginInfo').textContent = '';
+
+    const email = $('loginEmail').value.trim();
+    if(!email){
+      $('loginError').textContent = 'Ingresá tu correo electrónico primero.';
+      return;
+    }
+
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://pantallas.nextwork.com.ar'
+    });
+
+    if(error){
+      $('loginError').textContent = error.message;
+      return;
+    }
+
+    $('loginInfo').textContent = 'Te enviamos un correo para restablecer la contraseña. Usá el enlace más reciente.';
+  }
+
+  async function saveRecoveredPassword(){
+    $('recoveryError').textContent = '';
+    $('recoveryInfo').textContent = '';
+
+    const password = $('newPassword').value;
+    const confirm = $('confirmPassword').value;
+
+    if(password.length < 8){
+      $('recoveryError').textContent = 'La contraseña debe tener al menos 8 caracteres.';
+      return;
+    }
+
+    if(password !== confirm){
+      $('recoveryError').textContent = 'Las contraseñas no coinciden.';
+      return;
+    }
+
+    const { error } = await sb.auth.updateUser({ password });
+
+    if(error){
+      $('recoveryError').textContent = error.message;
+      return;
+    }
+
+    $('recoveryInfo').textContent = 'Contraseña actualizada correctamente.';
+    await sb.auth.signOut();
+
+    // Limpiamos tokens/códigos del enlace de recuperación.
+    history.replaceState({}, document.title, window.location.pathname);
+
+    $('newPassword').value = '';
+    $('confirmPassword').value = '';
+
+    showNormalLogin('Contraseña actualizada. Ya podés ingresar con la nueva contraseña.');
+  }
+
+  function recoveryLinkPresent(){
+    const hash = window.location.hash || '';
+    const query = window.location.search || '';
+    return (
+      hash.includes('type=recovery') ||
+      query.includes('type=recovery') ||
+      hash.includes('access_token=') ||
+      query.includes('code=')
+    );
   }
 
   async function login(){
@@ -1474,107 +1754,159 @@
     }).join('');
   }
 
+  let campaignTab = 'todas';
+  let campaignScreensMap = {};
+
   async function loadCampanias(){
-    const { data } = await sb.from('vista_campanias').select('*').order('fecha_desde',{ascending:false});
-    cacheCampanias = data || [];
+    const [
+      { data:viewRows, error:viewError },
+      { data:baseRows, error:baseError },
+      { data:links, error:linksError },
+      { data:screens, error:screensError }
+    ] = await Promise.all([
+      sb.from('vista_campanias').select('*').order('fecha_desde',{ascending:false}),
+      sb.from('campanias').select('id,eliminada'),
+      sb.from('campanias_pantallas').select('campania_id,pantalla_id'),
+      sb.from('pantallas').select('id,nombre,ubicacion')
+    ]);
+
+    if(viewError) console.error('Error cargando vista_campanias:', viewError);
+    if(baseError) console.error('Error leyendo estado archivado:', baseError);
+    if(linksError) console.error('Error leyendo asignaciones de campaña:', linksError);
+    if(screensError) console.error('Error leyendo pantallas:', screensError);
+
+    const archived = new Set(
+      (baseRows || []).filter(x => x.eliminada === true).map(x => x.id)
+    );
+
+    // Regla V25: una campaña archivada conserva historial,
+    // pero DESAPARECE totalmente del listado operativo.
+    cacheCampanias = (viewRows || []).filter(c => !archived.has(c.id));
+
+    const screenById = Object.fromEntries(
+      (screens || []).map(p => [p.id, p])
+    );
+
+    campaignScreensMap = {};
+    for(const link of (links || [])){
+      if(archived.has(link.campania_id)) continue;
+      const p = screenById[link.pantalla_id];
+      if(!p) continue;
+      if(!campaignScreensMap[link.campania_id]) campaignScreensMap[link.campania_id] = [];
+      campaignScreensMap[link.campania_id].push(p);
+    }
+
     renderCampanias();
   }
 
-  function renderCampanias(){
-    const q = $('filtroCampania')?.value?.toLowerCase() || '';
-    const est = $('filtroEstado')?.value || '';
-    const rows = cacheCampanias.filter(c =>
-      (!q || `${c.cliente} ${c.campania}`.toLowerCase().includes(q)) &&
-      (!est || c.estado === est)
-    );
+  function setCampaignTab(tab){
+    campaignTab = tab;
+    document.querySelectorAll('[data-campaign-tab]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.campaignTab === tab);
+    });
+    renderCampanias();
+  }
 
-    const target = $('campaniasCards');
+  function campaignBucket(c){
+    if(c.estado === 'pausada') return 'pausadas';
+    if(c.estado === 'activa') return 'vigentes';
+    if(c.estado === 'proxima') return 'futuras';
+    if(c.estado === 'finalizada') return 'pasadas';
+    return 'todas';
+  }
+
+  function campaignMatchesTab(c){
+    if(campaignTab === 'todas') return true;
+    return campaignBucket(c) === campaignTab;
+  }
+
+  function renderCampanias(){
+    const q = ($('filtroCampania')?.value || '').trim().toLowerCase();
+    const tipoFiltro = $('filtroTipo')?.value || '';
+
+    const base = cacheCampanias.filter(c => {
+      const screens = (campaignScreensMap[c.id] || []).map(p => `${p.nombre || ''} ${p.ubicacion || ''}`).join(' ');
+      const haystack = `${c.cliente || ''} ${c.campania || ''} ${screens}`.toLowerCase();
+      return (!q || haystack.includes(q)) &&
+             (!tipoFiltro || (c.tipo_contenido || '').toLowerCase() === tipoFiltro);
+    });
+
+    const counts = {
+      todas: base.length,
+      vigentes: base.filter(c => campaignBucket(c) === 'vigentes').length,
+      futuras: base.filter(c => campaignBucket(c) === 'futuras').length,
+      pasadas: base.filter(c => campaignBucket(c) === 'pasadas').length,
+      pausadas: base.filter(c => campaignBucket(c) === 'pausadas').length
+    };
+
+    if($('ctTodas')) $('ctTodas').textContent = counts.todas;
+    if($('ctVigentes')) $('ctVigentes').textContent = counts.vigentes;
+    if($('ctFuturas')) $('ctFuturas').textContent = counts.futuras;
+    if($('ctPasadas')) $('ctPasadas').textContent = counts.pasadas;
+    if($('ctPausadas')) $('ctPausadas').textContent = counts.pausadas;
+
+    const rows = base.filter(campaignMatchesTab);
+    const body = $('campaniasBody');
     const summary = $('campaignsSummary');
-    if(!target) return;
+    if(!body) return;
 
     if(summary){
-      const activeCount = rows.filter(c => c.estado === 'activa').length;
-      summary.textContent = `${rows.length} campaña${rows.length === 1 ? '' : 's'} mostrada${rows.length === 1 ? '' : 's'} · ${activeCount} activa${activeCount === 1 ? '' : 's'}`;
+      const label = {
+        todas:'todas',
+        vigentes:'vigentes',
+        futuras:'futuras',
+        pasadas:'pasadas',
+        pausadas:'pausadas'
+      }[campaignTab] || 'todas';
+      summary.innerHTML = `<span><strong>${rows.length}</strong> campaña${rows.length===1?'':'s'} ${label}</span><span>Las campañas eliminadas se conservan en el historial pero no se muestran aquí.</span>`;
     }
 
     if(!rows.length){
-      target.innerHTML = `<div class="campaign-empty">No hay campañas que coincidan con los filtros.</div>`;
+      body.innerHTML = `<tr class="campaign-empty-row"><td colspan="9">No hay campañas que coincidan con esta vista.</td></tr>`;
       return;
     }
 
-    target.innerHTML = rows.map(c => {
+    body.innerHTML = rows.map(c => {
+      const screens = campaignScreensMap[c.id] || [];
+      const screenHtml = screens.length
+        ? screens.map(p => `<span class="screen-pill" title="${escapeHtml(p.ubicacion || '')}">${escapeHtml(p.nombre || 'Pantalla')}</span>`).join('')
+        : `<span class="small">Sin pantalla asignada</span>`;
+
       let actions = '';
 
       if(canWriteCampaign()){
-        if(c.tipo_contenido === 'video'){
-          actions += `<button class="btn btn-primary" onclick="openPlayCampaignNow('${c.id}')">Reproducir ahora</button>`;
-        }
-        actions += `<button class="btn btn-outline" onclick="editCampania('${c.id}')">Editar</button>`;
+        actions += `<button class="campaign-icon-btn" title="Editar" onclick="editCampania('${c.id}')">✎</button>`;
+
         if(c.estado === 'pausada'){
-          actions += `<button class="btn btn-primary" onclick="setPausa('${c.id}',false)">Reactivar</button>`;
-        } else if(['activa','proxima'].includes(c.estado)){
-          actions += `<button class="btn btn-ghost" onclick="setPausa('${c.id}',true)">Pausar</button>`;
+          actions += `<button class="campaign-icon-btn" title="Reactivar" onclick="setPausa('${c.id}',false)">▶</button>`;
+        }else if(['activa','proxima'].includes(c.estado)){
+          actions += `<button class="campaign-icon-btn" title="Pausar" onclick="setPausa('${c.id}',true)">Ⅱ</button>`;
+        }
+
+        if((c.tipo_contenido || '').toLowerCase() === 'video'){
+          actions += `<button class="campaign-icon-btn" title="Reproducir ahora" onclick="openPlayCampaignNow('${c.id}')">▷</button>`;
         }
       }
 
       if(isAdmin()){
-        actions += `<button class="btn btn-danger" onclick="deleteCampania('${c.id}')">Eliminar</button>`;
+        actions += `<button class="campaign-icon-btn danger" title="Eliminar / archivar" onclick="deleteCampania('${c.id}')">🗑</button>`;
       }
 
       const tipo = (c.tipo_contenido || '').toLowerCase();
-      const icon = tipo === 'video'
-        ? `<svg viewBox="0 0 24 24"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="m17 10 4-2v8l-4-2z"/></svg>`
-        : tipo === 'imagen'
-          ? `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg>`
-          : `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg>`;
-
-      const contentLabel = tipo === 'video' ? 'Video' : tipo === 'imagen' ? 'Imagen' : 'Web';
-      const duration = Number(c.duracion_seg || 0);
-      const durationLabel = duration > 0 ? `${duration}s` : 'Automática';
-      const percent = Number(c.porcentaje || 0);
+      const tipoLabel = tipo === 'imagen' ? 'Imagen' : tipo === 'web' ? 'Web' : 'Video';
 
       return `
-        <article class="campaign-card">
-          <div class="campaign-card-head">
-            <div class="campaign-main">
-              <div class="campaign-icon">${icon}</div>
-              <div style="min-width:0">
-                <div class="campaign-client">${escapeHtml(c.cliente || 'Sin cliente')}</div>
-                <div class="campaign-name" title="${escapeHtml(c.campania || '')}">${escapeHtml(c.campania || 'Sin nombre')}</div>
-              </div>
-            </div>
-            ${badge(c.estado)}
-          </div>
-
-          <div class="campaign-body">
-            <div class="campaign-info-grid">
-              <div class="campaign-info">
-                <div class="campaign-info-label">Contenido</div>
-                <div class="campaign-info-value">${contentLabel} · ${durationLabel}</div>
-              </div>
-              <div class="campaign-info">
-                <div class="campaign-info-label">Desde</div>
-                <div class="campaign-info-value">${fmtDate(c.fecha_desde)}</div>
-              </div>
-              <div class="campaign-info">
-                <div class="campaign-info-label">Hasta</div>
-                <div class="campaign-info-value">${fmtDate(c.fecha_hasta)}</div>
-              </div>
-            </div>
-
-            <div class="campaign-progress-wrap">
-              <div class="campaign-progress-top">
-                <span>Frecuencia de reproducción</span>
-                <strong>${percent}%</strong>
-              </div>
-              <div class="campaign-progress">
-                <span style="width:${Math.min(100, Math.max(0, percent))}%"></span>
-              </div>
-            </div>
-
-            ${actions ? `<div class="campaign-actions">${actions}</div>` : ''}
-          </div>
-        </article>`;
+        <tr>
+          <td><div class="campaign-actions">${actions || '<span class="small">—</span>'}</div></td>
+          <td class="campaign-name-cell">${escapeHtml(c.campania || 'Sin nombre')}</td>
+          <td class="campaign-client-cell">${escapeHtml(c.cliente || 'Sin cliente')}</td>
+          <td class="campaign-screens-cell">${screenHtml}</td>
+          <td>${fmtDate(c.fecha_desde)}</td>
+          <td>${fmtDate(c.fecha_hasta)}</td>
+          <td><strong>${Number(c.porcentaje || 0)}%</strong></td>
+          <td>${badge(c.estado)}</td>
+          <td><span class="campaign-type-chip">${tipoLabel}${Number(c.duracion_seg||0)>0 ? ` · ${Number(c.duracion_seg)}s` : ''}</span></td>
+        </tr>`;
     }).join('');
   }
 
@@ -2778,7 +3110,7 @@ Podés reintentar desde Pantallas.`);
   }
 
   async function deleteCampania(id){
-    if(!confirm('¿Está seguro de eliminar esta campaña?\n\nSe archivará para conservar el historial de reproducciones y dejará de formar parte de la programación.')) return;
+    if(!confirm('¿Eliminar esta campaña?\n\nDesaparecerá del listado de Campañas y dejará de reproducirse. El registro histórico de reproducciones se conservará.')) return;
 
     const { data: links } = await sb
       .from('campanias_pantallas')
@@ -2805,14 +3137,14 @@ Podés reintentar desde Pantallas.`);
     if(results.length){
       const ok = results.filter(r => r?.synced).length;
       if(ok === results.length){
-        alert('Campaña archivada y Taurus actualizado correctamente.');
+        alert('Campaña eliminada del listado y Taurus actualizado correctamente.');
       }else{
-        alert(`Campaña archivada.
+        alert(`Campaña eliminada del listado.
 
 Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas.`);
       }
     }else{
-      alert('Campaña archivada correctamente.');
+      alert('Campaña eliminada del listado correctamente. El historial se conserva.');
     }
   }
 
@@ -2837,6 +3169,8 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
   }
 
   $('btnLogin').addEventListener('click', login);
+  $('btnForgotPassword').addEventListener('click', requestPasswordReset);
+  $('btnSavePassword').addEventListener('click', saveRecoveredPassword);
 
   // Permitir iniciar sesión presionando Enter desde correo o contraseña.
   ['loginEmail','loginPassword'].forEach(id => {
@@ -2844,6 +3178,14 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
       if(e.key === 'Enter'){
         e.preventDefault();
         login();
+      }
+    });
+  });
+  ['newPassword','confirmPassword'].forEach(id => {
+    $(id).addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        saveRecoveredPassword();
       }
     });
   });
@@ -2884,7 +3226,30 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
   window.closeModal = closeModal;
   window.toggleDuracion = toggleDuracion;
 
+  $('filtroCampania')?.addEventListener('input', renderCampanias);
+  $('filtroTipo')?.addEventListener('change', renderCampanias);
+
+  // Supabase emite PASSWORD_RECOVERY cuando el usuario entra desde
+  // el enlace del correo de recuperación.
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if(event === 'PASSWORD_RECOVERY'){
+      showRecoveryForm();
+      return;
+    }
+
+    if(event === 'SIGNED_IN' && session?.user && !recoveryLinkPresent()){
+      await startApp(session.user);
+    }
+  });
+
   (async()=>{
+    // Si el enlace ya contiene datos de recuperación, dejamos que Supabase
+    // procese la sesión y mostramos directamente el formulario de nueva clave.
+    if(recoveryLinkPresent()){
+      showRecoveryForm();
+      return;
+    }
+
     const { data } = await sb.auth.getSession();
     if(data.session?.user){
       await startApp(data.session.user);
