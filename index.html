@@ -1032,8 +1032,8 @@
 
         <div class="campaign-list-wrap">
           <div class="campaign-tabs">
-            <button class="campaign-tab active" data-campaign-tab="todas" onclick="setCampaignTab('todas')">Todas <span id="ctTodas" class="campaign-tab-count">0</span></button>
-            <button class="campaign-tab" data-campaign-tab="vigentes" onclick="setCampaignTab('vigentes')">Vigentes <span id="ctVigentes" class="campaign-tab-count">0</span></button>
+            <button class="campaign-tab" data-campaign-tab="todas" onclick="setCampaignTab('todas')">Todas <span id="ctTodas" class="campaign-tab-count">0</span></button>
+            <button class="campaign-tab active" data-campaign-tab="vigentes" onclick="setCampaignTab('vigentes')">Vigentes <span id="ctVigentes" class="campaign-tab-count">0</span></button>
             <button class="campaign-tab" data-campaign-tab="futuras" onclick="setCampaignTab('futuras')">Futuras <span id="ctFuturas" class="campaign-tab-count">0</span></button>
             <button class="campaign-tab" data-campaign-tab="pasadas" onclick="setCampaignTab('pasadas')">Pasadas <span id="ctPasadas" class="campaign-tab-count">0</span></button>
             <button class="campaign-tab" data-campaign-tab="pausadas" onclick="setCampaignTab('pausadas')">Pausadas <span id="ctPausadas" class="campaign-tab-count">0</span></button>
@@ -1806,7 +1806,7 @@
     }).join('');
   }
 
-  let campaignTab = 'todas';
+  let campaignTab = 'vigentes';
   let campaignScreensMap = {};
 
   async function loadCampanias(){
