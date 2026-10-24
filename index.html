@@ -1514,6 +1514,7 @@
       <div class="userbox">
         <span id="currentUser">Usuario</span>
         <span id="currentRole"></span>
+        <button id="btnMyPassword" class="btn btn-ghost" type="button">Cambiar contraseña</button>
         <button id="btnLogout" class="btn btn-ghost">Salir</button>
       </div>
     </div>
@@ -1866,6 +1867,137 @@
       hash.includes('access_token=') ||
       query.includes('code=')
     );
+  }
+
+
+  function openMyPasswordModal(){
+    $('modalRoot').innerHTML = `
+      <div class="modal-backdrop" onclick="if(event.target===this) closeModal()">
+        <div class="modal" style="max-width:520px">
+          <h3>Cambiar mi contraseña</h3>
+
+          <div class="field">
+            <label>Nueva contraseña</label>
+            <input id="myNewPassword" type="password" placeholder="Mínimo 8 caracteres">
+          </div>
+
+          <div class="field">
+            <label>Confirmar contraseña</label>
+            <input id="myConfirmPassword" type="password" placeholder="Repetí la contraseña">
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveMyPassword()">Guardar contraseña</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function saveMyPassword(){
+    const p1 = $('myNewPassword')?.value || '';
+    const p2 = $('myConfirmPassword')?.value || '';
+
+    if(p1.length < 8){
+      alert('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if(p1 !== p2){
+      alert('Las contraseñas no coinciden.');
+      return;
+    }
+
+    const { error } = await sb.auth.updateUser({ password:p1 });
+
+    if(error){
+      alert(error.message);
+      return;
+    }
+
+    closeModal();
+    alert('Contraseña actualizada correctamente.');
+  }
+
+  function openAdminResetPassword(userId, userName, email){
+    if(!isSuperAdmin()) return;
+
+    $('modalRoot').innerHTML = `
+      <div class="modal-backdrop" onclick="if(event.target===this) closeModal()">
+        <div class="modal" style="max-width:540px">
+          <h3>Resetear contraseña</h3>
+
+          <div class="content-box" style="margin-bottom:14px">
+            <strong>${escapeHtml(userName)}</strong>
+            <div class="small" style="margin-top:4px">${escapeHtml(email)}</div>
+          </div>
+
+          <div class="field">
+            <label>Nueva contraseña temporal</label>
+            <input id="adminNewPassword" type="password" placeholder="Mínimo 8 caracteres">
+          </div>
+
+          <div class="field">
+            <label>Confirmar contraseña</label>
+            <input id="adminConfirmPassword" type="password" placeholder="Repetí la contraseña">
+          </div>
+
+          <div class="small" style="margin-bottom:12px">
+            El usuario podrá ingresar con esta contraseña y después cambiarla desde “Cambiar contraseña”.
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="adminResetPassword('${userId}')">Resetear contraseña</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function adminResetPassword(userId){
+    if(!isSuperAdmin()) return;
+
+    const p1 = $('adminNewPassword')?.value || '';
+    const p2 = $('adminConfirmPassword')?.value || '';
+
+    if(p1.length < 8){
+      alert('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if(p1 !== p2){
+      alert('Las contraseñas no coinciden.');
+      return;
+    }
+
+    const { data:sessionData } = await sb.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+
+    if(!accessToken){
+      alert('La sesión expiró. Volvé a iniciar sesión.');
+      return;
+    }
+
+    const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-user-api`, {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':`Bearer ${accessToken}`
+      },
+      body:JSON.stringify({
+        action:'reset-password',
+        userId,
+        newPassword:p1
+      })
+    });
+
+    const result = await resp.json().catch(()=>({}));
+
+    if(!resp.ok || !result.ok){
+      alert(result.error || 'No se pudo resetear la contraseña.');
+      return;
+    }
+
+    closeModal();
+    alert('Contraseña reseteada correctamente.');
   }
 
   async function login(){
@@ -3105,6 +3237,9 @@
             ${(canManageUsers() && (!u.es_superadmin || isSuperAdmin()))
               ? `<button class="btn btn-outline btn-sm" onclick="openUsuarioAccesos('${u.id}')">Permisos</button>`
               : ''}
+            ${isSuperAdmin()
+              ? `<button class="btn btn-outline btn-sm" style="margin-left:6px" onclick="openAdminResetPassword('${u.id}','${escapeHtml(u.nombre || u.email || 'Usuario')}','${escapeHtml(u.email || '')}')">Resetear contraseña</button>`
+              : ''}
           </td>
         </tr>`;
     }).join('');
@@ -4186,6 +4321,7 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
       }
     });
   });
+  $('btnMyPassword').addEventListener('click', openMyPasswordModal);
   $('btnLogout').addEventListener('click', logout);
   $('filtroCampania')?.addEventListener('input', renderCampanias);
   $('filtroTipo')?.addEventListener('change', renderCampanias);
@@ -4199,6 +4335,9 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
   window.diagnosticoEstadoTaurus = diagnosticoEstadoTaurus;
   window.diagnosticoTaurusConocido = diagnosticoTaurusConocido;
   window.syncTaurusScreen = syncTaurusScreen;
+  window.openAdminResetPassword = openAdminResetPassword;
+  window.adminResetPassword = adminResetPassword;
+  window.saveMyPassword = saveMyPassword;
   window.openUsuarioAccesos = openUsuarioAccesos;
   window.saveUsuarioAccesos = saveUsuarioAccesos;
   window.toggleUserGroupBlock = toggleUserGroupBlock;
