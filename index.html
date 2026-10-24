@@ -3003,33 +3003,41 @@
 
 
   async function loadGrupos(){
+    // Los grupos se cargan SIEMPRE porque también se usan en
+    // Campañas, Clientes, Pantallas y permisos.
+    const { data: grupos, error: gruposError } = await sb
+      .from('grupos')
+      .select('*')
+      .order('nombre');
+
+    if(gruposError){
+      console.error('Error cargando grupos:', gruposError);
+      cacheGrupos = [];
+    }else{
+      cacheGrupos = grupos || [];
+    }
+
+    const target = $('gruposCards');
+
+    // Solo Administrador muestra la vista de administración de grupos.
+    // El resto de los roles conserva cacheGrupos para los formularios.
     if(!canManageGroups()){
-      const target = $('gruposCards');
       if(target) target.innerHTML = '';
       return;
     }
 
     const [
-      { data: grupos, error: gruposError },
       { data: gp },
       { data: ug },
       { data: clientes },
       { data: campanias }
     ] = await Promise.all([
-      sb.from('grupos').select('*').order('nombre'),
       sb.from('grupos_pantallas').select('grupo_id,pantalla_id'),
       sb.from('usuarios_grupos').select('grupo_id,usuario_id'),
       sb.from('clientes').select('id,grupo_id'),
       sb.from('campanias').select('id,grupo_id')
     ]);
 
-    if(gruposError){
-      console.error('Error cargando grupos:', gruposError);
-      return;
-    }
-
-    cacheGrupos = grupos || [];
-    const target = $('gruposCards');
     if(!target) return;
 
     if(!cacheGrupos.length){
@@ -3575,7 +3583,7 @@
       licencia_hasta:$('pLicenciaHasta')?.value || null
     };
     const grupoId = $('pGrupo')?.value;
-    if(!grupoId){ alert('Seleccioná un grupo.'); return; }
+    if(!grupoId){ alert('Seleccioná un grupo. Si el listado está vacío, revisá la asignación del usuario a un grupo.'); return; }
 
     const { data: nuevaPantalla, error } = await sb
       .from('pantallas')
@@ -3596,8 +3604,29 @@
     await loadDashboard();
   }
 
-  function openCampaniaModal(existing=null){
+  async function openCampaniaModal(existing=null){
     if(!canWriteCampaign()) return;
+
+    // Respaldo: si por cualquier motivo el cache de grupos llegó vacío,
+    // volvemos a consultarlos antes de abrir el formulario.
+    if(!cacheGrupos.length){
+      const { data: grupos, error: gruposError } = await sb
+        .from('grupos')
+        .select('*')
+        .eq('activo', true)
+        .order('nombre');
+
+      if(gruposError){
+        console.error('No se pudieron cargar los grupos:', gruposError);
+      }else{
+        cacheGrupos = grupos || [];
+      }
+    }
+
+    if(!cacheGrupos.length){
+      alert('No hay grupos disponibles para este usuario. Revisá la asignación de grupos y permisos.');
+      return;
+    }
     pendingContentFile = null;
     detectedVideoDuration = null;
     if(localPreviewUrl){
@@ -3605,10 +3634,34 @@
       localPreviewUrl = null;
     }
 
-    const selectedGroupId = existing?.grupo_id || cacheClientes.find(c => c.id === existing?.cliente_id)?.grupo_id || cacheGrupos.find(g => g.nombre === 'GENERAL')?.id || cacheGrupos[0]?.id || '';
-    const optsGrupos = cacheGrupos.filter(g => g.activo || g.id === selectedGroupId).map(g => `<option value="${g.id}" ${g.id===selectedGroupId?'selected':''}>${escapeHtml(g.nombre)}</option>`).join('');
-    const optsClientes = cacheClientes.filter(c => !selectedGroupId || c.grupo_id === selectedGroupId).map(c => `<option value="${c.id}" ${existing?.cliente_id===c.id?'selected':''}>${escapeHtml(c.nombre)}</option>`).join('');
-    const optsPantallas = cachePantallas.map(p => `<label style="display:block;margin:6px 0"><input class="cpScreen" style="width:auto" type="checkbox" value="${p.id}"> ${escapeHtml(p.nombre)}</label>`).join('');
+    const selectedGroupId =
+      existing?.grupo_id ||
+      cacheClientes.find(c => c.id === existing?.cliente_id)?.grupo_id ||
+      cacheGrupos.find(g => g.nombre === 'GENERAL')?.id ||
+      cacheGrupos.find(g => g.activo)?.id ||
+      cacheGrupos[0]?.id ||
+      '';
+
+    const optsGrupos = cacheGrupos
+      .filter(g => g.activo || g.id === selectedGroupId)
+      .map(g => `<option value="${g.id}" ${g.id===selectedGroupId?'selected':''}>${escapeHtml(g.nombre)}</option>`)
+      .join('');
+
+    const optsClientes = cacheClientes
+      .filter(c => !selectedGroupId || c.grupo_id === selectedGroupId)
+      .map(c => `<option value="${c.id}" ${existing?.cliente_id===c.id?'selected':''}>${escapeHtml(c.nombre)}</option>`)
+      .join('');
+
+    const allowedScreenIds = new Set(
+      Object.entries(screenGroupsMap)
+        .filter(([screenId, groupIds]) => (groupIds || []).includes(selectedGroupId))
+        .map(([screenId]) => screenId)
+    );
+
+    const optsPantallas = cachePantallas
+      .filter(p => !selectedGroupId || allowedScreenIds.has(p.id))
+      .map(p => `<label style="display:block;margin:6px 0"><input class="cpScreen" style="width:auto" type="checkbox" value="${p.id}"> ${escapeHtml(p.nombre)}</label>`)
+      .join('');
 
     $('modalRoot').innerHTML = `
       <div class="modal-backdrop">
@@ -3617,7 +3670,7 @@
           <div class="form-grid">
             <div class="field">
               <label>Grupo</label>
-              <select id="cGrupo" onchange="refreshCampaignClientOptions()">${optsGrupos}</select>
+              <select id="cGrupo" onchange="refreshCampaignGroupOptions()">${optsGrupos}</select>
             </div>
 
             <div class="field">
@@ -3686,7 +3739,7 @@
 
             <div class="field full">
               <label>Pantallas</label>
-              <div class="card">${optsPantallas || 'No hay pantallas cargadas'}</div>
+              <div id="campaignScreensBox" class="card">${optsPantallas || 'No hay pantallas asignadas a este grupo'}</div>
             </div>
           </div>
 
@@ -3887,16 +3940,49 @@
   }
 
 
-  function refreshCampaignClientOptions(){
+  function refreshCampaignGroupOptions(){
     const grupoId = $('cGrupo')?.value || '';
-    const current = $('cCliente')?.value || '';
+    const currentClient = $('cCliente')?.value || '';
+    const checkedScreens = new Set(
+      [...document.querySelectorAll('.cpScreen:checked')].map(x => x.value)
+    );
+
+    // Clientes del grupo.
     const clientes = cacheClientes.filter(c => c.grupo_id === grupoId);
 
     if($('cCliente')){
-      $('cCliente').innerHTML = clientes.map(c =>
-        `<option value="${c.id}" ${c.id===current?'selected':''}>${escapeHtml(c.nombre)}</option>`
-      ).join('');
+      $('cCliente').innerHTML = clientes.length
+        ? clientes.map(c =>
+            `<option value="${c.id}" ${c.id===currentClient?'selected':''}>${escapeHtml(c.nombre)}</option>`
+          ).join('')
+        : '<option value="">Sin clientes en este grupo</option>';
     }
+
+    // Pantallas del grupo.
+    const allowedScreenIds = new Set(
+      Object.entries(screenGroupsMap)
+        .filter(([screenId, groupIds]) => (groupIds || []).includes(grupoId))
+        .map(([screenId]) => screenId)
+    );
+
+    const pantallas = cachePantallas.filter(p => allowedScreenIds.has(p.id));
+    const box = $('campaignScreensBox');
+
+    if(box){
+      box.innerHTML = pantallas.length
+        ? pantallas.map(p =>
+            `<label style="display:block;margin:6px 0">
+              <input class="cpScreen" style="width:auto" type="checkbox" value="${p.id}" ${checkedScreens.has(p.id)?'checked':''}>
+              ${escapeHtml(p.nombre)}
+            </label>`
+          ).join('')
+        : '<span class="small">No hay pantallas asignadas a este grupo.</span>';
+    }
+  }
+
+  // Alias temporal para compatibilidad con cualquier llamada vieja.
+  function refreshCampaignClientOptions(){
+    refreshCampaignGroupOptions();
   }
 
   async function saveCampania(id=''){
@@ -4345,6 +4431,7 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
   window.openGrupoModal = openGrupoModal;
   window.saveGrupo = saveGrupo;
   window.toggleGrupoActivo = toggleGrupoActivo;
+  window.refreshCampaignGroupOptions = refreshCampaignGroupOptions;
   window.refreshCampaignClientOptions = refreshCampaignClientOptions;
   window.openClienteModal = openClienteModal;
   window.saveCliente = saveCliente;
