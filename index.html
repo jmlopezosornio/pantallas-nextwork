@@ -2099,17 +2099,21 @@
   }
 
   async function refreshAll(){
-    // Primero cargamos los datos base. Dashboard se calcula después
-    // para evitar que use caches todavía vacías.
+    // Primero cargamos todas las entidades que alimentan los filtros.
+    // Reproducciones se consulta recién después para evitar combos vacíos.
     await Promise.all([
       loadClientes(),
       loadCampanias(),
-      loadReproducciones(),
       loadUsuarios(),
       loadGrupos()
     ]);
 
     await loadPantallas();
+
+    // Con las cachés ya completas armamos los filtros de Reproducciones.
+    initReproFiltros();
+    await loadReproducciones();
+
     await loadDashboard();
   }
 
