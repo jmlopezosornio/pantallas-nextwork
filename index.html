@@ -2722,8 +2722,9 @@
       actions += `<button class="btn btn-outline btn-sm" onclick="openLicenseModal('${p.id}')">Gestionar licencia</button>`;
     }
 
-    if(!player && isAdmin()){
-      actions += `<button class="btn btn-primary btn-sm" onclick="crearCodigoVinculacion('${p.id}','${escapeHtml(p.nombre)}')">Vincular Player</button>`;
+    if(isAdmin() && !player?.vnnox_player_id){
+      const textoVinculo = player ? 'Re-vincular Player' : 'Vincular Player';
+      actions += `<button class="btn btn-primary btn-sm" onclick="crearCodigoVinculacion('${p.id}','${escapeHtml(p.nombre)}')">${textoVinculo}</button>`;
     }
 
     if(player?.vnnox_player_id){
