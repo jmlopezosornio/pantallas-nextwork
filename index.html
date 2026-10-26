@@ -12,7 +12,8 @@
     const response = await fetch('./app-base.html', { cache:'no-store' });
     if(!response.ok) throw new Error('No se pudo cargar la aplicación base');
     let html = await response.text();
-    html = html.replace('</body>', '<script src="./screen-edit.js?v=1"><\\/script></body>');
+    const editScript = '<script src="./screen-edit.js?v=1">' + '<' + '/script>';
+    html = html.replace('</body>', editScript + '</body>');
     document.open();
     document.write(html);
     document.close();
