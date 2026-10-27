@@ -1,5 +1,13 @@
 // Edición de configuración de pantallas - agregado por ChatGPT
 (function(){
+  // Carga del layout actualizado de Grupos.
+  if(!document.getElementById('nextwork-groups-layout-script-v3')){
+    const groupLayoutScript = document.createElement('script');
+    groupLayoutScript.id = 'nextwork-groups-layout-script-v3';
+    groupLayoutScript.src = './groups-layout-v3.js?v=1';
+    document.head.appendChild(groupLayoutScript);
+  }
+
   // Compactación de la ficha de pantalla para evitar scroll interno.
   const compactStyle = document.createElement('style');
   compactStyle.textContent = `
