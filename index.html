@@ -13,7 +13,8 @@
     if(!response.ok) throw new Error('No se pudo cargar la aplicación base');
     let html = await response.text();
     const editScript = '<script src="./screen-edit.js?v=1">' + '<' + '/script>';
-    html = html.replace('</body>', editScript + '</body>');
+    const campaignScreenFilterScript = '<script src="./campaign-screen-filter.js?v=1">' + '<' + '/script>';
+    html = html.replace('</body>', editScript + campaignScreenFilterScript + '</body>');
     document.open();
     document.write(html);
     document.close();
