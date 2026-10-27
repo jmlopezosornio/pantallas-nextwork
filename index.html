@@ -79,7 +79,19 @@
   $('filtroTipo')?.addEventListener('change', renderCampanias);`,
 `  $('filtroCampania')?.addEventListener('input', renderCampanias);
   $('filtroTipo')?.addEventListener('change', renderCampanias);
-  $('filtroPantallaCampania')?.addEventListener('change', renderCampanias);`
+  $('filtroPantallaCampania')?.addEventListener('change', renderCampanias);
+
+  // Espera a que las pantallas terminen de cargar y completa el filtro sin intervención del usuario.
+  let intentosFiltroPantallas = 0;
+  const timerFiltroPantallas = setInterval(() => {
+    intentosFiltroPantallas++;
+    if((cachePantallas || []).length > 0){
+      populateFiltroPantallaCampania();
+      clearInterval(timerFiltroPantallas);
+    }else if(intentosFiltroPantallas >= 40){
+      clearInterval(timerFiltroPantallas);
+    }
+  }, 250);`
     );
 
     const editScript = '<script src="./screen-edit.js?v=1">' + '<' + '/script>';
