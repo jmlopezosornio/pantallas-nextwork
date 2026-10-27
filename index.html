@@ -12,9 +12,79 @@
     const response = await fetch('./app-base.html', { cache:'no-store' });
     if(!response.ok) throw new Error('No se pudo cargar la aplicación base');
     let html = await response.text();
+
+    // Filtro de Pantalla integrado dentro del mismo scope de app-base.
+    html = html.replace(
+`          <select id="filtroTipo">
+            <option value="">Todos los contenidos</option>
+            <option value="video">Video</option>
+            <option value="imagen">Imagen</option>
+            <option value="web">Web</option>
+          </select>`,
+`          <select id="filtroTipo">
+            <option value="">Todos los contenidos</option>
+            <option value="video">Video</option>
+            <option value="imagen">Imagen</option>
+            <option value="web">Web</option>
+          </select>
+          <select id="filtroPantallaCampania" aria-label="Filtrar campañas por pantalla" style="min-width:220px">
+            <option value="">Todas las pantallas</option>
+          </select>`
+    );
+
+    html = html.replace(
+`  function renderCampanias(){
+    const q = ($('filtroCampania')?.value || '').trim().toLowerCase();
+    const tipoFiltro = $('filtroTipo')?.value || '';
+
+    const base = cacheCampanias.filter(c => {
+      const screens = (campaignScreensMap[c.id] || []).map(p => \`${'${p.nombre || \'\'} ${p.ubicacion || \'\'}'}\`).join(' ');
+      const haystack = \`${'${c.cliente || \'\'} ${c.campania || \'\'} ${screens}'}\`.toLowerCase();
+      return (!q || haystack.includes(q)) &&
+             (!tipoFiltro || (c.tipo_contenido || '').toLowerCase() === tipoFiltro);
+    });`,
+`  function populateFiltroPantallaCampania(){
+    const select = $('filtroPantallaCampania');
+    if(!select) return;
+    const current = select.value || '';
+    const options = ['<option value="">Todas las pantallas</option>']
+      .concat((cachePantallas || [])
+        .filter(p => p && p.id)
+        .slice()
+        .sort((a,b)=>String(a.nombre||'').localeCompare(String(b.nombre||''),'es'))
+        .map(p => '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.nombre || 'Pantalla') + (p.ubicacion ? ' · ' + escapeHtml(p.ubicacion) : '') + '</option>'));
+    select.innerHTML = options.join('');
+    if([...select.options].some(o => o.value === current)) select.value = current;
+  }
+
+  function renderCampanias(){
+    populateFiltroPantallaCampania();
+    const q = ($('filtroCampania')?.value || '').trim().toLowerCase();
+    const tipoFiltro = $('filtroTipo')?.value || '';
+    const pantallaFiltro = $('filtroPantallaCampania')?.value || '';
+
+    const base = cacheCampanias.filter(c => {
+      const campaignScreens = campaignScreensMap[c.id] || [];
+      const screens = campaignScreens.map(p => \`${'${p.nombre || \'\'} ${p.ubicacion || \'\'}'}\`).join(' ');
+      const haystack = \`${'${c.cliente || \'\'} ${c.campania || \'\'} ${screens}'}\`.toLowerCase();
+      const coincidePantalla = !pantallaFiltro || campaignScreens.some(p => String(p.id) === String(pantallaFiltro));
+      return (!q || haystack.includes(q)) &&
+             (!tipoFiltro || (c.tipo_contenido || '').toLowerCase() === tipoFiltro) &&
+             coincidePantalla;
+    });`
+    );
+
+    html = html.replace(
+`  $('filtroCampania')?.addEventListener('input', renderCampanias);
+  $('filtroTipo')?.addEventListener('change', renderCampanias);`,
+`  $('filtroCampania')?.addEventListener('input', renderCampanias);
+  $('filtroTipo')?.addEventListener('change', renderCampanias);
+  $('filtroPantallaCampania')?.addEventListener('change', renderCampanias);`
+    );
+
     const editScript = '<script src="./screen-edit.js?v=1">' + '<' + '/script>';
-    const campaignScreenFilterScript = '<script src="./campaign-screen-filter.js?v=1">' + '<' + '/script>';
-    html = html.replace('</body>', editScript + campaignScreenFilterScript + '</body>');
+    html = html.replace('</body>', editScript + '</body>');
+
     document.open();
     document.write(html);
     document.close();
