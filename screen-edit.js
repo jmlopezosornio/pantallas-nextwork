@@ -1,5 +1,89 @@
 // Edición de configuración de pantallas - agregado por ChatGPT
 (function(){
+  // Compactación de la ficha de pantalla para evitar scroll interno.
+  const compactStyle = document.createElement('style');
+  compactStyle.textContent = `
+    .screen-detail-modal{
+      width:min(1080px,calc(100vw - 36px)) !important;
+      max-width:1080px !important;
+      max-height:calc(100vh - 36px) !important;
+      overflow:hidden !important;
+      padding:22px 24px 18px !important;
+    }
+    .screen-detail-head{
+      align-items:center !important;
+      padding-bottom:12px !important;
+      margin-bottom:12px !important;
+    }
+    .screen-detail-title .screen-list-icon{
+      width:42px !important;
+      height:42px !important;
+    }
+    .screen-detail-title h3{
+      font-size:24px !important;
+      line-height:1.05 !important;
+    }
+    .screen-detail-grid{
+      grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+      gap:8px !important;
+      margin-bottom:12px !important;
+    }
+    .screen-detail-item{
+      padding:10px 12px !important;
+      min-height:72px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+    .screen-detail-label{
+      margin-bottom:4px !important;
+      font-size:9px !important;
+    }
+    .screen-detail-value{
+      font-size:12.5px !important;
+      line-height:1.2 !important;
+    }
+    .screen-detail-actions{
+      padding-top:12px !important;
+      gap:7px !important;
+      flex-wrap:wrap !important;
+      align-items:center !important;
+    }
+    .screen-detail-actions-title{
+      width:auto !important;
+      margin:0 8px 0 0 !important;
+      align-self:center;
+    }
+    .screen-detail-actions .btn{
+      padding:9px 12px !important;
+      font-size:12px !important;
+      border-radius:10px !important;
+    }
+    .screen-detail-modal > .actions{
+      margin-top:12px !important;
+      padding-top:0 !important;
+      justify-content:flex-end !important;
+    }
+    .screen-detail-modal > .actions .btn{
+      padding:9px 16px !important;
+      font-size:12px !important;
+    }
+    @media(max-width:900px){
+      .screen-detail-modal{
+        overflow:auto !important;
+      }
+      .screen-detail-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+      }
+    }
+    @media(max-width:620px){
+      .screen-detail-grid{
+        grid-template-columns:1fr !important;
+      }
+    }
+  `;
+  document.head.appendChild(compactStyle);
+
   const originalOpenScreenDetail = window.openScreenDetail;
 
   window.openScreenDetail = function(screenId){
