@@ -246,8 +246,9 @@
 </style>`;
     html = html.replace('</head>', groupsStyle + '</head>');
 
-    const editScript = '<script src="./screen-edit.js?v=2">' + '<' + '/script>';
-    html = html.replace('</body>', editScript + '</body>');
+    const editScript = '<script src="./screen-edit.js?v=3">' + '<' + '/script>';
+    const campaignLayoutScript = '<script src="./campaign-layout-v31.js?v=1">' + '<' + '/script>';
+    html = html.replace('</body>', editScript + campaignLayoutScript + '</body>');
 
     document.open();
     document.write(html);
