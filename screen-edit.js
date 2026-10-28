@@ -1,13 +1,5 @@
 // Edición de configuración de pantallas - agregado por ChatGPT
 (function(){
-  // Carga del layout actualizado de Grupos.
-  if(!document.getElementById('nextwork-groups-layout-script-v3')){
-    const groupLayoutScript = document.createElement('script');
-    groupLayoutScript.id = 'nextwork-groups-layout-script-v3';
-    groupLayoutScript.src = './groups-layout-v3.js?v=1';
-    document.head.appendChild(groupLayoutScript);
-  }
-
   // Compactación de la ficha de pantalla para evitar scroll interno.
   const compactStyle = document.createElement('style');
   compactStyle.textContent = `
@@ -213,4 +205,12 @@
     window.openScreenDetail(screenId);
     alert('Configuración de pantalla actualizada correctamente.');
   };
+
+  // Carga de mejoras V30: Dashboard, alertas y multimedia de campañas.
+  if(!document.querySelector('script[data-nextwork-v30]')){
+    const v30 = document.createElement('script');
+    v30.src = './system-enhancements-v30.js?v=1';
+    v30.dataset.nextworkV30 = '1';
+    document.body.appendChild(v30);
+  }
 })();
