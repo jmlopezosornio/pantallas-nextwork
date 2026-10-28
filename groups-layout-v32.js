@@ -155,4 +155,12 @@
     hotfix.dataset.nextworkDashboardHotfixV32 = '1';
     document.body.appendChild(hotfix);
   }
+
+  // V33: alertas de vencimiento consultadas directamente desde Supabase.
+  if(!document.querySelector('script[data-nextwork-alerts-v33]')){
+    const alertsV33 = document.createElement('script');
+    alertsV33.src = './dashboard-alerts-v33.js?v=1';
+    alertsV33.dataset.nextworkAlertsV33 = '1';
+    document.body.appendChild(alertsV33);
+  }
 })();
