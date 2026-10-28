@@ -209,8 +209,16 @@
   // Carga de mejoras V30: Dashboard, alertas y multimedia de campañas.
   if(!document.querySelector('script[data-nextwork-v30]')){
     const v30 = document.createElement('script');
-    v30.src = './system-enhancements-v30.js?v=1';
+    v30.src = './system-enhancements-v30.js?v=2';
     v30.dataset.nextworkV30 = '1';
     document.body.appendChild(v30);
+  }
+
+  // V31: corrige ancho y alineación del Dashboard para evitar espacios vacíos laterales.
+  if(!document.querySelector('script[data-nextwork-v31]')){
+    const v31 = document.createElement('script');
+    v31.src = './dashboard-layout-v31.js?v=1';
+    v31.dataset.nextworkV31 = '1';
+    document.body.appendChild(v31);
   }
 })();
