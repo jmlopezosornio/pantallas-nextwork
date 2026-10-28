@@ -147,4 +147,12 @@
     page.parentElement.style.width = '100%';
     page.parentElement.style.maxWidth = 'none';
   }
+
+  // Hotfix V32: evita error al refrescar campañas después de ocultar el listado del Dashboard.
+  if(!document.querySelector('script[data-nextwork-dashboard-hotfix-v32]')){
+    const hotfix = document.createElement('script');
+    hotfix.src = './dashboard-hotfix-v32.js?v=1';
+    hotfix.dataset.nextworkDashboardHotfixV32 = '1';
+    document.body.appendChild(hotfix);
+  }
 })();
