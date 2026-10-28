@@ -221,4 +221,12 @@
     v31.dataset.nextworkV31 = '1';
     document.body.appendChild(v31);
   }
+
+  // V31 Clientes: ficha comercial opcional y edición.
+  if(!document.querySelector('script[data-nextwork-clients-v31]')){
+    const clientsV31 = document.createElement('script');
+    clientsV31.src = './clients-enhancements-v31.js?v=1';
+    clientsV31.dataset.nextworkClientsV31 = '1';
+    document.body.appendChild(clientsV31);
+  }
 })();
