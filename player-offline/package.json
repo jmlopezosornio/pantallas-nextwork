@@ -1,0 +1,12 @@
+{
+  "name": "nextwork-player-offline",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Player local NextWork con cache offline, cola de logs y reintentos automaticos",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
