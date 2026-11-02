@@ -1,0 +1,7 @@
+{
+  "supabaseUrl": "https://qkstdmskuiclbcrncfun.supabase.co",
+  "playerKey": "PEGAR_AQUI_EL_PLAYER_KEY_DE_LA_PANTALLA",
+  "syncMinutes": 5,
+  "heartbeatSeconds": 60,
+  "localPort": 8787
+}
