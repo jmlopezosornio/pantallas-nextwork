@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>NextWork Player Offline</title>
+<style>
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:Arial,sans-serif}
+  #stage{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center}
+  video,img,iframe{width:100%;height:100%;border:0;display:block;background:#000;object-fit:fill}
+  #status{position:fixed;left:8px;bottom:8px;z-index:50;background:rgba(0,0,0,.6);padding:5px 7px;border-radius:6px;font-size:10px;opacity:.22;transition:.2s}
+  #status:hover{opacity:1}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="status">Iniciando…</div>
+<script>
+const stage = document.getElementById('stage');
+const statusBox = document.getElementById('status');
+let state = null;
+let queue = [];
+let current = null;
+let timer = null;
+let stateTimer = null;
+let stoppedBySchedule = false;
+
+function n(v,d=0){ const x=Number(v); return Number.isFinite(x)?x:d; }
+function typeOf(c){ return String(c.tipo_contenido||c.tipo||c.type||'video').toLowerCase(); }
+function idOf(c){ return c.id||c.campania_id||c.campaign_id||c.nombre||c.campania||'sin-id'; }
+function weightOf(c){
+  const p=n(c.porcentaje||c.participacion||c.weight,100);
+  if(p<=25) return 1; if(p<=50) return 2; if(p<=75) return 3; return 4;
+}
+function durationOf(c){
+  const t=typeOf(c);
+  if(t==='video') return null;
+  return Math.min(20,Math.max(5,n(c.duracion_seg||c.duration||10,10)))*1000;
+}
+function parseMinutes(hhmm, fallback){
+  if(!hhmm) return fallback;
+  const m=String(hhmm).match(/^(\d{1,2}):(\d{2})/); if(!m) return fallback;
+  return Number(m[1])*60+Number(m[2]);
+}
+function isInsideSchedule(screen){
+  const start=parseMinutes(screen?.hora_inicio,6*60);
+  const end=parseMinutes(screen?.hora_fin,1*60);
+  const d=new Date(), now=d.getHours()*60+d.getMinutes();
+  if(start===end) return true;
+  return start<end ? now>=start&&now<end : now>=start||now<end;
+}
+function isCampaignActive(c){
+  if(c.pausada===true || c.activa===false || c.estado==='pausada' || c.eliminada===true) return false;
+  const now=Date.now();
+  const from=c.fecha_desde?new Date(c.fecha_desde+'T00:00:00').getTime():null;
+  const to=c.fecha_hasta?new Date(c.fecha_hasta+'T23:59:59').getTime():null;
+  if(from&&now<from) return false;
+  if(to&&now>to) return false;
+  const t=typeOf(c);
+  if((t==='video'||t==='imagen'||t==='image') && !c.local_url && !c.archivo_url && !c.url) return false;
+  return true;
+}
+function rebuildQueue(){
+  const active=(state?.campaigns||[]).filter(isCampaignActive);
+  const expanded=[];
+  active.forEach(c=>{ for(let i=0;i<weightOf(c);i++) expanded.push(c); });
+  for(let i=expanded.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [expanded[i],expanded[j]]=[expanded[j],expanded[i]]; }
+  queue=expanded;
+}
+function blank(reason){
+  clearTimeout(timer); timer=null; current=null; stage.innerHTML=''; stage.style.background='#000';
+  statusBox.textContent=reason;
+}
+async function sendLog(c){
+  try{
+    await fetch('/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      campania_id:c.campania_id||c.campaign_id||c.id||null,
+      cliente_id:c.cliente_id||null,
+      pantalla_id:state?.screen?.id||state?.screen?.pantalla_id||null,
+      fecha_hora:new Date().toISOString(),
+      offline:state?.serverOnline===false,
+      source:'player-offline-v2'
+    })});
+  }catch{}
+}
+function next(){
+  if(!state) return blank('Sin programación local');
+  if(!isInsideSchedule(state.screen)) { stoppedBySchedule=true; return blank('Fuera de horario · pantalla en negro'); }
+  stoppedBySchedule=false;
+  if(!queue.length) rebuildQueue();
+  if(!queue.length) return blank('Sin campañas activas');
+  const c=queue.shift(); current=c;
+  const t=typeOf(c);
+  const src=c.local_url||c.archivo_url||c.url||c.content_url||c.contenido_url||c.media_url;
+  statusBox.textContent=`${state.serverOnline?'ONLINE':'OFFLINE'} · ${c.nombre||c.campania||idOf(c)}`;
+  clearTimeout(timer);
+
+  if(t==='video'){
+    const v=document.createElement('video'); v.src=src; v.autoplay=true; v.muted=true; v.playsInline=true; v.preload='auto';
+    v.onended=()=>{ sendLog(c); next(); };
+    v.onerror=()=>{ setTimeout(next,1200); };
+    stage.replaceChildren(v);
+    v.play().catch(()=>setTimeout(()=>v.play().catch(()=>next()),500));
+    return;
+  }
+  if(t==='imagen'||t==='image'){
+    const img=document.createElement('img'); img.src=src; img.onerror=()=>setTimeout(next,1200); stage.replaceChildren(img);
+    timer=setTimeout(()=>{ sendLog(c); next(); },durationOf(c));
+    return;
+  }
+  if(t==='web'){
+    const f=document.createElement('iframe'); f.src=src; f.referrerPolicy='no-referrer'; stage.replaceChildren(f);
+    timer=setTimeout(()=>{ sendLog(c); next(); },durationOf(c));
+    return;
+  }
+  setTimeout(next,500);
+}
+async function refreshState(){
+  try{
+    const r=await fetch('/state',{cache:'no-store'}); if(!r.ok) throw new Error();
+    const fresh=await r.json();
+    const oldSig=JSON.stringify((state?.campaigns||[]).map(x=>[idOf(x),x.local_url,x.porcentaje,x.fecha_desde,x.fecha_hasta,x.pausada,x.activa]));
+    const newSig=JSON.stringify((fresh?.campaigns||[]).map(x=>[idOf(x),x.local_url,x.porcentaje,x.fecha_desde,x.fecha_hasta,x.pausada,x.activa]));
+    state=fresh;
+    if(oldSig!==newSig){ rebuildQueue(); if(!current) next(); }
+    const allowed=isInsideSchedule(state.screen);
+    if(!allowed&&!stoppedBySchedule) blank('Fuera de horario · pantalla en negro');
+    if(allowed&&stoppedBySchedule){ stoppedBySchedule=false; rebuildQueue(); next(); }
+    if(!current&&allowed) next();
+  }catch{
+    statusBox.textContent='Player local sin respuesta';
+  }
+}
+refreshState();
+stateTimer=setInterval(refreshState,15000);
+</script>
+</body>
+</html>
