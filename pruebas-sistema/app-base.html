@@ -1457,6 +1457,12 @@
 </style>
 <base href="/">
 <style id="stage-empresas-css">
+  /* Sidebar desplazable: Reportes, Empresa y Empresas pueden exceder el alto. */
+  .sidebar{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-bottom:46px}
+  .sidebar::-webkit-scrollbar{width:7px}
+  .sidebar::-webkit-scrollbar-thumb{border-radius:6px;background:#314568}
+  #stageRoleStatus{display:inline-block;margin-left:6px;font-size:11px;font-weight:850;max-width:240px;text-align:right;color:#87520c}
+
   #page-empresas .companies-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
   #page-empresas .card{padding:0;overflow:hidden;border-radius:19px}
   #page-empresas .card::before{display:none}
@@ -1563,6 +1569,10 @@
       <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4z"/></svg></span>
       <span class="nav-label">Reproducciones</span>
     </button>
+    <button class="nav-btn superadmin-only hidden" data-page="empresas">
+      <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M4 21V8l5-3 5 3v13M14 11l3-2 3 2v10M7 11h2M7 15h2M16 14h2"/></svg></span>
+      <span class="nav-label">Empresas</span>
+    </button>
     <button class="nav-btn admin-only" data-page="grupos">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 6h6v5H4z"/><path d="M14 6h6v5h-6z"/><path d="M9 15h6v5H9z"/><path d="M7 11v2h10v-2"/><path d="M12 13v2"/></svg></span>
       <span class="nav-label">Grupos</span>
@@ -1571,16 +1581,13 @@
       <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
       <span class="nav-label">Usuarios</span>
     </button>
-    <button class="nav-btn superadmin-only hidden" data-page="empresas">
-      <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M4 21V8l5-3 5 3v13M14 11l3-2 3 2v10M7 11h2M7 15h2M16 14h2"/></svg></span>
-      <span class="nav-label">Empresas</span>
-    </button>
   </aside>
 
   <main class="main">
     <div class="topbar">
       <div><div class="topbar-title" id="pageTitle">Dashboard</div><div class="topbar-sub">Nextwork · Gestión centralizada de pantallas LED</div></div>
       <div class="userbox">
+        <span id="stageRoleStatus">Perfil por verificar</span>
         <span style="font-size:11px;font-weight:900;color:#a34b09;background:#fff3df;border:1px solid #fed7aa;border-radius:999px;padding:8px 10px">PRUEBAS · DATOS REALES</span>
         <a href="/" class="btn btn-ghost" style="text-decoration:none;font-size:11px;padding:9px 11px">Producción</a>
         <span id="currentUser">Usuario</span>
@@ -1873,6 +1880,8 @@
 
   function configureRoleNavigation(){
     const allowed = new Set(allowedPagesForCurrentRole());
+    const stageStatus = document.getElementById('stageRoleStatus');
+    if(stageStatus) stageStatus.textContent = isSuperAdmin() ? 'Superadmin ✓ · Empresas habilitada' : 'Sin permiso superadmin · Empresas oculta';
 
     document.querySelectorAll('.nav-btn[data-page]').forEach(btn => {
       btn.classList.toggle('hidden', !allowed.has(btn.dataset.page));
