@@ -3653,13 +3653,15 @@
       { data: grupos },
       { data: accesos },
       { data: gruposPantallas },
-      { data: userPantallas }
+      { data: userPantallas },
+      { data: pantallasEmpresa }
     ] = await Promise.all([
       sb.from('usuarios').select('*').eq('id',usuarioId).single(),
       sb.from('grupos').select('*').eq('activo',true).order('nombre'),
       sb.from('usuarios_grupos').select('*').eq('usuario_id',usuarioId),
       sb.from('grupos_pantallas').select('grupo_id,pantalla_id'),
-      sb.from('usuarios_pantallas').select('pantalla_id').eq('usuario_id',usuarioId)
+      sb.from('usuarios_pantallas').select('pantalla_id').eq('usuario_id',usuarioId),
+      sb.from('pantallas').select('id,nombre,ubicacion,empresa_id').order('nombre')
     ]);
 
     if(userError){ alert(userError.message); return; }
@@ -3680,7 +3682,7 @@
       const checked = !!access;
       const allScreens = access?.acceso_todas_pantallas !== false;
       const groupScreenIds = (gruposPantallas || []).filter(x => x.grupo_id === g.id).map(x => x.pantalla_id);
-      const pantallas = cachePantallas.filter(p => p.empresa_id === usuario.empresa_id && groupScreenIds.includes(p.id));
+      const pantallas = (pantallasEmpresa || []).filter(p => p.empresa_id === usuario.empresa_id && groupScreenIds.includes(p.id));
 
       const screensHtml = pantallas.length
         ? pantallas.map(p => `
