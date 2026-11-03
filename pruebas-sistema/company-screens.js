@@ -54,7 +54,7 @@
         +'<div class="small">Pertenece a '+esc(source)+' · '+c.campaigns+' campañas · '+c.players+' reproductor(es)</div>'
         +(propios.length?'<div style="display:flex;gap:8px;align-items:center;margin-top:10px"><select id="transferGrupo-'+esc(p.id)+'">'+groupOpts+'</select><button type="button" class="btn btn-outline btn-sm" onclick="transferirPantallaEmpresa(\''+esc(p.id)+'\')">Trasladar</button></div>':'<div class="small" style="margin-top:6px">Primero creá un grupo de destino.</div>')+'</div>';
     }).join('');
-    const note='Al trasladar una pantalla con campañas, se trasladarán únicamente las campañas y clientes exclusivos de esa pantalla. Si hay campañas compartidas con otras pantallas, la operación se rechazará. Se conserva el reproductor y su identificador. Podría ser necesario revisar la publicación después.';
+    const note='Al trasladar una pantalla, sus campañas exclusivas pasan a la empresa de destino. Si un cliente también publica en otras pantallas, se crea una ficha separada para no quitarle esas otras campañas. Los reproductores conservan su identificador. Si una campaña está compartida entre pantallas o hay historial que impida separar un cliente, el sistema no realiza el traslado.';
     $('modalRoot').innerHTML='<div class="modal-backdrop" onclick="if(event.target===this) closeModal()">'
       +'<div class="modal" style="width:min(980px,96vw);max-height:90vh;overflow-y:auto">'
       +'<h3>Grupos y pantallas · '+esc(empresa.nombre_fantasia)+'</h3>'
@@ -157,7 +157,7 @@
       +'Campañas vinculadas: '+(campaignsResult.data||[]).length+'\n'
       +'Reproductores conservados: '+(playersResult.data||[]).length+'\n'
       +'Grupo de destino: '+group.nombre+'\n\n'
-      +'Las campañas y clientes exclusivos también pasarán de empresa. '
+      +'Las campañas propias de esa pantalla pasarán de empresa; los clientes compartidos tendrán una ficha separada. '
       +'Se quitarán las asignaciones directas de usuarios de la empresa anterior. '
       +'El contenido del reproductor puede requerir revisión después.\n\n'
       +'¿Querés ejecutar el traslado?';
@@ -167,7 +167,7 @@
     });
     if(error){status('Traslado rechazado: '+error.message,true);return;}
     await renderEmpresaPantallas();
-    status('Pantalla trasladada: '+(data?.campanias||0)+' campañas y '+(data?.clientes||0)+' clientes; reproductor conservado. Revisá la publicación y asigná los permisos al usuario.');
+    status('Pantalla trasladada: '+(data?.campanias||0)+' campañas, '+(data?.clientes||0)+' clientes y '+(data?.clientes_separados||0)+' clientes con ficha separada. Reproductor conservado. Revisá la publicación y asigná permisos al usuario.');
   }
 
   async function volverPermisosEmpresa(){
