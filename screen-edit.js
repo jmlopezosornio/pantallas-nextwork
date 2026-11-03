@@ -219,5 +219,5 @@
   loadScript('script[data-nextwork-clients-v31]','./clients-enhancements-v31.js?v=1','nextworkClientsV31');
   loadScript('script[data-nextwork-reports]','./reports-admin.js?v=2','nextworkReports');
   loadScript('script[data-nextwork-company-settings]','./company-settings.js?v=1','nextworkCompanySettings');
-  loadScript('script[data-nextwork-superadmin-companies]','./superadmin-companies.js?v=1','nextworkSuperadminCompanies');
+  loadScript('script[data-nextwork-superadmin-companies]','./superadmin-companies.js?v=2','nextworkSuperadminCompanies');
 })();
