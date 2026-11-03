@@ -1756,7 +1756,7 @@
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Nombre</th><th>Email</th><th>Accesos</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>Nombre</th><th>Email</th><th>Empresa</th><th>Accesos</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody id="usuariosBody"></tbody>
           </table>
         </div>
@@ -3478,11 +3478,13 @@
     const [
       { data: usuarios, error: usuariosError },
       { data: accesos },
-      { data: grupos }
+      { data: grupos },
+      { data: empresas }
     ] = await Promise.all([
       sb.from('usuarios').select('*').order('nombre'),
       sb.from('usuarios_grupos').select('usuario_id,grupo_id,rol_grupo,acceso_todas_pantallas'),
-      sb.from('grupos').select('id,nombre')
+      sb.from('grupos').select('id,nombre'),
+      sb.from('empresas').select('id,nombre_fantasia,activo').order('nombre_fantasia')
     ]);
 
     if(usuariosError){
@@ -3491,6 +3493,7 @@
     }
 
     const gruposMap = new Map((grupos || []).map(g => [g.id, g.nombre]));
+    const empresasMap = new Map((empresas || []).map(e => [e.id, e.nombre_fantasia]));
 
     $('usuariosBody').innerHTML = (usuarios || []).map(u => {
       const ua = (accesos || []).filter(a => a.usuario_id === u.id);
@@ -3502,11 +3505,15 @@
         <tr>
           <td>${escapeHtml(u.nombre || '')}${u.es_superadmin ? '<div class="small" style="color:#7c3aed;font-weight:800;margin-top:3px">Superadministrador</div>' : ''}</td>
           <td>${escapeHtml(u.email || '')}</td>
+          <td><span class="badge info">${escapeHtml(empresasMap.get(u.empresa_id) || 'Sin empresa asignada')}</span></td>
           <td><div class="user-access-summary">${chips}</div></td>
           <td>${u.activo ? '<span class="badge ok">Activo</span>' : '<span class="badge off">Inactivo</span>'}</td>
           <td>
             ${(canManageUsers() && (!u.es_superadmin || isSuperAdmin()))
               ? `<button class="btn btn-outline btn-sm" onclick="openUsuarioAccesos('${u.id}')">Permisos</button>`
+              : ''}
+            ${isSuperAdmin() && !u.es_superadmin
+              ? `<button class="btn btn-outline btn-sm" style="margin-left:6px" onclick="openUsuarioEmpresa('${u.id}')">Asignar empresa</button>`
               : ''}
             ${isSuperAdmin()
               ? `<button class="btn btn-outline btn-sm" style="margin-left:6px" onclick="openAdminResetPassword('${u.id}','${escapeHtml(u.nombre || u.email || 'Usuario')}','${escapeHtml(u.email || '')}')">Resetear contraseña</button>`
@@ -3514,6 +3521,69 @@
           </td>
         </tr>`;
     }).join('');
+  }
+
+  // Cambiar empresa es una operación separada de Permisos.
+  // La función RPC aplica la asignación y limpia accesos anteriores atómicamente.
+  async function openUsuarioEmpresa(usuarioId){
+    if(!isSuperAdmin()) return;
+    const [
+      {data: usuario,error:userError},
+      {data: empresas,error:companyError}
+    ] = await Promise.all([
+      sb.from('usuarios').select('id,nombre,email,empresa_id,es_superadmin').eq('id',usuarioId).single(),
+      sb.from('empresas').select('id,nombre_fantasia,activo').eq('activo',true).order('nombre_fantasia')
+    ]);
+    if(userError || !usuario){alert(userError?.message || 'Usuario no encontrado.');return;}
+    if(companyError){alert(companyError.message);return;}
+    if(usuario.es_superadmin){alert('La empresa de una cuenta superadministradora no se cambia desde esta opción.');return;}
+    const options=(empresas||[]).map(e => `<option value="${e.id}" ${e.id===usuario.empresa_id?'selected':''}>${escapeHtml(e.nombre_fantasia)}</option>`).join('');
+    $('modalRoot').innerHTML=`
+      <div class="modal-backdrop" onclick="if(event.target===this) closeModal()">
+        <div class="modal" style="max-width:590px">
+          <h3>Asignar empresa</h3>
+          <div class="content-box" style="margin-bottom:16px">
+            <strong>${escapeHtml(usuario.nombre||'Usuario')}</strong>
+            <div class="small">${escapeHtml(usuario.email||'')}</div>
+          </div>
+          <div class="field">
+            <label>Empresa a la que pertenece</label>
+            <select id="usuarioNuevaEmpresa">${options}</select>
+          </div>
+          <div class="content-box" style="margin-top:15px">
+            <strong>Importante al cambiar de empresa</strong>
+            <div class="small" style="margin-top:6px">
+              Se quitarán automáticamente los grupos y las pantallas asignadas de la empresa anterior.
+              Después deberás asignar los grupos correspondientes desde Permisos.
+              El usuario conservará su rol y podrá ver el logo, nombre y reportes de su nueva empresa cuando inicie sesión.
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+            <button id="btnUsuarioGuardarEmpresa" class="btn btn-primary" onclick="saveUsuarioEmpresa('${usuario.id}')">Guardar empresa</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function saveUsuarioEmpresa(usuarioId){
+    if(!isSuperAdmin()) return;
+    const empresaId=$('usuarioNuevaEmpresa')?.value;
+    if(!empresaId){alert('Seleccioná una empresa.');return;}
+    const btn=$('btnUsuarioGuardarEmpresa');
+    if(btn){btn.disabled=true;btn.textContent='Guardando...';}
+    const {error}=await sb.rpc('superadmin_asignar_empresa_usuario',{
+      p_usuario_id:usuarioId,
+      p_empresa_id:empresaId
+    });
+    if(error){
+      if(btn){btn.disabled=false;btn.textContent='Guardar empresa';}
+      alert('No se pudo asignar la empresa: '+error.message);
+      return;
+    }
+    closeModal();
+    await Promise.all([loadUsuarios(),loadGrupos()]);
+    alert('Empresa asignada correctamente. Si cambió de empresa, configurá sus nuevos grupos desde Permisos.');
   }
 
   async function openUsuarioAccesos(usuarioId){
@@ -4690,6 +4760,8 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
   window.adminResetPassword = adminResetPassword;
   window.saveMyPassword = saveMyPassword;
   window.openUsuarioAccesos = openUsuarioAccesos;
+  window.openUsuarioEmpresa = openUsuarioEmpresa;
+  window.saveUsuarioEmpresa = saveUsuarioEmpresa;
   window.saveUsuarioAccesos = saveUsuarioAccesos;
   window.toggleUserGroupBlock = toggleUserGroupBlock;
   window.toggleUserSpecificScreens = toggleUserSpecificScreens;
