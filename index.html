@@ -93,6 +93,23 @@
   }, 250);`
     );
 
+    // Permisos nativos: Superadmin conserva rol Administrador pero suma páginas globales.
+    html = html.replace(
+`  function allowedPagesForCurrentRole(){
+    if(isAdmin()) return ['dashboard','pantallas','campanias','clientes','reproducciones','grupos','usuarios'];
+    if(isOperator()) return ['dashboard','pantallas','campanias','clientes','reproducciones'];
+    if(isAdministrative()) return ['dashboard','campanias','reproducciones'];
+    return ['dashboard'];
+  }`,
+`  function allowedPagesForCurrentRole(){
+    if(isSuperAdmin()) return ['dashboard','pantallas','campanias','clientes','reproducciones','grupos','usuarios','empresas'];
+    if(isAdmin()) return ['dashboard','pantallas','campanias','clientes','reproducciones','grupos','usuarios'];
+    if(isOperator()) return ['dashboard','pantallas','campanias','clientes','reproducciones'];
+    if(isAdministrative()) return ['dashboard','campanias','reproducciones'];
+    return ['dashboard'];
+  }`
+    );
+
     const groupsStyle = `
 <style id="nextwork-groups-ui-v2">
   #page-grupos #gruposCards{display:grid !important;grid-template-columns:repeat(auto-fit,minmax(360px,1fr)) !important;gap:22px !important;align-items:stretch !important;}
@@ -115,7 +132,7 @@
 </style>`;
     html = html.replace('</head>', groupsStyle + '</head>');
 
-    const editScript = '<script src="./screen-edit.js?v=6">' + '<' + '/script>';
+    const editScript = '<script src="./screen-edit.js?v=7">' + '<' + '/script>';
     const campaignLayoutScript = '<script src="./campaign-layout-v31.js?v=1">' + '<' + '/script>';
     const groupLayoutScript = '<script src="./groups-layout-v32.js?v=1">' + '<' + '/script>';
     html = html.replace('</body>', editScript + campaignLayoutScript + groupLayoutScript + '</body>');
