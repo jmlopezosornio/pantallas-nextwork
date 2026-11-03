@@ -3604,6 +3604,7 @@
           </div>
           <div class="content-box" style="margin-top:15px">
             <strong>Importante al cambiar de empresa</strong>
+            <div class="small" style="margin-top:6px;color:#9a3412;font-weight:800">Esta pantalla de pruebas utiliza usuarios y permisos REALES de Supabase. El cambio también afecta a producción.</div>
             <div class="small" style="margin-top:6px">
               Se quitarán automáticamente los grupos y las pantallas asignadas de la empresa anterior.
               Después deberás asignar los grupos correspondientes desde Permisos.
@@ -3620,8 +3621,11 @@
 
   async function saveUsuarioEmpresa(usuarioId){
     if(!isSuperAdmin()) return;
-    const empresaId=$('usuarioNuevaEmpresa')?.value;
+    const companySelect=$('usuarioNuevaEmpresa');
+    const empresaId=companySelect?.value;
     if(!empresaId){alert('Seleccioná una empresa.');return;}
+    const empresaNombre=companySelect?.selectedOptions?.[0]?.textContent || 'la empresa elegida';
+    if(!confirm('¿Confirmás la asignación a '+empresaNombre+'?\\n\\nEsta acción modifica los datos reales de Supabase y borra los accesos a grupos y pantallas de la empresa anterior.')) return;
     const btn=$('btnUsuarioGuardarEmpresa');
     if(btn){btn.disabled=true;btn.textContent='Guardando...';}
     const {error}=await sb.rpc('superadmin_asignar_empresa_usuario',{
