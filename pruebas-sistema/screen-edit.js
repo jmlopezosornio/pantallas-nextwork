@@ -89,6 +89,6 @@
   loadScript('script[data-nextwork-v30]','./system-enhancements-v30.js?v=2','nextworkV30');
   loadScript('script[data-nextwork-v31]','./dashboard-layout-v31.js?v=1','nextworkV31');
   loadScript('script[data-nextwork-clients-v31]','./clients-enhancements-v31.js?v=1','nextworkClientsV31');
-  loadScript('script[data-nextwork-reports]','./reports-admin.js?v=2','nextworkReports');
+  loadScript('script[data-nextwork-reports]','/pruebas-sistema/reports-admin.js?v=1','nextworkReports');
   loadScript('script[data-nextwork-company-settings]','/pruebas-sistema/company-settings.js?v=1','nextworkCompanySettings');
 })();
