@@ -132,11 +132,10 @@
 </style>`;
     html = html.replace('</head>', groupsStyle + '</head>');
 
-    const editScript = '<script src="./screen-edit.js?v=8">' + '<' + '/script>';
-    const superadminNavFixScript = '<script src="./superadmin-nav-fix-v1.js?v=1">' + '<' + '/script>';
+    const editScript = '<script src="./screen-edit.js?v=7">' + '<' + '/script>';
     const campaignLayoutScript = '<script src="./campaign-layout-v31.js?v=1">' + '<' + '/script>';
     const groupLayoutScript = '<script src="./groups-layout-v32.js?v=1">' + '<' + '/script>';
-    html = html.replace('</body>', editScript + superadminNavFixScript + campaignLayoutScript + groupLayoutScript + '</body>');
+    html = html.replace('</body>', editScript + campaignLayoutScript + groupLayoutScript + '</body>');
 
     document.open();
     document.write(html);
