@@ -2260,7 +2260,7 @@
         <td>${p.ancho}×${p.alto}</td>
         <td>${badge(p._estadoReal || 'offline')}</td>
         <td>${p._ultimaConexionReal ? fmtDateTime(p._ultimaConexionReal) : 'Sin conexión reciente'}</td>
-      </tr>`).join('') : `<tr><td colspan="5" class="empty">Sin pantallas cargadas</td></tr>`;
+      </tr>`).join('') : `<tr><td colspan="5" class="empty">No hay pantallas visibles para esta cuenta. Verificá que las pantallas pertenezcan a tu empresa y que tengas grupos y permisos válidos.</td></tr>`;
 
     const activas = cacheCampanias.filter(c => c.estado === 'activa').slice(0,10);
     $('dashCampanias').innerHTML = activas.length ? activas.map(c => `
@@ -3535,7 +3535,7 @@
     ] = await Promise.all([
       sb.from('usuarios').select('*').order('nombre'),
       sb.from('usuarios_grupos').select('usuario_id,grupo_id,rol_grupo,acceso_todas_pantallas'),
-      sb.from('grupos').select('id,nombre'),
+      sb.from('grupos').select('id,nombre,empresa_id'),
       sb.from('empresas').select('id,nombre_fantasia,activo').order('nombre_fantasia')
     ]);
 
@@ -3544,14 +3544,17 @@
       return;
     }
 
-    const gruposMap = new Map((grupos || []).map(g => [g.id, g.nombre]));
+    const gruposMap = new Map((grupos || []).map(g => [g.id, g]));
     const empresasMap = new Map((empresas || []).map(e => [e.id, e.nombre_fantasia]));
 
     $('usuariosBody').innerHTML = (usuarios || []).map(u => {
-      const ua = (accesos || []).filter(a => a.usuario_id === u.id);
-      const chips = ua.length
-        ? ua.map(a => `<span class="user-chip">${escapeHtml(gruposMap.get(a.grupo_id) || 'Grupo')} · ${escapeHtml(roleLabel(a.rol_grupo))}</span>`).join('')
-        : '<span class="small">Sin grupos asignados</span>';
+      const userAssignments = (accesos || []).filter(a => a.usuario_id === u.id);
+      const ua = userAssignments.filter(a => gruposMap.get(a.grupo_id)?.empresa_id === u.empresa_id);
+      const incompatibles = userAssignments.length - ua.length;
+      const chips = (ua.length
+        ? ua.map(a => `<span class="user-chip">${escapeHtml(gruposMap.get(a.grupo_id)?.nombre || 'Grupo')} · ${escapeHtml(roleLabel(a.rol_grupo))}</span>`).join('')
+        : '<span class="small">Sin grupos válidos de su empresa</span>')
+        + (incompatibles ? `<span class="small" style="color:#b45309"> ${incompatibles} asignación(es) de otra empresa sin acceso válido</span>` : '');
 
       return `
         <tr>
@@ -3666,15 +3669,18 @@
       return;
     }
 
-    const accessMap = new Map((accesos || []).map(a => [a.grupo_id, a]));
+    const gruposCompatibles = (grupos || []).filter(g => g.empresa_id === usuario.empresa_id);
+    const gruposIdsCompatibles = new Set(gruposCompatibles.map(g => g.id));
+    const asignacionesIncompatibles = (accesos || []).filter(a => !gruposIdsCompatibles.has(a.grupo_id)).length;
+    const accessMap = new Map((accesos || []).filter(a => gruposIdsCompatibles.has(a.grupo_id)).map(a => [a.grupo_id, a]));
     const userPantallaSet = new Set((userPantallas || []).map(x => x.pantalla_id));
 
-    const gruposHtml = (grupos || []).map(g => {
+    const gruposHtml = gruposCompatibles.map(g => {
       const access = accessMap.get(g.id);
       const checked = !!access;
       const allScreens = access?.acceso_todas_pantallas !== false;
       const groupScreenIds = (gruposPantallas || []).filter(x => x.grupo_id === g.id).map(x => x.pantalla_id);
-      const pantallas = cachePantallas.filter(p => groupScreenIds.includes(p.id));
+      const pantallas = cachePantallas.filter(p => p.empresa_id === usuario.empresa_id && groupScreenIds.includes(p.id));
 
       const screensHtml = pantallas.length
         ? pantallas.map(p => `
@@ -3754,8 +3760,9 @@
           </div>
 
           <div class="field">
-            <label>Grupos y alcance</label>
-            <div class="user-access-list">${gruposHtml || '<div class="empty">No hay grupos activos.</div>'}</div>
+            <label>Grupos y alcance · solo la empresa del usuario</label>
+            ${asignacionesIncompatibles ? `<div class="content-box" style="color:#9a3412;margin-bottom:12px">Se detectaron ${asignacionesIncompatibles} asignaciones de grupos que pertenecen a otra empresa. No dan acceso a sus pantallas y se eliminarán al guardar permisos válidos.</div>` : ''}
+            <div class="user-access-list">${gruposHtml || '<div class="empty">Esta empresa todavía no tiene grupos activos. Primero hay que crearle un grupo y asignarle pantallas propias; no se pueden reutilizar grupos de otra empresa.</div>'}</div>
           </div>
 
           <div class="actions">
@@ -3790,6 +3797,23 @@
 
   async function saveUsuarioAccesos(usuarioId){
     if(!canManageUsers()) return;
+
+    // Los permisos nunca pueden vincular grupos o pantallas de otra empresa.
+    // Validamos también contra Supabase para evitar selecciones obsoletas o manipuladas.
+    const selectedGroupIds=[...document.querySelectorAll('.userGroupCheck:checked')].map(el=>el.dataset.groupId);
+    const [targetResult,groupsResult] = await Promise.all([
+      sb.from('usuarios').select('id,empresa_id').eq('id',usuarioId).single(),
+      selectedGroupIds.length ? sb.from('grupos').select('id,empresa_id').in('id',selectedGroupIds) : Promise.resolve({data:[],error:null})
+    ]);
+    if(targetResult.error || !targetResult.data?.empresa_id){
+      alert('No se pudo verificar la empresa del usuario.');
+      return;
+    }
+    if(groupsResult.error || (groupsResult.data || []).length!==selectedGroupIds.length
+      || (groupsResult.data || []).some(g=>g.empresa_id!==targetResult.data.empresa_id)){
+      alert('Los grupos seleccionados deben pertenecer a la misma empresa del usuario.');
+      return;
+    }
 
     const groupChecks = [...document.querySelectorAll('.userGroupCheck:checked')];
     const selectedRole = $('userGlobalRole')?.value || 'administrativo';
@@ -3843,6 +3867,16 @@
         });
       }
     });
+
+    const selectedScreenIds = [...new Set(specificScreenIds)];
+    if(selectedScreenIds.length){
+      const screenResult=await sb.from('pantallas').select('id,empresa_id').in('id',selectedScreenIds);
+      if(screenResult.error || (screenResult.data||[]).length!==selectedScreenIds.length
+        || (screenResult.data||[]).some(p=>p.empresa_id!==targetResult.data.empresa_id)){
+        alert('Las pantallas seleccionadas deben pertenecer a la empresa del usuario.');
+        return;
+      }
+    }
 
     const { error: deleteGroupsError } = await sb
       .from('usuarios_grupos')
