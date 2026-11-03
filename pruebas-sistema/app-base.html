@@ -3763,6 +3763,11 @@
             <label>Grupos y alcance · solo la empresa del usuario</label>
             ${asignacionesIncompatibles ? `<div class="content-box" style="color:#9a3412;margin-bottom:12px">Se detectaron ${asignacionesIncompatibles} asignaciones de grupos que pertenecen a otra empresa. No dan acceso a sus pantallas y se eliminarán al guardar permisos válidos.</div>` : ''}
             <div class="user-access-list">${gruposHtml || '<div class="empty">Esta empresa todavía no tiene grupos activos. Primero hay que crearle un grupo y asignarle pantallas propias; no se pueden reutilizar grupos de otra empresa.</div>'}</div>
+            ${isSuperAdmin() ? `<div class="content-box" style="margin-top:14px;border:1px solid #d5e6fa">
+              <div style="font-weight:850">¿No aparecen pantallas?</div>
+              <div class="small" style="margin:5px 0 12px">Gestioná los grupos y pantallas propios de la empresa. Si alguna pantalla está registrada en NextWork, podés preparar su traslado con confirmación.</div>
+              <button type="button" class="btn btn-outline btn-sm" onclick="openEmpresaPantallas('${usuario.empresa_id}','${usuario.id}')">Gestionar grupos y pantallas de esta empresa</button>
+            </div>` : ''}
           </div>
 
           <div class="actions">
@@ -4907,5 +4912,6 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
   })();
 </script>
 <script src="/pruebas-sistema/empresas-native.js?v=1"></script>
+<script src="/pruebas-sistema/company-screens.js?v=1"></script>
 </body>
 </html>
