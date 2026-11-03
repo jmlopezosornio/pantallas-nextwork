@@ -127,7 +127,7 @@ async function saveCompany(id,currentLogo){
     if(!nombre||!razon) throw new Error('Completá nombre comercial y razón social.');
     if(!slug) throw new Error('No se pudo generar el identificador interno.');
     if(!/^#[0-9a-f]{6}$/i.test(color1)||!/^#[0-9a-f]{6}$/i.test(color2)) throw new Error('Los colores deben tener formato #RRGGBB.');
-    const payload={slug,nombre_fantasia:nombre,razon_social:razon,color_primario:color1,color_secundario:color2,actualizado_en:new Date().toISOString()};
+    const payload={slug,nombre:nombre,nombre_fantasia:nombre,razon_social:razon,color_primario:color1,color_secundario:color2,actualizado_en:new Date().toISOString()};
     let companyId=id;
     if(id){
       const {error}=await sb.from('empresas').update(payload).eq('id',id); if(error) throw error;
