@@ -1,4 +1,4 @@
-// Reportes administrativos básicos - NextWork
+// Reportes de Clientes y Campañas + branding corporativo multiempresa - NextWork
 (function(){
   'use strict';
 
@@ -6,6 +6,7 @@
   const REPORT_NAV_ID = 'nav-reportes-admin';
   let reportRows = [];
   let reportMode = 'general';
+  let currentCompany = null;
 
   const svgReport = `<svg viewBox="0 0 24 24"><path d="M4 3h16v18H4z"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h5"/></svg>`;
 
@@ -91,6 +92,12 @@
       .reports-table .vigencia{white-space:nowrap}
       .reports-empty{padding:34px!important;text-align:center;color:#64748b!important;background:#fff!important}
       .reports-screen-list{line-height:1.45}
+      .nw-company-brand{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+      .nw-company-logo{display:block;max-width:100%;max-height:90px;object-fit:contain}
+      .nw-company-name{font-size:14px;font-weight:900;color:#0f172a;line-height:1.15}
+      .nw-powered{font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;font-weight:800}
+      .nw-company-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid #e2e8f0;background:#fff;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:800;color:#334155}
+      .nw-company-pill img{width:24px;height:24px;object-fit:contain;border-radius:5px}
       @media(max-width:900px){
         .reports-filter-grid{grid-template-columns:1fr}
         .reports-head{flex-direction:column}
@@ -101,6 +108,65 @@
     document.head.appendChild(style);
   }
 
+  async function loadCompanyBranding(){
+    try{
+      if(typeof currentProfile === 'undefined' || !currentProfile) return;
+      const empresaId = currentProfile.empresa_id || currentProfile.empresaId || null;
+      if(!empresaId) return applyCompanyBranding(null);
+      if(typeof sb === 'undefined') return;
+      const { data, error } = await sb
+        .from('empresas')
+        .select('id,nombre,nombre_fantasia,logo_url,color_primario,color_secundario,activo')
+        .eq('id', empresaId)
+        .single();
+      if(error || !data || data.activo === false){
+        console.warn('Branding empresa no disponible:', error?.message || 'sin datos');
+        return applyCompanyBranding(null);
+      }
+      currentCompany = data;
+      applyCompanyBranding(data);
+    }catch(err){
+      console.warn('No se pudo aplicar branding corporativo:', err);
+      applyCompanyBranding(null);
+    }
+  }
+
+  function applyCompanyBranding(company){
+    currentCompany = company || null;
+    const panel = document.querySelector('.brand-panel');
+    if(panel){
+      if(company){
+        const companyName = company.nombre_fantasia || company.nombre || 'Empresa';
+        panel.innerHTML = `<div class="nw-company-brand">
+          ${company.logo_url ? `<img class="nw-company-logo" src="${esc(company.logo_url)}" alt="${esc(companyName)}">` : ''}
+          <div class="nw-company-name">${esc(companyName)}</div>
+          <div class="nw-powered">Powered by NextWork</div>
+        </div>`;
+      }
+    }
+
+    const topbar = document.querySelector('.topbar .userbox');
+    if(topbar){
+      let pill = document.getElementById('nwCompanyPill');
+      if(company){
+        if(!pill){
+          pill = document.createElement('div');
+          pill.id = 'nwCompanyPill';
+          pill.className = 'nw-company-pill';
+          topbar.prepend(pill);
+        }
+        const companyName = company.nombre_fantasia || company.nombre || 'Empresa';
+        pill.innerHTML = `${company.logo_url ? `<img src="${esc(company.logo_url)}" alt="">` : ''}<span>${esc(companyName)}</span>`;
+      }else if(pill){
+        pill.remove();
+      }
+    }
+
+    const root = document.documentElement;
+    if(company?.color_primario) root.style.setProperty('--company-primary', company.color_primario);
+    if(company?.color_secundario) root.style.setProperty('--company-secondary', company.color_secundario);
+  }
+
   function addNav(){
     if(document.getElementById(REPORT_NAV_ID)) return;
     const candidates = [...document.querySelectorAll('.nav-btn')];
@@ -108,7 +174,6 @@
     const campaign = candidates.find(b => b.dataset.page === 'campanias');
     const anchor = repro || campaign;
     if(!anchor) return;
-
     const btn = document.createElement('button');
     btn.className = 'nav-btn';
     btn.id = REPORT_NAV_ID;
@@ -129,7 +194,7 @@
       <div class="reports-shell">
         <div class="reports-head">
           <div>
-            <h2>Reporte básico de campañas</h2>
+            <h2>Reporte de Clientes y Campañas</h2>
             <p>Listado administrativo por cliente, campaña, vigencia, pantallas asignadas y porcentaje de salidas.</p>
           </div>
           <div class="reports-actions">
@@ -137,18 +202,13 @@
             <button class="btn btn-primary" type="button" id="reportPrintBtn">Imprimir / PDF</button>
           </div>
         </div>
-
         <div class="reports-filterbox">
           <div class="reports-period-row">
             <strong style="color:#0b2b59;margin-right:4px">Período:</strong>
             <button class="reports-mode active" type="button" data-report-mode="general">General</button>
             <button class="reports-mode" type="button" data-report-mode="fechas">Entre fechas</button>
-            <div class="reports-date" data-report-dates style="display:none">
-              <label for="reportDesde">Desde</label><input type="date" id="reportDesde">
-            </div>
-            <div class="reports-date" data-report-dates style="display:none">
-              <label for="reportHasta">Hasta</label><input type="date" id="reportHasta">
-            </div>
+            <div class="reports-date" data-report-dates style="display:none"><label for="reportDesde">Desde</label><input type="date" id="reportDesde"></div>
+            <div class="reports-date" data-report-dates style="display:none"><label for="reportHasta">Hasta</label><input type="date" id="reportHasta"></div>
           </div>
           <div class="reports-filter-grid">
             <div><label for="reportCliente">Cliente</label><select id="reportCliente"><option value="">Todos</option></select></div>
@@ -156,12 +216,7 @@
             <div><label for="reportPantalla">Pantalla</label><select id="reportPantalla"><option value="">Todas</option></select></div>
           </div>
         </div>
-
-        <div class="reports-summary">
-          <span id="reportSummaryText">Preparando reporte…</span>
-          <strong id="reportCountText"></strong>
-        </div>
-
+        <div class="reports-summary"><span id="reportSummaryText">Preparando reporte…</span><strong id="reportCountText"></strong></div>
         <div class="reports-table-wrap">
           <table class="reports-table">
             <thead><tr><th>Cliente</th><th>Campaña</th><th>Vigencia</th><th>Pantallas</th><th>% Salidas</th></tr></thead>
@@ -170,7 +225,6 @@
         </div>
       </div>`;
     content.appendChild(section);
-
     section.querySelectorAll('[data-report-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.reportMode)));
     ['reportDesde','reportHasta','reportCliente','reportCampania','reportPantalla'].forEach(id => document.getElementById(id)?.addEventListener('change', renderReport));
     document.getElementById('reportResetBtn')?.addEventListener('click', resetFilters);
@@ -181,18 +235,15 @@
     const campaigns = (typeof cacheCampanias !== 'undefined' ? cacheCampanias : []) || [];
     const screens = (typeof cachePantallas !== 'undefined' ? cachePantallas : []) || [];
     const clients = (typeof cacheClientes !== 'undefined' ? cacheClientes : []) || [];
-
     const fill = (id, values, firstLabel) => {
       const sel = document.getElementById(id); if(!sel) return;
       const current = sel.value;
       sel.innerHTML = `<option value="">${firstLabel}</option>` + values.map(v => `<option value="${esc(v.value)}">${esc(v.label)}</option>`).join('');
       if([...sel.options].some(o => o.value === current)) sel.value = current;
     };
-
     const clientValues = clients.length
       ? clients.filter(x=>x?.id).map(x=>({value:String(x.id),label:x.nombre||'Sin nombre'})).sort((a,b)=>a.label.localeCompare(b.label,'es'))
       : [...new Map(campaigns.map(c => [String(clientId(c)||clientName(c)), {value:String(clientId(c)||clientName(c)),label:clientName(c)}])).values()].sort((a,b)=>a.label.localeCompare(b.label,'es'));
-
     fill('reportCliente', clientValues, 'Todos');
     fill('reportCampania', campaigns.filter(c=>c?.id).map(c=>({value:String(c.id),label:campaignName(c)})).sort((a,b)=>a.label.localeCompare(b.label,'es')), 'Todas');
     fill('reportPantalla', screens.filter(p=>p?.id).map(p=>({value:String(p.id),label:p.nombre||'Pantalla'})).sort((a,b)=>a.label.localeCompare(b.label,'es')), 'Todas');
@@ -223,7 +274,6 @@
     const selectedScreen = document.getElementById('reportPantalla')?.value || '';
     const from = reportMode === 'fechas' ? (document.getElementById('reportDesde')?.value || '') : '';
     const to = reportMode === 'fechas' ? (document.getElementById('reportHasta')?.value || '') : '';
-
     return campaigns.filter(c => {
       const screens = screensForCampaign(c);
       const cId = String(clientId(c) || clientName(c));
@@ -263,11 +313,11 @@
       const h = document.getElementById('reportHasta')?.value || '';
       if(d && h && d > h){
         document.getElementById('reportBody').innerHTML = `<tr><td colspan="5" class="reports-empty">La fecha Desde no puede ser posterior a Hasta.</td></tr>`;
-        reportRows=[];
+        document.getElementById('reportCountText').textContent = '';
         return;
       }
     }
-
+    populateFilters();
     reportRows = getFilteredRows();
     const body = document.getElementById('reportBody');
     const summary = document.getElementById('reportSummaryText');
@@ -275,17 +325,15 @@
     if(summary) summary.textContent = `Período: ${currentPeriodLabel()} · Cliente: ${selectedText('reportCliente','Todos')} · Campaña: ${selectedText('reportCampania','Todas')} · Pantalla: ${selectedText('reportPantalla','Todas')}`;
     if(count) count.textContent = `${reportRows.length} campaña${reportRows.length===1?'':'s'}`;
     if(!body) return;
-
     if(!reportRows.length){
       body.innerHTML = `<tr><td colspan="5" class="reports-empty">No hay campañas para los filtros seleccionados.</td></tr>`;
       return;
     }
-
     body.innerHTML = reportRows.map(r => `<tr>
       <td>${esc(r.cliente)}</td>
       <td><strong>${esc(r.campania)}</strong></td>
       <td class="vigencia">${displayDate(r.desde)} – ${displayDate(r.hasta)}</td>
-      <td><div class="reports-screen-list">${r.pantallas.length ? r.pantallas.map(esc).join(', ') : 'Sin pantallas asignadas'}</div></td>
+      <td class="reports-screen-list">${r.pantallas.length ? r.pantallas.map(esc).join(', ') : 'Sin pantalla asignada'}</td>
       <td class="pct">${r.porcentaje}%</td>
     </tr>`).join('');
   }
@@ -298,56 +346,48 @@
     const title = document.querySelector('.topbar-title');
     const sub = document.querySelector('.topbar-sub');
     if(title) title.textContent = 'Reportes';
-    if(sub) sub.textContent = 'Informes administrativos e impresión';
-    populateFilters();
-    if(!document.getElementById('reportDesde')?.value) document.getElementById('reportDesde').value = firstDayMonthIso();
-    if(!document.getElementById('reportHasta')?.value) document.getElementById('reportHasta').value = todayIso();
+    if(sub) sub.textContent = 'Clientes, campañas, vigencias y pantallas';
     renderReport();
   }
 
   function printReport(){
-    if(!reportRows.length){ alert('No hay datos para imprimir con los filtros seleccionados.'); return; }
-    const win = window.open('', '_blank', 'width=1200,height=800');
-    if(!win){ alert('El navegador bloqueó la ventana de impresión. Habilitá las ventanas emergentes para este sitio.'); return; }
-    const now = new Date().toLocaleString('es-AR');
-    const filters = `Período: ${currentPeriodLabel()} · Cliente: ${selectedText('reportCliente','Todos')} · Campaña: ${selectedText('reportCampania','Todas')} · Pantalla: ${selectedText('reportPantalla','Todas')}`;
-    const rows = reportRows.map(r => `<tr><td>${esc(r.cliente)}</td><td>${esc(r.campania)}</td><td>${displayDate(r.desde)} – ${displayDate(r.hasta)}</td><td>${r.pantallas.length?r.pantallas.map(esc).join(', '):'Sin pantallas asignadas'}</td><td class="pct">${r.porcentaje}%</td></tr>`).join('');
-    win.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Reporte de campañas - NextWork</title><style>
-      @page{size:A4 landscape;margin:12mm}
-      *{box-sizing:border-box} body{font-family:Arial,Helvetica,sans-serif;color:#172033;margin:0;background:#fff}
-      .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1769d2;padding:0 0 12px;margin-bottom:14px}
-      .brand{font-size:30px;font-weight:900;letter-spacing:-1.5px;color:#1769d2}.brand span{color:#374151}.brand-sub{font-size:11px;color:#475569;margin-top:2px}
-      h1{font-size:23px;color:#0b2b59;margin:4px 0 0;text-align:right}.meta{background:#eff5fb;border:1px solid #d9e5f2;border-radius:9px;padding:10px 12px;margin-bottom:14px;font-size:10px;line-height:1.45}
-      table{width:100%;border-collapse:collapse;table-layout:fixed} th{background:#0b477f;color:#fff;font-size:10px;text-align:left;padding:9px 8px;border:1px solid #d8e2ed} td{font-size:9.5px;padding:8px;border:1px solid #d8e2ed;vertical-align:top;line-height:1.3;word-wrap:break-word} tbody tr:nth-child(even){background:#f5f8fc}
-      th:nth-child(1){width:16%}th:nth-child(2){width:20%}th:nth-child(3){width:19%}th:nth-child(4){width:37%}th:nth-child(5){width:8%}.pct{text-align:center;font-weight:900}
-      .footer{display:flex;justify-content:space-between;border-top:1px solid #cbd5e1;margin-top:14px;padding-top:7px;font-size:8.5px;color:#64748b}
+    renderReport();
+    if(!reportRows.length){ alert('No hay datos para imprimir.'); return; }
+    const companyName = currentCompany?.nombre_fantasia || currentCompany?.nombre || 'NextWork';
+    const companyLogo = currentCompany?.logo_url || '';
+    const rowsHtml = reportRows.map(r => `<tr><td>${esc(r.cliente)}</td><td>${esc(r.campania)}</td><td>${displayDate(r.desde)} – ${displayDate(r.hasta)}</td><td>${r.pantallas.length ? r.pantallas.map(esc).join(', ') : 'Sin pantalla asignada'}</td><td class="pct">${r.porcentaje}%</td></tr>`).join('');
+    const w = window.open('', '_blank', 'width=1200,height=800');
+    if(!w){ alert('El navegador bloqueó la ventana de impresión.'); return; }
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Reporte de Clientes y Campañas</title><style>
+      @page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#142033;margin:0}.head{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1264c5;padding-bottom:12px;margin-bottom:14px}.brand{display:flex;align-items:center;gap:14px;min-width:280px}.brand img{max-width:170px;max-height:68px;object-fit:contain}.brand-name{font-size:20px;font-weight:800}.powered{font-size:9px;color:#7b8798;text-transform:uppercase;letter-spacing:.12em;margin-top:3px}.title{text-align:right}.title h1{font-size:25px;margin:0;color:#0a2e5f}.title p{margin:5px 0 0;color:#667085;font-size:12px}.filters{background:#eef4fb;border:1px solid #d8e5f3;border-radius:9px;padding:10px 12px;margin-bottom:14px;font-size:11px;display:grid;grid-template-columns:repeat(4,1fr);gap:7px 14px}.filters strong{color:#0a2e5f}table{width:100%;border-collapse:collapse;font-size:10.5px}th{background:#0b477f;color:white;text-align:left;padding:8px}td{border:1px solid #dbe3ec;padding:7px;vertical-align:top}tr:nth-child(even) td{background:#f7f9fc}.pct{text-align:center;font-weight:800}.footer{display:flex;justify-content:space-between;border-top:1px solid #b9c6d6;margin-top:14px;padding-top:7px;font-size:9px;color:#667085}
     </style></head><body>
-      <div class="header"><div><div class="brand">Next<span>Work</span></div><div class="brand-sub">Sistema de Gestión de Pantallas</div></div><h1>Reporte Básico de Campañas</h1></div>
-      <div class="meta"><strong>${esc(filters)}</strong><br>${reportRows.length} campaña${reportRows.length===1?'':'s'} incluida${reportRows.length===1?'':'s'} en el reporte.</div>
-      <table><thead><tr><th>Cliente</th><th>Campaña</th><th>Vigencia</th><th>Pantallas</th><th>% Salidas</th></tr></thead><tbody>${rows}</tbody></table>
-      <div class="footer"><span>Reporte generado: ${esc(now)}</span><span>NextWork · Sistema de Gestión de Pantallas</span></div>
+      <div class="head"><div class="brand">${companyLogo ? `<img src="${esc(companyLogo)}" alt="${esc(companyName)}">` : ''}<div><div class="brand-name">${esc(companyName)}</div><div class="powered">Powered by NextWork</div></div></div><div class="title"><h1>Reporte de Clientes y Campañas</h1><p>Sistema de Gestión de Pantallas</p></div></div>
+      <div class="filters"><div><strong>Período:</strong> ${esc(currentPeriodLabel())}</div><div><strong>Cliente:</strong> ${esc(selectedText('reportCliente','Todos'))}</div><div><strong>Campaña:</strong> ${esc(selectedText('reportCampania','Todas'))}</div><div><strong>Pantalla:</strong> ${esc(selectedText('reportPantalla','Todas'))}</div></div>
+      <table><thead><tr><th>Cliente</th><th>Campaña</th><th>Vigencia</th><th>Pantallas</th><th>% Salidas</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+      <div class="footer"><span>Reporte generado el ${new Date().toLocaleString('es-AR')}</span><span>${esc(companyName)} · NextWork</span></div>
       <script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script>
     </body></html>`);
-    win.document.close();
+    w.document.close();
   }
 
   function init(){
     injectStyles();
     addNav();
     addPage();
-    const d=document.getElementById('reportDesde'), h=document.getElementById('reportHasta');
+    const d = document.getElementById('reportDesde'), h = document.getElementById('reportHasta');
     if(d && !d.value) d.value=firstDayMonthIso();
     if(h && !h.value) h.value=todayIso();
+    loadCompanyBranding();
   }
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
-  // Si la app termina de construir el menú después, vuelve a intentar sin duplicar nada.
   let tries=0;
   const timer=setInterval(()=>{
     tries++;
     addNav(); addPage();
-    if(document.getElementById(REPORT_NAV_ID) && document.getElementById(REPORT_PAGE_ID) || tries>40) clearInterval(timer);
-  },250);
+    if(typeof currentProfile !== 'undefined' && currentProfile) loadCompanyBranding();
+    if(tries>80) clearInterval(timer);
+  },500);
 })();
