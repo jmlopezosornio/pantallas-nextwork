@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NextWork | Pruebas de Multiempresa</title>
+</head>
+<body>
+<script>
+(async()=>{
+  try{
+    const response = await fetch('./app-base.html', { cache:'no-store' });
+    if(!response.ok) throw new Error('No se pudo cargar la aplicación base');
+    let html = await response.text();
+
+    // Filtro de Pantalla integrado dentro del mismo scope de app-base.
+    html = html.replace(
+`          <select id="filtroTipo">
+            <option value="">Todos los contenidos</option>
+            <option value="video">Video</option>
+            <option value="imagen">Imagen</option>
+            <option value="web">Web</option>
+          </select>`,
+`          <select id="filtroTipo">
+            <option value="">Todos los contenidos</option>
+            <option value="video">Video</option>
+            <option value="imagen">Imagen</option>
+            <option value="web">Web</option>
+          </select>
+          <select id="filtroPantallaCampania" aria-label="Filtrar campañas por pantalla" style="min-width:220px">
+            <option value="">Todas las pantallas</option>
+          </select>`
+    );
+
+    html = html.replace(
+`  function renderCampanias(){
+    const q = ($('filtroCampania')?.value || '').trim().toLowerCase();
+    const tipoFiltro = $('filtroTipo')?.value || '';
+
+    const base = cacheCampanias.filter(c => {
+      const screens = (campaignScreensMap[c.id] || []).map(p => \`${'${p.nombre || \'\'} ${p.ubicacion || \'\'}'}\`).join(' ');
+      const haystack = \`${'${c.cliente || \'\'} ${c.campania || \'\'} ${screens}'}\`.toLowerCase();
+      return (!q || haystack.includes(q)) &&
+             (!tipoFiltro || (c.tipo_contenido || '').toLowerCase() === tipoFiltro);
+    });`,
+`  function populateFiltroPantallaCampania(){
+    const select = $('filtroPantallaCampania');
+    if(!select) return;
+    const current = select.value || '';
+    const options = ['<option value="">Todas las pantallas</option>']
+      .concat((cachePantallas || [])
+        .filter(p => p && p.id)
+        .slice()
+        .sort((a,b)=>String(a.nombre||'').localeCompare(String(b.nombre||''),'es'))
+        .map(p => '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.nombre || 'Pantalla') + (p.ubicacion ? ' · ' + escapeHtml(p.ubicacion) : '') + '</option>'));
+    select.innerHTML = options.join('');
+    if([...select.options].some(o => o.value === current)) select.value = current;
+  }
+
+  function renderCampanias(){
+    populateFiltroPantallaCampania();
+    const q = ($('filtroCampania')?.value || '').trim().toLowerCase();
+    const tipoFiltro = $('filtroTipo')?.value || '';
+    const pantallaFiltro = $('filtroPantallaCampania')?.value || '';
+
+    const base = cacheCampanias.filter(c => {
+      const campaignScreens = campaignScreensMap[c.id] || [];
+      const screens = campaignScreens.map(p => \`${'${p.nombre || \'\'} ${p.ubicacion || \'\'}'}\`).join(' ');
+      const haystack = \`${'${c.cliente || \'\'} ${c.campania || \'\'} ${screens}'}\`.toLowerCase();
+      const coincidePantalla = !pantallaFiltro || campaignScreens.some(p => String(p.id) === String(pantallaFiltro));
+      return (!q || haystack.includes(q)) &&
+             (!tipoFiltro || (c.tipo_contenido || '').toLowerCase() === tipoFiltro) &&
+             coincidePantalla;
+    });`
+    );
+
+    html = html.replace(
+`  $('filtroCampania')?.addEventListener('input', renderCampanias);
+  $('filtroTipo')?.addEventListener('change', renderCampanias);`,
+`  $('filtroCampania')?.addEventListener('input', renderCampanias);
+  $('filtroTipo')?.addEventListener('change', renderCampanias);
+  $('filtroPantallaCampania')?.addEventListener('change', renderCampanias);
+
+  // Espera a que las pantallas terminen de cargar y completa el filtro sin intervención del usuario.
+  let intentosFiltroPantallas = 0;
+  const timerFiltroPantallas = setInterval(() => {
+    intentosFiltroPantallas++;
+    if((cachePantallas || []).length > 0){
+      populateFiltroPantallaCampania();
+      clearInterval(timerFiltroPantallas);
+    }else if(intentosFiltroPantallas >= 40){
+      clearInterval(timerFiltroPantallas);
+    }
+  }, 250);`
+    );
+
+    // Mejora visual de las tarjetas de Grupos.
+    const groupsStyle = `
+<style id="nextwork-groups-ui-v2">
+  #page-grupos #gruposCards{
+    display:grid !important;
+    grid-template-columns:repeat(auto-fit,minmax(360px,1fr)) !important;
+    gap:22px !important;
+    align-items:stretch !important;
+  }
+
+  #page-grupos .group-card{
+    min-height:430px !important;
+    height:100% !important;
+    display:flex !important;
+    flex-direction:column !important;
+    border-radius:24px !important;
+    overflow:hidden !important;
+  }
+
+  #page-grupos .group-card-head{
+    display:flex !important;
+    align-items:flex-start !important;
+    justify-content:space-between !important;
+    gap:16px !important;
+    padding:24px 24px 20px !important;
+    min-height:136px !important;
+  }
+
+  #page-grupos .group-title-wrap{
+    display:flex !important;
+    align-items:flex-start !important;
+    gap:16px !important;
+    min-width:0 !important;
+    flex:1 !important;
+  }
+
+  #page-grupos .group-icon{
+    width:62px !important;
+    height:62px !important;
+    flex:0 0 62px !important;
+    border-radius:18px !important;
+  }
+
+  #page-grupos .group-name{
+    font-size:21px !important;
+    line-height:1.15 !important;
+    margin-bottom:7px !important;
+  }
+
+  #page-grupos .group-desc{
+    font-size:13px !important;
+    line-height:1.45 !important;
+    color:#64748b !important;
+    display:-webkit-box !important;
+    -webkit-line-clamp:3 !important;
+    -webkit-box-orient:vertical !important;
+    overflow:hidden !important;
+    min-height:56px !important;
+    max-width:260px !important;
+  }
+
+  #page-grupos .group-card-head > .badge{
+    flex:0 0 auto !important;
+    margin-top:2px !important;
+  }
+
+  #page-grupos .group-body{
+    display:flex !important;
+    flex-direction:column !important;
+    flex:1 !important;
+    padding:22px 24px 24px !important;
+    gap:20px !important;
+  }
+
+  #page-grupos .group-stats{
+    display:grid !important;
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+    gap:10px !important;
+    width:100% !important;
+  }
+
+  #page-grupos .group-stat{
+    min-width:0 !important;
+    min-height:96px !important;
+    padding:14px 8px !important;
+    border:1px solid #e7ecf5 !important;
+    border-radius:16px !important;
+    background:#fbfcff !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    text-align:center !important;
+    overflow:hidden !important;
+  }
+
+  #page-grupos .group-stat strong{
+    display:block !important;
+    font-size:23px !important;
+    line-height:1 !important;
+    margin-bottom:10px !important;
+    color:#0f172a !important;
+  }
+
+  #page-grupos .group-stat span{
+    display:block !important;
+    width:100% !important;
+    font-size:10px !important;
+    line-height:1.2 !important;
+    letter-spacing:.045em !important;
+    color:#94a3b8 !important;
+    font-weight:900 !important;
+    text-transform:uppercase !important;
+    white-space:normal !important;
+    overflow-wrap:anywhere !important;
+  }
+
+  #page-grupos .group-actions{
+    margin-top:auto !important;
+    padding-top:18px !important;
+    border-top:1px solid #edf1f6 !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:10px !important;
+    flex-wrap:wrap !important;
+  }
+
+  #page-grupos .group-actions .btn,
+  #page-grupos .group-actions .soft-chip{
+    min-height:42px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+  }
+
+  @media(max-width:1200px){
+    #page-grupos #gruposCards{
+      grid-template-columns:1fr !important;
+    }
+  }
+
+  @media(max-width:700px){
+    #page-grupos .group-stats{
+      grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    }
+    #page-grupos .group-card-head{
+      flex-direction:column !important;
+    }
+  }
+</style>`;
+    html = html.replace('</head>', groupsStyle + '</head>');
+
+    const editScript = '<script src="./screen-edit.js?v=4">' + '<' + '/script>';
+    const campaignLayoutScript = '<script src="./campaign-layout-v31.js?v=1">' + '<' + '/script>';
+    const groupLayoutScript = '<script src="./groups-layout-v32.js?v=1">' + '<' + '/script>';
+    html = html.replace('</body>', editScript + campaignLayoutScript + groupLayoutScript + '</body>');
+
+    document.open();
+    document.write(html);
+    document.close();
+  }catch(error){
+    document.body.innerHTML = '<div style="font-family:Arial,sans-serif;padding:40px"><h2>No se pudo cargar NextWork</h2><p>' + String(error.message || error) + '</p></div>';
+  }
+})();
+</script>
+</body>
+</html>
