@@ -229,4 +229,12 @@
     clientsV31.dataset.nextworkClientsV31 = '1';
     document.body.appendChild(clientsV31);
   }
+
+  // Reportes administrativos imprimibles.
+  if(!document.querySelector('script[data-nextwork-reports]')){
+    const reports = document.createElement('script');
+    reports.src = './reports-admin.js?v=1';
+    reports.dataset.nextworkReports = '1';
+    document.body.appendChild(reports);
+  }
 })();
