@@ -62,6 +62,19 @@
       +'<div class="field"><label>Crear grupo propio de '+esc(empresa.nombre_fantasia)+'</label>'
       +'<div style="display:flex;gap:8px;flex-wrap:wrap"><input id="nuevoGrupoEmpresa" placeholder="Ej. GENERAL o Cartelería SMA" style="flex:1;min-width:230px"><button class="btn btn-primary" type="button" onclick="crearGrupoEmpresa()">+ Crear grupo</button></div>'
       +'<div class="small" style="margin-top:5px">Grupos existentes: '+(propios.map(g=>esc(g.nombre)).join(', ')||'ninguno')+'</div></div>'
+
+      +'<h4 style="margin:20px 0 9px">Registrar pantalla nueva</h4>'
+      +'<p class="small" style="margin:0 0 10px">Da de alta una pantalla nueva directamente en esta empresa. No modifica pantallas existentes.</p>'
+      +'<div class="form-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px">'
+      +'<div class="field"><label>Nombre</label><input id="registroPantallaNombre" placeholder="Ej. Pantalla SMA 02"></div>'
+      +'<div class="field"><label>Ubicación</label><input id="registroPantallaUbicacion" placeholder="Ej. San Martín de los Andes"></div>'
+      +'<div class="field"><label>Ancho (px)</label><input id="registroPantallaAncho" type="number" min="1" value="240"></div>'
+      +'<div class="field"><label>Alto (px)</label><input id="registroPantallaAlto" type="number" min="1" value="280"></div>'
+      +'<div class="field"><label>Hora de inicio</label><input id="registroPantallaInicio" type="time" value="06:00"></div>'
+      +'<div class="field"><label>Hora de finalización</label><input id="registroPantallaFin" type="time" value="01:00"></div>'
+      +'<div class="field"><label>Grupo de la pantalla</label><select id="registroPantallaGrupo">'+groupOpts+'</select></div>'
+      +'<div style="display:flex;align-items:end"><button class="btn btn-primary" type="button" onclick="registrarPantallaEmpresa()" '+(!propios.length?'disabled':'')+'>+ Registrar pantalla</button></div></div>'
+      +(!propios.length?'<div class="small" style="margin-top:6px">Antes de registrar una pantalla, creá un grupo propio de esta empresa.</div>':'')
       +'<h4 style="margin:20px 0 10px">Pantallas propias ('+pantallasPropias.length+')</h4>'
       +(ownMarkup||'<div class="empty">Esta empresa aún no tiene pantallas. Creá un grupo y seleccioná una pantalla para trasladar.</div>')
       +'<h4 style="margin:20px 0 10px">Pantallas registradas en otras empresas</h4>'
@@ -81,6 +94,29 @@
     if(error){status(error.message,true);return;}
     await renderEmpresaPantallas();
     status('Grupo creado. Ya podés asociarle pantallas y luego asignarlo al usuario.');
+  }
+
+  async function registrarPantallaEmpresa(){
+    if(!isSuperAdmin())return;
+    const nombre=$('registroPantallaNombre')?.value.trim();
+    const ubicacion=$('registroPantallaUbicacion')?.value.trim()||'';
+    const ancho=Number($('registroPantallaAncho')?.value);
+    const alto=Number($('registroPantallaAlto')?.value);
+    const grupoId=$('registroPantallaGrupo')?.value;
+    const inicio=$('registroPantallaInicio')?.value || '06:00';
+    const fin=$('registroPantallaFin')?.value || '01:00';
+    if(!nombre||!grupoId||!Number.isInteger(ancho)||!Number.isInteger(alto)||ancho<1||alto<1){
+      status('Completá nombre, grupo y resolución válida.',true);return;
+    }
+    if(!confirm('¿Registrar la pantalla '+nombre+' en la empresa seleccionada? La pantalla será creada en Supabase, sin reproductor vinculado.'))return;
+    const {error}=await sb.rpc('superadmin_crear_pantalla_empresa',{
+      p_empresa_id:state.empresaId,p_grupo_id:grupoId,p_nombre:nombre,
+      p_ubicacion:ubicacion,p_ancho:ancho,p_alto:alto,
+      p_hora_inicio:inicio,p_hora_fin:fin
+    });
+    if(error){status('No se pudo registrar la pantalla: '+error.message,true);return;}
+    await renderEmpresaPantallas();
+    status('Pantalla creada con su grupo. Ahora podés vincularle un reproductor y asignar permisos al usuario.');
   }
 
   async function vincularPantallaEmpresa(screenId){
@@ -142,6 +178,7 @@
   window.openEmpresaPantallas=openEmpresaPantallas;
   window.crearGrupoEmpresa=crearGrupoEmpresa;
   window.vincularPantallaEmpresa=vincularPantallaEmpresa;
+  window.registrarPantallaEmpresa=registrarPantallaEmpresa;
   window.transferirPantallaEmpresa=transferirPantallaEmpresa;
   window.volverPermisosEmpresa=volverPermisosEmpresa;
 })();
