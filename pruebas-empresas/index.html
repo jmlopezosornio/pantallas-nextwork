@@ -121,12 +121,14 @@ async function uploadLogo(companyId,file){
 }
 async function saveCompany(id,currentLogo){
   const btn=$('btnGuardar'); btn.disabled=true; btn.textContent='Guardando...';
+  let datosGuardados=false;
   try{
     const nombre=$('fNombre').value.trim(), razon=$('fRazon').value.trim();
     const slug=$('fSlug').value.trim()||slugify(nombre), color1=$('fColor1').value.trim(), color2=$('fColor2').value.trim();
     if(!nombre||!razon) throw new Error('Completá nombre comercial y razón social.');
     if(!slug) throw new Error('No se pudo generar el identificador interno.');
     if(!/^#[0-9a-f]{6}$/i.test(color1)||!/^#[0-9a-f]{6}$/i.test(color2)) throw new Error('Los colores deben tener formato #RRGGBB.');
+    if(!id && companies.some(c=>c.slug===slug)) throw new Error('Esta empresa ya existe. Cerrá la ventana y pulsá Editar en su tarjeta.');
     const payload={slug,nombre:nombre,nombre_fantasia:nombre,razon_social:razon,color_primario:color1,color_secundario:color2,actualizado_en:new Date().toISOString()};
     let companyId=id;
     if(id){
@@ -135,12 +137,24 @@ async function saveCompany(id,currentLogo){
       payload.activo=true;
       const {data,error}=await sb.from('empresas').insert(payload).select('id').single(); if(error) throw error; companyId=data.id;
     }
+    datosGuardados=true;
     if(selectedFile){
       const logoUrl=await uploadLogo(companyId,selectedFile);
       const {error}=await sb.from('empresas').update({logo_url:logoUrl,actualizado_en:new Date().toISOString()}).eq('id',companyId); if(error) throw error;
     }
     closeModal(); await loadCompanies(); alert(id?'Empresa actualizada correctamente.':'Empresa creada correctamente.');
-  }catch(err){console.error(err);alert('No se pudo guardar la empresa:\n'+(err.message||err));btn.disabled=false;btn.textContent=id?'Guardar cambios':'Crear empresa';}
+  }catch(err){
+    console.error(err);
+    if(datosGuardados){
+      closeModal();
+      await loadCompanies();
+      alert('Los datos de la empresa quedaron guardados, pero falló la carga del logo. Editá la empresa para volver a subirlo.\n'+(err.message||err));
+      return;
+    }
+    alert('No se pudo guardar la empresa:\n'+(err.message||err));
+    btn.disabled=false;
+    btn.textContent=id?'Guardar cambios':'Crear empresa';
+  }
 }
 async function toggleCompany(id,activo){
   const c=companies.find(x=>x.id===id);if(!c)return;
