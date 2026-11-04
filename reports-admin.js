@@ -355,16 +355,25 @@
     if(!reportRows.length){ alert('No hay datos para imprimir.'); return; }
     const companyName = currentCompany?.nombre_fantasia || currentCompany?.nombre || 'NextWork';
     const companyLogo = currentCompany?.logo_url || '';
+    // El logo de NextWork ya está incorporado a la pantalla de ingreso.
+    // Lo reutilizamos cuando no hay una empresa con marca propia.
+    const nextworkLogo = document.querySelector('.login-logo')?.getAttribute('src') || '';
+    const isNextwork = !currentCompany || companyName.trim().toLowerCase() === 'nextwork';
+    const printedLogo = companyLogo || (isNextwork ? nextworkLogo : '');
+    const printBrand = printedLogo
+      ? `<img src="${esc(printedLogo)}" alt="${esc(companyName)}">`
+      : `<div class="brand-name">${esc(companyName)}</div>`;
+    const footerBrand = isNextwork ? 'NextWork' : `${companyName} · NextWork`;
     const rowsHtml = reportRows.map(r => `<tr><td>${esc(r.cliente)}</td><td>${esc(r.campania)}</td><td>${displayDate(r.desde)} – ${displayDate(r.hasta)}</td><td>${r.pantallas.length ? r.pantallas.map(esc).join(', ') : 'Sin pantalla asignada'}</td><td class="pct">${r.porcentaje}%</td></tr>`).join('');
     const w = window.open('', '_blank', 'width=1200,height=800');
     if(!w){ alert('El navegador bloqueó la ventana de impresión.'); return; }
     w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Reporte de Clientes y Campañas</title><style>
-      @page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#142033;margin:0}.head{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1264c5;padding-bottom:12px;margin-bottom:14px}.brand{display:flex;align-items:center;gap:14px;min-width:280px}.brand img{max-width:170px;max-height:68px;object-fit:contain}.brand-name{font-size:20px;font-weight:800}.powered{font-size:9px;color:#7b8798;text-transform:uppercase;letter-spacing:.12em;margin-top:3px}.title{text-align:right}.title h1{font-size:25px;margin:0;color:#0a2e5f}.title p{margin:5px 0 0;color:#667085;font-size:12px}.filters{background:#eef4fb;border:1px solid #d8e5f3;border-radius:9px;padding:10px 12px;margin-bottom:14px;font-size:11px;display:grid;grid-template-columns:repeat(4,1fr);gap:7px 14px}.filters strong{color:#0a2e5f}table{width:100%;border-collapse:collapse;font-size:10.5px}th{background:#0b477f;color:white;text-align:left;padding:8px}td{border:1px solid #dbe3ec;padding:7px;vertical-align:top}tr:nth-child(even) td{background:#f7f9fc}.pct{text-align:center;font-weight:800}.footer{display:flex;justify-content:space-between;border-top:1px solid #b9c6d6;margin-top:14px;padding-top:7px;font-size:9px;color:#667085}
+      @page{size:A4 landscape;margin:0}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#142033;margin:0;padding:12mm}.head{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1264c5;padding-bottom:12px;margin-bottom:14px}.brand{display:flex;align-items:center;gap:14px;min-width:280px}.brand img{max-width:170px;max-height:68px;object-fit:contain}.brand-name{font-size:20px;font-weight:800}.title{text-align:right}.title h1{font-size:25px;margin:0;color:#0a2e5f}.title p{margin:5px 0 0;color:#667085;font-size:12px}.filters{background:#eef4fb;border:1px solid #d8e5f3;border-radius:9px;padding:10px 12px;margin-bottom:14px;font-size:11px;display:grid;grid-template-columns:repeat(4,1fr);gap:7px 14px}.filters strong{color:#0a2e5f}table{width:100%;border-collapse:collapse;font-size:10.5px}th{background:#0b477f;color:white;text-align:left;padding:8px}td{border:1px solid #dbe3ec;padding:7px;vertical-align:top}tr:nth-child(even) td{background:#f7f9fc}.pct{text-align:center;font-weight:800}.footer{display:flex;justify-content:space-between;border-top:1px solid #b9c6d6;margin-top:14px;padding-top:7px;font-size:9px;color:#667085}
     </style></head><body>
-      <div class="head"><div class="brand">${companyLogo ? `<img src="${esc(companyLogo)}" alt="${esc(companyName)}">` : ''}<div><div class="brand-name">${esc(companyName)}</div><div class="powered">Powered by NextWork</div></div></div><div class="title"><h1>Reporte de Clientes y Campañas</h1><p>Sistema de Gestión de Pantallas</p></div></div>
+      <div class="head"><div class="brand">${printBrand}</div><div class="title"><h1>Reporte de Clientes y Campañas</h1><p>Sistema de Gestión de Pantallas</p></div></div>
       <div class="filters"><div><strong>Período:</strong> ${esc(currentPeriodLabel())}</div><div><strong>Cliente:</strong> ${esc(selectedText('reportCliente','Todos'))}</div><div><strong>Campaña:</strong> ${esc(selectedText('reportCampania','Todas'))}</div><div><strong>Pantalla:</strong> ${esc(selectedText('reportPantalla','Todas'))}</div></div>
       <table><thead><tr><th>Cliente</th><th>Campaña</th><th>Vigencia</th><th>Pantallas</th><th>% Salidas</th></tr></thead><tbody>${rowsHtml}</tbody></table>
-      <div class="footer"><span>Reporte generado el ${new Date().toLocaleString('es-AR')}</span><span>${esc(companyName)} · NextWork</span></div>
+      <div class="footer"><span>Reporte generado el ${new Date().toLocaleString('es-AR')}</span><span>${esc(footerBrand)}</span></div>
       <script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script>
     </body></html>`);
     w.document.close();
