@@ -9,7 +9,7 @@
 <script>
 (async()=>{
   try{
-    const response = await fetch('./app-base.html?ui=brand-powered-v3-20261104', { cache:'no-store' });
+    const response = await fetch('./app-base.html?ui=modelo-simple-fase1-20261104-v1', { cache:'no-store' });
     if(!response.ok) throw new Error('No se pudo cargar la aplicación base');
     let html = await response.text();
 
