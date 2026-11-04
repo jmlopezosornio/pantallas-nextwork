@@ -35,6 +35,7 @@ function getOwner(screen,companies){
   return 'other';
 }
 function hiddenNavigation(active){
+  window.stageCompanyPreviewReadOnly=active;
   if(!active){if(typeof configureRoleNavigation==='function')configureRoleNavigation();return;}
   document.querySelectorAll('.nav-btn[data-page]').forEach(el=>{
     el.classList.toggle('hidden',el.dataset.page!=='dashboard');
@@ -171,6 +172,7 @@ function printPreview(){
   popup.document.close();
 }
 function reset(){
+  window.stageCompanyPreviewReadOnly=false;
   current='all';snapshot=null;
   const selector=$('stageCompanySelector');
   if(selector)selector.value='all';
