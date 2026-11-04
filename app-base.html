@@ -2451,7 +2451,7 @@
       { data:players, error:playersError },
       { data:groupLinks, error:groupLinksError }
     ] = await Promise.all([
-      sb.from('pantallas').select('*').order('nombre'),
+      sb.from('pantallas').select('*').eq('activo',true).order('nombre'),
       sb.from('players').select('id,pantalla_id,ultima_conexion,ultima_sincronizacion,tipo,version_player,proveedor,vnnox_player_id,vnnox_sn,vnnox_version,vnnox_online_status,estado'),
       sb.from('grupos_pantallas').select('grupo_id,pantalla_id')
     ]);
@@ -3468,7 +3468,7 @@
       sb.from('usuarios_grupos').select('*').eq('usuario_id',usuarioId),
       sb.from('grupos_pantallas').select('grupo_id,pantalla_id'),
       sb.from('usuarios_pantallas').select('pantalla_id').eq('usuario_id',usuarioId),
-      sb.from('pantallas').select('id,nombre,ubicacion,empresa_id').order('nombre')
+      sb.from('pantallas').select('id,nombre,ubicacion,empresa_id').eq('activo',true).order('nombre')
     ]);
 
     if(userError || !usuario){ alert(userError?.message || 'Usuario no encontrado'); return; }
