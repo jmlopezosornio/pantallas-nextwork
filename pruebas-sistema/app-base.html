@@ -117,6 +117,32 @@
       box-shadow:0 10px 30px rgba(2,6,23,.18);
     }
     .brand-panel img{display:block;width:100%;height:auto}
+    .brand-panel .nw-tenant-identity{
+      display:flex;flex-direction:column;align-items:center;text-align:center;
+      gap:10px;padding:6px 2px 3px;
+    }
+    .brand-panel .nw-tenant-logo{
+      display:block;width:auto;max-width:100%;max-height:104px;
+      object-fit:contain;
+    }
+    .brand-panel .nw-tenant-name{
+      color:#14213d;font-size:19px;font-weight:900;line-height:1.2;
+    }
+    .brand-panel .nw-powered-line{
+      display:flex;justify-content:center;align-items:center;
+      flex-wrap:nowrap;gap:8px;width:100%;margin-top:1px;
+      color:#7e8da8;font-size:11px;font-weight:750;
+    }
+    .brand-panel .nw-powered-divider{
+      width:1px;height:21px;flex-shrink:0;background:#cbd5e1;
+    }
+    .brand-panel .nw-powered-logo{
+      width:auto;height:25px;max-height:25px;max-width:122px;
+      display:block;object-fit:contain;
+    }
+    .brand-panel .nw-powered-fallback{
+      color:#241b48;font-size:12px;font-weight:900;
+    }
     .brand-mini{display:none}
     .nav-group-title{
       color:#7183a3;
@@ -1849,6 +1875,7 @@
   let currentProfile = null;
   const defaultBrandPanelHtml = document.querySelector('.brand-panel')?.innerHTML || '';
   const defaultTopbarSub = document.querySelector('.topbar-sub')?.textContent || '';
+  const nextworkBrandLogoSrc = document.querySelector('.login-logo')?.getAttribute('src') || '';
   let activeCompanyBrand = null;
   const safeBrandColor = (v,fallback) => /^#[0-9a-f]{6}$/i.test(String(v||'')) ? v : fallback;
 
@@ -1859,10 +1886,14 @@
     const validLogo = activeCompanyBrand?.logo_url && /^https:\/\//i.test(activeCompanyBrand.logo_url);
     if(panel){
       if(activeCompanyBrand){
-        panel.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center">
-          ${validLogo ? `<img src="${escapeHtml(activeCompanyBrand.logo_url)}" alt="${escapeHtml(companyName)}" style="max-width:100%;max-height:95px;width:auto;object-fit:contain">` : ''}
-          <div style="font-size:18px;font-weight:900;color:#14213d;line-height:1.15">${escapeHtml(companyName)}</div>
-          <div style="font-size:10px;color:#94a3b8;letter-spacing:.11em;text-transform:uppercase;font-weight:800">Powered by NextWork</div>
+        panel.innerHTML=`<div class="nw-tenant-identity">
+          ${validLogo ? `<img class="nw-tenant-logo" src="${escapeHtml(activeCompanyBrand.logo_url)}" alt="${escapeHtml(companyName)}">` : ''}
+          <div class="nw-tenant-name">${escapeHtml(companyName)}</div>
+          <div class="nw-powered-line" aria-label="Powered by NextWork">
+            <span>Powered by</span>
+            <span class="nw-powered-divider" aria-hidden="true"></span>
+            ${nextworkBrandLogoSrc ? `<img class="nw-powered-logo" src="${escapeHtml(nextworkBrandLogoSrc)}" alt="NextWork">` : '<span class="nw-powered-fallback">NextWork</span>'}
+          </div>
         </div>`;
       }else{
         panel.innerHTML=defaultBrandPanelHtml;
