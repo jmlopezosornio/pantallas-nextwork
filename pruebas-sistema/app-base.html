@@ -3042,7 +3042,7 @@
       sb.from('vista_campanias').select('*').order('fecha_desde',{ascending:false}),
       sb.from('campanias').select('id,eliminada'),
       sb.from('campanias_pantallas').select('campania_id,pantalla_id'),
-      sb.from('pantallas').select('id,nombre,ubicacion')
+      sb.from('pantallas').select('id,nombre,ubicacion,empresa_id')
     ]);
 
     if(viewError) console.error('Error cargando vista_campanias:', viewError);
@@ -3056,15 +3056,27 @@
 
     // Regla V25: una campaña archivada conserva historial,
     // pero DESAPARECE totalmente del listado operativo.
-    cacheCampanias = (viewRows || []).filter(c => !archived.has(c.id));
-
+    // Un usuario de una empresa jamás debe ver campañas de una pantalla
+    // que no tenga accesible por empresa y permisos (RLS sobre pantallas).
+    // No usamos el nombre del grupo para deducir pertenencia.
     const screenById = Object.fromEntries(
-      (screens || []).map(p => [p.id, p])
+      (screens || [])
+        .filter(p => isSuperAdmin() || (currentProfile?.empresa_id && p.empresa_id === currentProfile.empresa_id))
+        .map(p => [p.id, p])
+    );
+    const visibleCampaignIds = new Set(
+      (links || [])
+        .filter(link => !!screenById[link.pantalla_id])
+        .map(link => link.campania_id)
+    );
+    cacheCampanias = (viewRows || []).filter(c =>
+      !archived.has(c.id) && (isSuperAdmin() || visibleCampaignIds.has(c.id))
     );
 
     campaignScreensMap = {};
     for(const link of (links || [])){
       if(archived.has(link.campania_id)) continue;
+      if(!cacheCampanias.some(c => c.id === link.campania_id)) continue;
       const p = screenById[link.pantalla_id];
       if(!p) continue;
       if(!campaignScreensMap[link.campania_id]) campaignScreensMap[link.campania_id] = [];
@@ -3394,12 +3406,16 @@
       { data: gp },
       { data: ug },
       { data: clientes },
-      { data: campanias }
+      { data: campanias },
+      { data: empresas },
+      { data: pantallasDeEmpresa }
     ] = await Promise.all([
       sb.from('grupos_pantallas').select('grupo_id,pantalla_id'),
       sb.from('usuarios_grupos').select('grupo_id,usuario_id'),
       sb.from('clientes').select('id,grupo_id'),
-      sb.from('campanias').select('id,grupo_id')
+      sb.from('campanias').select('id,grupo_id'),
+      sb.from('empresas').select('id,nombre_fantasia'),
+      sb.from('pantallas').select('id,nombre,empresa_id')
     ]);
 
     if(!target) return;
@@ -3409,9 +3425,16 @@
       return;
     }
 
+    const empresasPorId = new Map((empresas || []).map(e => [e.id, e.nombre_fantasia]));
+    const pantallasPorId = new Map((pantallasDeEmpresa || []).map(p => [p.id,p]));
     target.innerHTML = cacheGrupos.map(g => {
-      const pantallas = (gp || []).filter(x => x.grupo_id === g.id).length;
+      const pantallaLinks = (gp || []).filter(x => x.grupo_id === g.id);
+      const pantallas = pantallaLinks.length;
       const usuarios = (ug || []).filter(x => x.grupo_id === g.id).length;
+      const empresaPropietaria = empresasPorId.get(g.empresa_id) || 'Empresa desconocida';
+      const pantallasDelGrupo = pantallaLinks.map(x => pantallasPorId.get(x.pantalla_id)).filter(Boolean);
+      const pantallasAjenas = pantallasDelGrupo.filter(p => p.empresa_id !== g.empresa_id);
+      const nombresPantallas = pantallasDelGrupo.map(p => p.nombre).join(', ');
       const clientesCount = (clientes || []).filter(x => x.grupo_id === g.id).length;
       const campaniasCount = (campanias || []).filter(x => x.grupo_id === g.id).length;
 
@@ -3424,15 +3447,25 @@
               </div>
               <div>
                 <div class="group-name">${escapeHtml(g.nombre)}</div>
-                <div class="group-desc">${escapeHtml(g.descripcion || 'Sin descripción')}</div>
+                <div class="group-desc">Grupo de acceso de ${escapeHtml(empresaPropietaria)} · ${escapeHtml(g.descripcion || 'Sin descripción')}</div>
               </div>
             </div>
             ${g.activo ? '<span class="badge ok">Activo</span>' : '<span class="badge off">Inactivo</span>'}
           </div>
 
           <div class="group-body">
+            ${isSuperAdmin() ? `<div style="font-size:11px;color:#475569;margin-bottom:12px;line-height:1.5">
+              <strong>Empresa propietaria: ${escapeHtml(empresaPropietaria)}</strong>
+              <div>Pantallas del grupo: ${escapeHtml(nombresPantallas || 'ninguna')}</div>
+              ${g.nombre==='Arcuva' && empresaPropietaria==='NextWork'
+                ? '<div style="color:#9a5e09;font-weight:750;margin-top:5px">Grupo heredado de NextWork. No equivale a la empresa Arcuva ni le concede acceso a sus usuarios.</div>'
+                : ''}
+              ${pantallasAjenas.length
+                ? '<div style="color:#b91c1c">Advertencia: hay pantallas de otra empresa vinculadas a este grupo.</div>'
+                : ''}
+            </div>` : ''}
             <div class="group-stats">
-              <div class="group-stat"><strong>${pantallas}</strong><span>Pantallas</span></div>
+              <div class="group-stat"><strong>${pantallas}</strong><span>Vínculos de pantallas</span></div>
               <div class="group-stat"><strong>${usuarios}</strong><span>Usuarios</span></div>
               <div class="group-stat"><strong>${clientesCount}</strong><span>Clientes</span></div>
               <div class="group-stat"><strong>${campaniasCount}</strong><span>Campañas</span></div>
