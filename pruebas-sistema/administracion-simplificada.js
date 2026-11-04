@@ -87,12 +87,12 @@
 
     root.innerHTML='<div class="simple-section"><div class="simple-section-top"><h3>1 · Empresas</h3><span class="simple-tag">Empresa → Pantallas → Usuarios</span></div>'
       +'<div class="simple-company-grid">'+cards+'</div></div>'
-      +'<div class="simple-section"><h3>2 · Pantallas registradas</h3>'
+      +'<div class="simple-section"><div class="simple-section-top"><h3>2 · Pantallas registradas</h3><button type="button" class="btn btn-outline btn-sm" onclick="stageSimpleMockScreen()">Probar alta de pantalla</button></div>'
       +'<p class="simple-cell-note">La empresa propietaria se lee directamente de Supabase. No se deduce del nombre de los grupos.</p>'
       +'<div class="simple-table-scroll"><table><thead><tr><th>Pantalla</th><th>Empresa actual</th><th>Protección</th></tr></thead><tbody>'
       +(screenRows||'<tr><td colspan="3">Esta empresa todavía no tiene pantallas propias.</td></tr>')
       +'</tbody></table></div></div>'
-      +'<div class="simple-section"><h3>3 · Usuarios y acceso directo a pantallas</h3>'
+      +'<div class="simple-section"><div class="simple-section-top"><h3>3 · Usuarios y acceso directo a pantallas</h3><button type="button" class="btn btn-outline btn-sm" onclick="stageSimpleMockUser()">Probar alta de usuario</button></div>'
       +'<p class="simple-cell-note">La simulación toma como base los accesos efectivos actuales. Ninguna selección se guarda ni cambia los permisos reales.</p>'
       +'<div class="simple-table-scroll"><table><thead><tr><th>Usuario</th><th>Empresa</th><th>Rol</th><th>Acceso actual</th><th></th></tr></thead><tbody>'
       +(userRows||'<tr><td colspan="5">No hay usuarios de esta empresa.</td></tr>')
@@ -192,4 +192,6 @@
   window.stageSimpleSelectUser=selectUser;
   window.stageSimpleToggleScreen=toggleScreen;
   window.stageSimpleResetUser=resetUser;
+  window.stageSimpleGetSnapshot=()=>snapshot;
+  window.stageSimpleGetCurrentCompany=()=>companyChoice;
 })();
