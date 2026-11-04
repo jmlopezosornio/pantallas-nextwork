@@ -1681,7 +1681,7 @@
             <h2>Pantallas</h2>
             <div class="small" style="margin-top:4px">Estado, configuración y tipo de reproductor de cada dispositivo.</div>
           </div>
-          <button class="btn btn-primary admin-only" onclick="openPantallaModal()">+ Nueva pantalla</button>
+          <button class="btn btn-primary admin-only" onclick="stageOpenNewScreen()">+ Nueva pantalla</button>
         </div>
         <div class="screens-toolbar">
           <div class="screens-toolbar-note"><span id="screensSummary">Cargando pantallas…</span></div>
@@ -1789,7 +1789,7 @@
             <h2>Grupos de acceso</h2>
             <div class="small" style="margin-top:4px">Los grupos organizan permisos dentro de una empresa. El nombre de un grupo no cambia el propietario de sus pantallas.</div>
           </div>
-          <button class="btn btn-primary admin-only" onclick="openGrupoModal()">+ Nuevo grupo</button>
+          <button class="btn btn-primary admin-only" onclick="stageOpenGroup()">+ Nuevo grupo</button>
         </div>
         <div class="content-box superadmin-only hidden" style="margin-bottom:16px;background:#fff9ed;border:1px solid #f2d49a;color:#86560d">
           <strong>Grupos heredados — atención con los nombres</strong>
@@ -1802,8 +1802,9 @@
         <div class="section-title">
           <div>
             <h2>Usuarios</h2>
-            <div class="small" style="margin-top:4px">Definí el rol del usuario y su alcance por grupos y pantallas.</div>
+            <div class="small" style="margin-top:4px">Cada usuario pertenece a una empresa y recibe permisos sobre los grupos de esa empresa.</div>
           </div>
+          <button class="btn btn-primary admin-only" onclick="stageOpenNewUser()">+ Nuevo usuario</button>
         </div>
         <div class="table-wrap">
           <table>
@@ -3476,7 +3477,8 @@
             </div>
 
             <div class="group-actions">
-              <button class="btn btn-outline btn-sm" onclick="openGrupoModal('${g.id}')">Editar</button>
+              <button class="btn btn-outline btn-sm" onclick="stageOpenGroup('${g.id}')">Editar</button>
+              ${g.nombre !== 'GENERAL' ? `<button class="btn btn-outline btn-sm" style="color:#b91c1c;border-color:#fecaca" onclick="stageDeleteGroup('${g.id}')">Eliminar</button>` : ''}
               ${g.nombre !== 'GENERAL'
                 ? `<button class="btn btn-ghost btn-sm" onclick="toggleGrupoActivo('${g.id}',${!g.activo})">${g.activo ? 'Desactivar' : 'Activar'}</button>`
                 : '<span class="soft-chip">Grupo base</span>'}
@@ -5003,6 +5005,9 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
 </script>
 <script src="/pruebas-sistema/empresas-native.js?v=1"></script>
 <script src="/pruebas-sistema/company-screens.js?v=1"></script>
+<script src="/pruebas-sistema/groups-company-management.js?v=1"></script>
+<script src="/pruebas-sistema/screen-create-company.js?v=1"></script>
+<script src="/pruebas-sistema/user-create-company.js?v=1"></script>
 <script src="/pruebas-sistema/superadmin-company-preview.js?v=3"></script>
 </body>
 </html>
