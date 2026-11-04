@@ -119,7 +119,7 @@
     .brand-panel img{display:block;width:100%;height:auto}
     .brand-panel .nw-tenant-identity{
       display:flex;flex-direction:column;align-items:center;text-align:center;
-      gap:10px;padding:6px 2px 3px;
+      gap:12px;padding:7px 2px 5px;
     }
     .brand-panel .nw-tenant-logo{
       display:block;width:auto;max-width:100%;max-height:104px;
@@ -130,18 +130,18 @@
     }
     .brand-panel .nw-powered-line{
       display:flex;justify-content:center;align-items:center;
-      flex-wrap:nowrap;gap:8px;width:100%;margin-top:1px;
-      color:#7e8da8;font-size:11px;font-weight:750;
+      flex-wrap:nowrap;gap:10px;width:100%;margin-top:3px;
+      color:#7384a0;font-size:14px;font-weight:800;
     }
     .brand-panel .nw-powered-divider{
-      width:1px;height:21px;flex-shrink:0;background:#cbd5e1;
+      width:1px;height:27px;flex-shrink:0;background:#cbd5e1;
     }
     .brand-panel .nw-powered-logo{
-      width:auto;height:25px;max-height:25px;max-width:122px;
+      width:auto;height:32px;max-height:32px;max-width:148px;
       display:block;object-fit:contain;
     }
     .brand-panel .nw-powered-fallback{
-      color:#241b48;font-size:12px;font-weight:900;
+      color:#241b48;font-size:15px;font-weight:900;
     }
     .brand-mini{display:none}
     .nav-group-title{
@@ -1888,7 +1888,7 @@
       if(activeCompanyBrand){
         panel.innerHTML=`<div class="nw-tenant-identity">
           ${validLogo ? `<img class="nw-tenant-logo" src="${escapeHtml(activeCompanyBrand.logo_url)}" alt="${escapeHtml(companyName)}">` : ''}
-          <div class="nw-tenant-name">${escapeHtml(companyName)}</div>
+          ${validLogo ? '' : `<div class="nw-tenant-name">${escapeHtml(companyName)}</div>`}
           <div class="nw-powered-line" aria-label="Powered by NextWork">
             <span>Powered by</span>
             <span class="nw-powered-divider" aria-hidden="true"></span>
