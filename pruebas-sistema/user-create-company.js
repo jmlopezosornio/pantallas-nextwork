@@ -56,7 +56,7 @@
   if(!token){alert('Tu sesión expiró. Volvé a iniciar sesión.');return;}
   const btn=$('multiUserSave');btn.disabled=true;btn.textContent='Creando...';
   try{
-   const resp=await fetch(SUPABASE_URL+'/functions/v1/multiempresa-users-api',{
+   const resp=await fetch(SUPABASE_URL+'/functions/v1/multiempresa-users-api-v2',{
     method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
     body:JSON.stringify({action:'create-user',nombre,email,empresaId,rol,password:pass,groupIds})
    });
