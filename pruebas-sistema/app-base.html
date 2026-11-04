@@ -1787,9 +1787,13 @@
         <div class="section-title">
           <div>
             <h2>Grupos de acceso</h2>
-            <div class="small" style="margin-top:4px">Organizá pantallas, clientes, campañas y usuarios por ámbito de acceso.</div>
+            <div class="small" style="margin-top:4px">Los grupos organizan permisos dentro de una empresa. El nombre de un grupo no cambia el propietario de sus pantallas.</div>
           </div>
           <button class="btn btn-primary admin-only" onclick="openGrupoModal()">+ Nuevo grupo</button>
+        </div>
+        <div class="content-box superadmin-only hidden" style="margin-bottom:16px;background:#fff9ed;border:1px solid #f2d49a;color:#86560d">
+          <strong>Grupos heredados — atención con los nombres</strong>
+          <div class="small" style="margin-top:5px">El grupo “Arcuva” actual pertenece a NextWork y contiene SMA 01 y Ñireco. Eso no significa que la empresa Arcuva tenga esas dos pantallas. Para asignar equipos a la empresa, usá <b>Empresas → Arcuva → Grupos y pantallas</b>. Ningún traslado se hará automáticamente.</div>
         </div>
         <div id="gruposCards" class="groups-grid"></div>
       </section>
@@ -2309,7 +2313,7 @@
         <td>${p.ancho}×${p.alto}</td>
         <td>${badge(p._estadoReal || 'offline')}</td>
         <td>${p._ultimaConexionReal ? fmtDateTime(p._ultimaConexionReal) : 'Sin conexión reciente'}</td>
-      </tr>`).join('') : `<tr><td colspan="5" class="empty">No hay pantallas visibles para esta cuenta. Verificá que las pantallas pertenezcan a tu empresa y que tengas grupos y permisos válidos.</td></tr>`;
+      </tr>`).join('') : `<tr><td colspan="5" class="empty">No hay pantallas autorizadas para esta cuenta. Las pantallas deben pertenecer a su empresa y estar vinculadas a un grupo permitido; un grupo con el mismo nombre que la empresa no alcanza.</td></tr>`;
 
     const activas = cacheCampanias.filter(c => c.estado === 'activa').slice(0,10);
     $('dashCampanias').innerHTML = activas.length ? activas.map(c => `
