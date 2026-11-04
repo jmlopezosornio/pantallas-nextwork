@@ -36,6 +36,7 @@ function getOwner(screen,companies){
 }
 function hiddenNavigation(active){
   window.stageCompanyPreviewReadOnly=active;
+  $('appView')?.classList.toggle('stage-preview-mode',active);
   if(!active){if(typeof configureRoleNavigation==='function')configureRoleNavigation();return;}
   document.querySelectorAll('.nav-btn[data-page]').forEach(el=>{
     el.classList.toggle('hidden',el.dataset.page!=='dashboard');
@@ -172,6 +173,7 @@ function printPreview(){
   popup.document.close();
 }
 function reset(){
+  $('appView')?.classList.remove('stage-preview-mode');
   window.stageCompanyPreviewReadOnly=false;
   current='all';snapshot=null;
   const selector=$('stageCompanySelector');
