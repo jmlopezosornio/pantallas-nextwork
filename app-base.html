@@ -3460,31 +3460,41 @@
       { data: grupos },
       { data: accesos },
       { data: gruposPantallas },
-      { data: userPantallas }
+      { data: userPantallas },
+      { data: pantallasEmpresa, error: pantallasError }
     ] = await Promise.all([
       sb.from('usuarios').select('*').eq('id',usuarioId).single(),
       sb.from('grupos').select('*').eq('activo',true).order('nombre'),
       sb.from('usuarios_grupos').select('*').eq('usuario_id',usuarioId),
       sb.from('grupos_pantallas').select('grupo_id,pantalla_id'),
-      sb.from('usuarios_pantallas').select('pantalla_id').eq('usuario_id',usuarioId)
+      sb.from('usuarios_pantallas').select('pantalla_id').eq('usuario_id',usuarioId),
+      sb.from('pantallas').select('id,nombre,ubicacion,empresa_id').order('nombre')
     ]);
 
-    if(userError){ alert(userError.message); return; }
+    if(userError || !usuario){ alert(userError?.message || 'Usuario no encontrado'); return; }
+    if(pantallasError){ alert('No se pudieron consultar las pantallas: ' + pantallasError.message); return; }
 
     if(usuario.es_superadmin && !isSuperAdmin()){
       alert('Solo el superadministrador puede modificar otra cuenta superadministradora.');
       return;
     }
 
-    const accessMap = new Map((accesos || []).map(a => [a.grupo_id, a]));
+    const gruposDeEmpresa = usuario.es_superadmin
+      ? (grupos || [])
+      : (grupos || []).filter(g => g.empresa_id === usuario.empresa_id);
+    const gruposIds = new Set(gruposDeEmpresa.map(g => g.id));
+    const asignacionesAjenas = (accesos || []).filter(a => !gruposIds.has(a.grupo_id)).length;
+    const accessMap = new Map((accesos || []).filter(a => gruposIds.has(a.grupo_id)).map(a => [a.grupo_id, a]));
     const userPantallaSet = new Set((userPantallas || []).map(x => x.pantalla_id));
 
-    const gruposHtml = (grupos || []).map(g => {
+    const gruposHtml = gruposDeEmpresa.map(g => {
       const access = accessMap.get(g.id);
       const checked = !!access;
       const allScreens = access?.acceso_todas_pantallas !== false;
       const groupScreenIds = (gruposPantallas || []).filter(x => x.grupo_id === g.id).map(x => x.pantalla_id);
-      const pantallas = cachePantallas.filter(p => groupScreenIds.includes(p.id));
+      const pantallas = (pantallasEmpresa || []).filter(p =>
+        groupScreenIds.includes(p.id) && (usuario.es_superadmin || p.empresa_id === usuario.empresa_id)
+      );
 
       const screensHtml = pantallas.length
         ? pantallas.map(p => `
@@ -3564,8 +3574,13 @@
           </div>
 
           <div class="field">
-            <label>Grupos y alcance</label>
-            <div class="user-access-list">${gruposHtml || '<div class="empty">No hay grupos activos.</div>'}</div>
+            <label>Grupos y alcance · misma empresa del usuario</label>
+            ${asignacionesAjenas ? `<div class="content-box" style="color:#9a3412;margin:0 0 12px">
+              Atención: hay ${asignacionesAjenas} asignación(es) de grupos pertenecientes a otra empresa.
+              No otorgan acceso efectivo a sus pantallas. Para regularizar, primero hay que trasladar
+              la pantalla a la empresa correcta y crearle un grupo propio.
+            </div>` : ''}
+            <div class="user-access-list">${gruposHtml || '<div class="empty">Esta empresa no tiene grupos propios disponibles. Creá un grupo en la empresa y asignale pantallas que le pertenezcan; los grupos de NextWork no dan acceso a Arcuva.</div>'}</div>
           </div>
 
           <div class="actions">
@@ -3611,7 +3626,7 @@
 
     const { data: targetUser, error: targetUserError } = await sb
       .from('usuarios')
-      .select('id,es_superadmin')
+      .select('id,es_superadmin,empresa_id')
       .eq('id',usuarioId)
       .single();
 
@@ -3619,6 +3634,18 @@
 
     if(targetUser?.es_superadmin && !isSuperAdmin()){
       alert('Solo el superadministrador puede modificar otra cuenta superadministradora.');
+      return;
+    }
+
+    // Validar contra Supabase ANTES de cambiar rol o eliminar vínculos existentes.
+    // Las casillas visuales no pueden otorgar pantallas de otra empresa.
+    const selectedGroupIds = [...new Set(groupChecks.map(chk => chk.dataset.groupId))];
+    const { data: selectedGroups, error: groupsError } = selectedGroupIds.length
+      ? await sb.from('grupos').select('id,empresa_id').in('id', selectedGroupIds)
+      : {data:[],error:null};
+    if(groupsError || (selectedGroups || []).length !== selectedGroupIds.length
+      || (!targetUser.es_superadmin && (selectedGroups || []).some(g => g.empresa_id !== targetUser.empresa_id))){
+      alert('Los grupos seleccionados deben pertenecer a la misma empresa del usuario. Revisá sus asignaciones.');
       return;
     }
 
@@ -3653,6 +3680,26 @@
         });
       }
     });
+
+    const screenIds = [...new Set(specificScreenIds)];
+    const { data: validatedScreens, error: screenError } = screenIds.length
+      ? await sb.from('pantallas').select('id,empresa_id').in('id', screenIds)
+      : {data:[],error:null};
+    if(screenError || (validatedScreens || []).length !== screenIds.length
+      || (!targetUser.es_superadmin && (validatedScreens || []).some(p => p.empresa_id !== targetUser.empresa_id))){
+      alert('Las pantallas seleccionadas deben pertenecer a la misma empresa del usuario.');
+      return;
+    }
+    // También deben pertenecer a uno de los grupos seleccionados.
+    if(screenIds.length){
+      const {data:validLinks,error:linksError}=await sb.from('grupos_pantallas')
+        .select('grupo_id,pantalla_id').in('grupo_id',selectedGroupIds).in('pantalla_id',screenIds);
+      const allowedScreens=new Set((validLinks||[]).map(x=>x.pantalla_id));
+      if(linksError || screenIds.some(id=>!allowedScreens.has(id))){
+        alert('Todas las pantallas deben estar asociadas a alguno de los grupos habilitados.');
+        return;
+      }
+    }
 
     const { error: deleteGroupsError } = await sb
       .from('usuarios_grupos')
