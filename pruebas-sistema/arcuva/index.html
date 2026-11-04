@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Arcuva | NextWork — Portal de pruebas</title>
+  <link rel="stylesheet" href="./portal.css?v=1">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="./portal.js?v=1"></script>
+</head>
+<body>
+  <section id="loginView" class="login">
+    <div class="login-art">
+      <div class="nw-logo"><i>N</i><span>NEXTWORK <span style="font-weight:400;opacity:.6">/ EMPRESAS</span></span></div>
+      <div>
+        <h1>Tu publicidad.<br>Tu espacio.</h1>
+        <p>Un acceso independiente para administrar las pantallas, campañas y clientes de Arcuva.</p>
+      </div>
+      <small>Portal corporativo · Arcuva</small>
+    </div>
+    <div class="login-area">
+      <form class="login-form" id="loginForm">
+        <img class="company-logo" id="loginLogo" alt="Arcuva">
+        <h2>Bienvenido a Arcuva</h2>
+        <p class="lead">Ingresá con una cuenta autorizada de Arcuva. El superadministrador de NextWork también puede acceder.</p>
+        <div class="field">
+          <label for="loginEmail">Correo electrónico</label>
+          <input id="loginEmail" type="email" required autocomplete="username" placeholder="usuario@empresa.com.ar">
+        </div>
+        <div class="field">
+          <label for="loginPassword">Contraseña</label>
+          <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Tu contraseña">
+        </div>
+        <div id="loginError" role="alert" class="message error hidden"></div>
+        <button class="primary login-button" type="submit" id="loginBtn">Ingresar</button>
+        <p class="micro">Entorno de pruebas. El sistema central y Recursos Hídricos continúan funcionando por separado.</p>
+      </form>
+    </div>
+  </section>
+
+  <section id="appView" class="shell hidden">
+    <aside class="sidebar">
+      <div class="brand-card"><img id="sidebarLogo" alt="Arcuva"></div>
+      <nav aria-label="Menú principal">
+        <div class="nav-title">Menú principal</div>
+        <button type="button" class="nav active" data-page="resumen">Resumen</button>
+        <button type="button" class="nav" data-page="pantallas">Pantallas</button>
+        <button type="button" class="nav" data-page="campanias">Campañas</button>
+        <button type="button" class="nav" data-page="clientes">Clientes</button>
+        <button type="button" class="nav" data-page="reportes">Reportes</button>
+      </nav>
+      <div class="sidebar-foot">Powered by <strong>NextWork</strong><div style="margin-top:7px">Gestión de pantallas digitales</div></div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div><strong id="pageTitle">Resumen</strong><div class="subtitle">Arcuva · Plataforma de pantallas LED</div></div>
+        <div class="userarea">
+          <span class="testtag">PORTAL DE PRUEBAS</span>
+          <span id="userName" class="user-name"></span>
+          <button id="logoutBtn" class="secondary" type="button">Salir</button>
+        </div>
+      </header>
+      <main class="workspace">
+        <section id="page-resumen">
+          <span class="kicker">Gestión corporativa</span>
+          <h2>Panel de Arcuva</h2>
+          <p class="lead">Información de las pantallas, campañas y clientes asociados a tu empresa.</p>
+          <div class="message notice"><strong>Primera versión — Solo consulta.</strong> Todavía no habilita cambios, no mueve pantallas y no modifica la reproducción.</div>
+          <div class="cards">
+            <div class="card"><div class="card-label">Pantallas asignadas</div><div class="number" id="numScreens">—</div><div class="tiny">Registradas bajo Arcuva</div></div>
+            <div class="card"><div class="card-label">Campañas visibles</div><div class="number" id="numCampaigns">—</div><div class="tiny">Vinculadas a sus pantallas</div></div>
+            <div class="card"><div class="card-label">Clientes</div><div class="number" id="numClients">—</div><div class="tiny">Con campañas visibles</div></div>
+          </div>
+          <div class="panel"><h3>Estado de las pantallas</h3><div id="summary" class="empty">Consultando información…</div></div>
+        </section>
+
+        <section id="page-pantallas" class="hidden">
+          <div class="page-top">
+            <div><span class="kicker">Inventario</span><h2>Pantallas</h2><p class="lead">Pantallas cuyo propietario es Arcuva.</p></div>
+            <button type="button" id="refreshBtn" class="secondary">Actualizar</button>
+          </div>
+          <div class="panel" id="screenTable"><div class="empty">Cargando pantallas…</div></div>
+        </section>
+
+        <section id="page-campanias" class="hidden">
+          <div class="page-top">
+            <div><span class="kicker">Publicidad</span><h2>Campañas</h2><p class="lead">Campañas vinculadas a las pantallas autorizadas.</p></div>
+            <input class="search" type="search" id="campaignSearch" placeholder="Buscar campaña o cliente" aria-label="Buscar campañas">
+          </div>
+          <div id="campaignTable" class="panel"><div class="empty">Cargando campañas…</div></div>
+        </section>
+
+        <section id="page-clientes" class="hidden">
+          <span class="kicker">Cartera</span><h2>Clientes</h2>
+          <p class="lead">Clientes con campañas visibles en las pantallas de Arcuva.</p>
+          <div id="clientTable" class="panel"><div class="empty">Cargando clientes…</div></div>
+        </section>
+
+        <section id="page-reportes" class="hidden">
+          <div class="page-top">
+            <div><span class="kicker">Información</span><h2>Reporte de clientes y campañas</h2><p class="lead">Informe sobre las campañas autorizadas.</p></div>
+            <button type="button" id="printBtn" class="secondary">Imprimir / PDF</button>
+          </div>
+          <div id="reportTable" class="panel"><div class="empty">Cargando reporte…</div></div>
+        </section>
+        <div class="footer">Arcuva · Desarrollado por NextWork · Versión de pruebas</div>
+      </main>
+    </div>
+  </section>
+</body>
+</html>
