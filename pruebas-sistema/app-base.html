@@ -1482,6 +1482,42 @@
 
 </style>
 <base href="/">
+<style id="simple-admin-stage-css">
+  #page-administracion-simple .simple-stage-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:22px}
+  #page-administracion-simple .simple-stage-head h2{font-size:24px;letter-spacing:-.02em;margin:0 0 6px}
+  #page-administracion-simple .simple-stage-head p{font-size:13px;color:#64748b;margin:0}
+  #page-administracion-simple .simple-stage-label{font-size:11px;color:#8a560a;font-weight:800;border:1px solid #efd29f;background:#fffbeb;padding:9px 12px;border-radius:12px}
+  #page-administracion-simple .simple-stage-toolbar{background:#f8fafd;border:1px solid #e1eaf6;border-radius:15px;padding:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  #page-administracion-simple .simple-stage-toolbar label{font-size:12px;color:#475569;font-weight:850}
+  #page-administracion-simple .simple-stage-toolbar select{min-width:230px;max-width:380px;padding:11px 12px;border:1px solid #c6d4e6;border-radius:12px;background:#fff}
+  #page-administracion-simple .simple-section{background:#fff;border:1px solid #e5ebf5;border-radius:20px;padding:22px;margin-bottom:18px;box-shadow:0 10px 30px #1e315d08}
+  #page-administracion-simple .simple-section h3{font-size:17px;color:#14243f;margin:0 0 13px}
+  #page-administracion-simple .simple-section-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:13px}
+  #page-administracion-simple .simple-section-top h3{margin:0}
+  #page-administracion-simple .simple-company-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+  #page-administracion-simple .simple-company-card{border-radius:14px;padding:16px;background:#f6f8fd;border:1px solid #e1e7f2}
+  #page-administracion-simple .simple-company-name{font-size:16px;font-weight:850;color:#101e37}
+  #page-administracion-simple .simple-company-facts{font-size:12px;color:#697a92;margin-top:8px}
+  #page-administracion-simple .simple-table-scroll{max-width:100%;overflow:auto}
+  #page-administracion-simple table{width:100%;min-width:620px;border-collapse:collapse}
+  #page-administracion-simple table th{font-size:11px;text-align:left;letter-spacing:.05em;text-transform:uppercase;background:#f3f6fb;padding:12px;color:#455778}
+  #page-administracion-simple table td{padding:13px 12px;border-bottom:1px solid #e7edf7;font-size:12px;vertical-align:middle}
+  #page-administracion-simple .simple-cell-note{font-size:11px;color:#637694;margin-top:5px;line-height:1.4}
+  #page-administracion-simple .simple-tag{font-size:10px;border-radius:999px;background:#e9edfa;color:#3d4c85;font-weight:850;padding:5px 9px;display:inline-block;margin:4px 0}
+  #page-administracion-simple .simple-tag.simple-alert{background:#fff3d8;color:#946011}
+  #page-administracion-simple .simple-planner{background:#fbfcff;border:1px solid #bfcff1;border-radius:17px;padding:19px;margin-top:16px}
+  #page-administracion-simple .simple-planner h4{margin:0;font-size:17px}
+  #page-administracion-simple .simple-planner p{font-size:12px;color:#52647d;margin:8px 0 14px}
+  #page-administracion-simple .simple-screen-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px}
+  #page-administracion-simple .simple-screen-item{display:flex;align-items:flex-start;gap:11px;background:#fff;border:1px solid #dce6f5;border-radius:12px;padding:13px;cursor:pointer;font-size:12px}
+  #page-administracion-simple .simple-screen-item input{width:17px;height:17px;flex-shrink:0}
+  #page-administracion-simple .simple-screen-item span{display:block}
+  #page-administracion-simple .simple-planner-result{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0;font-size:12px}
+  #page-administracion-simple .simple-warning{border-radius:12px;background:#fff9e9;border:1px solid #f1dbac;padding:14px;font-size:12px;color:#8b5516;line-height:1.5;margin:12px 0}
+  #page-administracion-simple .simple-legacy-note{border-radius:12px;background:#f5f8ff;border:1px solid #dfe6f4;padding:14px;font-size:12px;color:#52647d;line-height:1.5}
+  #page-administracion-simple .simple-planner-placeholder{padding:20px;text-align:center;font-size:12px;color:#64748b;border:1px dashed #cbd8eb;border-radius:12px;margin-top:12px}
+  @media(max-width:680px){#page-administracion-simple .simple-section{padding:14px}#page-administracion-simple .simple-stage-toolbar select{min-width:100%;max-width:100%}}
+</style>
 <style id="stage-company-preview-css">
   /* Ocultar también los módulos insertados después del login. Sin observadores. */
   #appView.stage-preview-mode .nav-btn[data-page]:not([data-page="dashboard"]){display:none!important}
@@ -1632,6 +1668,10 @@
     <button class="nav-btn superadmin-only hidden" data-page="empresas">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M4 21V8l5-3 5 3v13M14 11l3-2 3 2v10M7 11h2M7 15h2M16 14h2"/></svg></span>
       <span class="nav-label">Empresas</span>
+    </button>
+    <button class="nav-btn superadmin-only hidden" data-page="administracion-simple">
+      <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 4h7v7H3zM14 4h7v7h-7zM3 15h7v6H3zM14 18h7M17 15v6"/></svg></span>
+      <span class="nav-label">Administración nueva</span>
     </button>
     <button class="nav-btn admin-only" data-page="grupos">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 6h6v5H4z"/><path d="M14 6h6v5h-6z"/><path d="M9 15h6v5H9z"/><path d="M7 11v2h10v-2"/><path d="M12 13v2"/></svg></span>
@@ -1840,6 +1880,23 @@
         </div>
       </section>
 
+      <section id="page-administracion-simple" class="page hidden">
+        <div class="simple-stage-head">
+          <div><h2>Administración simplificada</h2>
+            <p>Empresas → Pantallas → Usuarios · Sin grupos obligatorios en el diseño propuesto</p>
+          </div>
+          <div class="simple-stage-label">FASE 1 · VISTA DE PRUEBA · SIN CAMBIOS REALES</div>
+        </div>
+        <div class="simple-stage-toolbar">
+          <label for="simpleCompanyFilter">Ver empresa</label>
+          <select id="simpleCompanyFilter" onchange="stageSimpleFilterCompany(this.value)">
+            <option value="all">Todas las empresas</option>
+          </select>
+          <button type="button" class="btn btn-outline btn-sm" onclick="stageSimpleLoad()">Actualizar datos</button>
+        </div>
+        <div id="simpleModelContent"><div class="simple-planner-placeholder">Abrí esta sección para consultar la información.</div></div>
+      </section>
+
       <section id="page-empresas" class="page hidden">
         <div class="section-title" style="display:flex;align-items:flex-start;justify-content:space-between;gap:15px">
           <div>
@@ -2003,7 +2060,7 @@
   }
 
   function allowedPagesForCurrentRole(){
-    if(isSuperAdmin()) return ['dashboard','pantallas','campanias','clientes','reproducciones','grupos','usuarios','empresas'];
+    if(isSuperAdmin()) return ['dashboard','pantallas','campanias','clientes','reproducciones','grupos','usuarios','empresas','administracion-simple'];
     if(isAdmin()) return ['dashboard','pantallas','campanias','clientes','reproducciones','grupos','usuarios'];
     if(isOperator()) return ['dashboard','pantallas','campanias','clientes','reproducciones'];
     if(isAdministrative()) return ['dashboard','campanias','reproducciones'];
@@ -4933,10 +4990,12 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
       reproducciones:'Reproducciones',
       grupos:'Grupos',
       usuarios:'Usuarios',
-      empresas:'Empresas'
+      empresas:'Empresas',
+      'administracion-simple':'Administración nueva'
     };
     $('pageTitle').textContent = titles[page] || page;
     if(page === 'empresas' && isSuperAdmin() && typeof window.stageLoadCompanies === 'function') window.stageLoadCompanies();
+    if(page === 'administracion-simple' && isSuperAdmin() && typeof window.stageSimpleLoad === 'function') window.stageSimpleLoad();
   }
 
   $('btnLogin').addEventListener('click', login);
@@ -5036,6 +5095,7 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
 </script>
 <script src="/pruebas-sistema/empresas-native.js?v=1"></script>
 <script src="/pruebas-sistema/company-screens.js?v=1"></script>
+<script src="/pruebas-sistema/administracion-simplificada.js?v=1"></script>
 <script src="/pruebas-sistema/groups-company-management.js?v=1"></script>
 <script src="/pruebas-sistema/screen-create-company.js?v=1"></script>
 <script src="/pruebas-sistema/user-create-company.js?v=1"></script>
