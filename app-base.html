@@ -3649,13 +3649,6 @@
       return;
     }
 
-    const { error: roleUpdateError } = await sb
-      .from('usuarios')
-      .update({ rol:selectedRole })
-      .eq('id',usuarioId);
-
-    if(roleUpdateError){ alert(roleUpdateError.message); return; }
-
     const accessRows = groupChecks.map(chk => {
       const groupId = chk.dataset.groupId;
       const allScreens = document.querySelector(`.userAllScreens[data-group-id="${groupId}"]`)?.checked ?? true;
@@ -3700,6 +3693,13 @@
         return;
       }
     }
+
+    const { error: roleUpdateError } = await sb
+      .from('usuarios')
+      .update({ rol:selectedRole })
+      .eq('id',usuarioId);
+
+    if(roleUpdateError){ alert(roleUpdateError.message); return; }
 
     const { error: deleteGroupsError } = await sb
       .from('usuarios_grupos')
