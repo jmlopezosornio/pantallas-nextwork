@@ -1456,6 +1456,37 @@
 
 </style>
 <base href="/">
+<style id="stage-company-preview-css">
+  #stageCompanySelectorWrap{display:flex;flex-direction:column;gap:4px;min-width:188px;max-width:255px;margin:0 8px 0 0}
+  #stageCompanySelectorWrap.hidden{display:none!important}
+  #stageCompanySelectorWrap label{font-size:10px;letter-spacing:.06em;font-weight:900;text-transform:uppercase;color:#475569}
+  #stageCompanySelector{height:37px;border-radius:11px;border:1px solid #bfcee4;background:#fff;color:#14213d;padding:6px 10px;font-size:12px;font-weight:800}
+  #stageCompanySelectorWrap .stage-select-hint{font-size:9px;color:#986109;font-weight:750}
+  #stageCompanyPreview{background:#fff;border-radius:22px;padding:26px;box-shadow:0 12px 30px #17335c12}
+  #stageCompanyPreview.hidden,#stageOriginalDashboard.hidden{display:none!important}
+  .stage-heading{display:flex;justify-content:space-between;align-items:center;gap:22px;flex-wrap:wrap}
+  .stage-heading h2{font-size:25px;margin:5px 0 3px;color:#14233d}
+  .stage-heading p{font-size:12px;color:#64748b;margin:0}
+  .stage-eyebrow{font-size:10px;font-weight:900;letter-spacing:.09em;color:#9a5e09}
+  .stage-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .stage-notice{font-size:12px;background:#fff9ed;border:1px solid #f6dbad;color:#80510c;padding:14px;border-radius:12px;margin:19px 0}
+  .stage-kpis{display:grid;grid-template-columns:repeat(5,minmax(115px,1fr));gap:10px;margin-bottom:20px}
+  .stage-kpis>div{padding:14px 12px;border-radius:14px;background:#f6f8fd;border:1px solid #e6edf7;display:flex;flex-direction:column;gap:7px}
+  .stage-kpis span{font-size:10px;font-weight:850;text-transform:uppercase;color:#687993}
+  .stage-kpis strong{font-size:25px;font-weight:900;color:#132d5a}
+  #stageCompanyPreview h3{font-size:17px;margin:23px 0 12px;color:#152645}
+  .stage-table-scroll{max-width:100%;overflow:auto;border:1px solid #e4eaf4;border-radius:13px}
+  .stage-table{border-collapse:collapse;min-width:650px;width:100%}
+  .stage-table th{text-align:left;background:#f0f4fa;padding:12px 10px;font-size:11px;color:#455876;font-weight:900;white-space:nowrap}
+  .stage-table td{padding:11px 10px;font-size:12px;color:#243a55;border-top:1px solid #edf1f6;vertical-align:top}
+  .stage-table tr:nth-child(even){background:#fafcff}
+  .stage-pills{display:flex;flex-wrap:wrap;gap:9px}
+  .stage-pills span{background:#ebf1fc;border-radius:999px;color:#2c4e8d;font-size:12px;font-weight:800;padding:8px 11px}
+  .stage-empty{border:1px dashed #c5d2e4;padding:23px;border-radius:13px;color:#64748b;font-size:12px;text-align:center}
+  .stage-footnote{font-size:11px;color:#64748b;margin-top:23px;border-top:1px solid #e4eaf3;padding-top:15px}
+  @media(max-width:1250px){.stage-kpis{grid-template-columns:repeat(3,minmax(100px,1fr))}}
+  @media(max-width:850px){.stage-kpis{grid-template-columns:repeat(2,minmax(100px,1fr))}#stageCompanyPreview{padding:18px}#stageCompanySelectorWrap{min-width:150px}}
+</style>
 <style id="stage-empresas-css">
   /* Sidebar desplazable: Reportes, Empresa y Empresas pueden exceder el alto. */
   .sidebar{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-bottom:46px}
@@ -1587,6 +1618,16 @@
     <div class="topbar">
       <div><div class="topbar-title" id="pageTitle">Dashboard</div><div class="topbar-sub">Nextwork · Gestión centralizada de pantallas LED</div></div>
       <div class="userbox">
+        <div id="stageCompanySelectorWrap" class="hidden">
+          <label for="stageCompanySelector">Vista por empresa · Superadmin</label>
+          <select id="stageCompanySelector" aria-label="Seleccionar empresa para previsualización">
+            <option value="all">Todas las empresas</option>
+            <option value="arcuva">Arcuva · Operativa</option>
+            <option value="hidricos">Recursos Hídricos · Operativa</option>
+            <option value="test">NextWork · Pruebas internas</option>
+          </select>
+          <div class="stage-select-hint">Previsualización solo lectura</div>
+        </div>
         <span id="stageRoleStatus">Perfil por verificar</span>
         <span style="font-size:11px;font-weight:900;color:#a34b09;background:#fff3df;border:1px solid #fed7aa;border-radius:999px;padding:8px 10px">PRUEBAS · DATOS REALES</span>
         <a href="/" class="btn btn-ghost" style="text-decoration:none;font-size:11px;padding:9px 11px">Producción</a>
@@ -1604,6 +1645,8 @@
       </div>
 
       <section id="page-dashboard" class="page">
+        <div id="stageCompanyPreview" class="hidden" aria-live="polite"></div>
+        <div id="stageOriginalDashboard">
         <div class="grid">
           <div class="card"><div class="metric-label">Pantallas</div><div id="mPantallas" class="metric-value">0</div><div class="metric-sub">Dispositivos registrados</div></div>
           <div class="card"><div class="metric-label">Online</div><div id="mOnline" class="metric-value">0</div><div class="metric-sub">Conexión activa</div></div>
@@ -1626,6 +1669,7 @@
             <tbody id="dashCampanias"></tbody>
           </table>
         </div>
+              </div><!-- stageOriginalDashboard -->
       </section>
 
       <section id="page-pantallas" class="page hidden">
@@ -2184,6 +2228,7 @@
     currentProfile = null;
     applyCompanyIdentity(null);
     window.dispatchEvent(new CustomEvent('nextwork-company-updated',{detail:null}));
+    window.dispatchEvent(new CustomEvent('stage-session-ended'));
     $('appView').classList.add('hidden');
     $('loginView').classList.remove('hidden');
   }
@@ -2212,6 +2257,7 @@
     $('appView').classList.remove('hidden');
 
     await refreshAll();
+    window.dispatchEvent(new CustomEvent('stage-session-ready'));
   }
 
   async function refreshAll(){
@@ -4794,6 +4840,8 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
   }
 
   function showPage(page){
+    // La vista simulada por empresa no habilita operaciones sobre datos reales.
+    if(window.stageCompanyPreviewReadOnly===true && page!=='dashboard') page='dashboard';
     const allowed = new Set(allowedPagesForCurrentRole());
     if(!allowed.has(page)) page = 'dashboard';
 
@@ -4915,5 +4963,6 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
 </script>
 <script src="/pruebas-sistema/empresas-native.js?v=1"></script>
 <script src="/pruebas-sistema/company-screens.js?v=1"></script>
+<script src="/pruebas-sistema/superadmin-company-preview.js?v=1"></script>
 </body>
 </html>
