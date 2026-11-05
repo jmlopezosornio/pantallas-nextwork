@@ -126,3 +126,35 @@ tbody tr:hover{background:#fbfcff}
   max-height:42px;
   object-fit:contain;
 }
+
+/* Reportes Arcuva: diseño del sistema base con filtros e impresión. */
+.rpt-shell{background:#fff;border:1px solid #e5eaf3;border-radius:22px;box-shadow:0 10px 30px rgba(15,23,42,.07);overflow:hidden}
+.rpt-head{padding:24px 26px 18px;border-bottom:1px solid #e8edf5;display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.rpt-head h2{margin:0!important;font-size:26px!important;letter-spacing:-.02em;color:#0b2b59}
+.rpt-head p{margin:6px 0 0;color:#64748b;font-size:13px;line-height:1.5}
+.rpt-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.rpt-actions .secondary,.rpt-actions .primary{font-size:13px;padding:11px 16px}
+.rpt-filterbox{margin:20px 24px;padding:18px;background:linear-gradient(135deg,#f3f7fc,#edf4fb);border:1px solid #dfe8f4;border-radius:18px}
+.rpt-period{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #d7e2ef}
+.rpt-period>strong{color:#0b2b59;margin-right:4px}
+.rpt-mode{border:1px solid #bccbe0;background:white;color:#334155;border-radius:10px;padding:9px 16px;font-weight:800;cursor:pointer}
+.rpt-mode.active{background:linear-gradient(135deg,#1769d2,#0b4ea2);border-color:#1769d2;color:#fff;box-shadow:0 6px 16px rgba(23,105,210,.22)}
+.rpt-date{display:flex;align-items:center;gap:8px;margin-left:8px}
+.rpt-date[hidden]{display:none}
+.rpt-date label{margin:0;font-size:12px;font-weight:750;color:#334155;white-space:nowrap}
+.rpt-date input{width:150px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;padding:10px;color:#17243b}
+.rpt-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.rpt-filters label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#53657d;margin-bottom:6px}
+.rpt-filters select{display:block;width:100%;max-width:100%;min-height:46px;padding:10px 14px;border:1px solid #d1ddeb;border-radius:11px;background:#fff;color:#17243b;font:inherit}
+.rpt-summary{padding:0 24px 14px;color:#64748b;font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.rpt-scroll{margin:0 24px 24px;border:1px solid #dfe6ef;border-radius:14px;overflow:auto}
+.rpt-table{width:100%;border-collapse:collapse;min-width:760px}
+.rpt-table th{background:linear-gradient(180deg,#0c477f,#083968);color:#fff;padding:13px 14px;font-size:12px;text-align:left}
+.rpt-table td{padding:12px 14px;border-bottom:1px solid #e7edf4;font-size:13px;color:#172033;vertical-align:top}
+.rpt-table tr:nth-child(even) td{background:#f7faff}
+.rpt-table tbody tr:hover td{background:#edf5ff}
+.rpt-table .rpt-pct{text-align:center;font-weight:900;color:#0b4ea2;white-space:nowrap}
+.rpt-table .rpt-dates{white-space:nowrap}
+.rpt-table .rpt-empty{padding:32px;text-align:center;color:#64748b;background:#fff}
+@media(max-width:900px){.rpt-head{flex-direction:column}.rpt-actions{justify-content:flex-start}.rpt-filters{grid-template-columns:1fr}.rpt-date{margin-left:0}}
+@media(max-width:520px){.rpt-head{padding:18px}.rpt-filterbox{margin:12px;padding:13px}.rpt-summary{padding:0 14px 12px}.rpt-scroll{margin:0 12px 16px}}
