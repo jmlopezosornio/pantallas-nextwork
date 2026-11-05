@@ -164,3 +164,21 @@ tbody tr:hover{background:#fbfcff}
 .superadmin-tools h3{margin:0 0 12px}
 .superadmin-tools p{max-width:760px;line-height:1.6}
 .superadmin-link{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;margin-top:10px;font-size:13px}
+
+/* Diseño aprobado: logo empresarial más grande, borde blanco reducido. */
+.sidebar .brand-card{
+  padding:9px;
+  min-height:0;
+  border-radius:23px;
+  margin-bottom:12px;
+}
+.sidebar .brand-card img,
+.sidebar #sidebarLogo{
+  display:block;
+  width:100%;
+  max-width:100%;
+  max-height:none;
+  height:auto;
+  object-fit:contain;
+  border-radius:17px;
+}
