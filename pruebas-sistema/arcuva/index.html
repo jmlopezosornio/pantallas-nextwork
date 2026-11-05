@@ -7,7 +7,9 @@
   <title>Arcuva | NextWork — Portal de pruebas</title>
   <link rel="stylesheet" href="./portal.css?v=2">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script defer src="./portal.js?v=1"></script>
+  <script defer src="./portal.js?v=2"></script>
+  <script defer src="./portal-admin.js?v=1"></script>
+  <link rel="stylesheet" href="./portal-admin.css?v=1">
 </head>
 <body>
   <section id="loginView" class="login">
@@ -67,7 +69,7 @@
           <span class="kicker">Gestión corporativa</span>
           <h2>Panel de Arcuva</h2>
           <p class="lead">Información de las pantallas, campañas y clientes asociados a tu empresa.</p>
-          <div class="message notice"><strong>Primera versión — Solo consulta.</strong> Todavía no habilita cambios, no mueve pantallas y no modifica la reproducción.</div>
+          <div class="message notice"><strong>Administración de Arcuva.</strong> La consulta está disponible para usuarios autorizados; la edición exige permiso de operador o administrador. Esta versión comparte base con el sistema real: los cambios guardados son efectivos y pueden modificar campañas de SMA 01.</div>
           <div class="cards">
             <div class="card"><div class="card-label">Pantallas asignadas</div><div class="number" id="numScreens">—</div><div class="tiny">Registradas bajo Arcuva</div></div>
             <div class="card"><div class="card-label">Campañas visibles</div><div class="number" id="numCampaigns">—</div><div class="tiny">Vinculadas a sus pantallas</div></div>
@@ -87,14 +89,13 @@
         <section id="page-campanias" class="hidden">
           <div class="page-top">
             <div><span class="kicker">Publicidad</span><h2>Campañas</h2><p class="lead">Campañas vinculadas a las pantallas autorizadas.</p></div>
-            <input class="search" type="search" id="campaignSearch" placeholder="Buscar campaña o cliente" aria-label="Buscar campañas">
+            <div class="admin-toolbar"><input class="search" type="search" id="campaignSearch" placeholder="Buscar campaña o cliente" aria-label="Buscar campañas"><button type="button" class="primary hidden" id="addCampaignBtn">+ Nueva campaña</button></div>
           </div>
           <div id="campaignTable" class="panel"><div class="empty">Cargando campañas…</div></div>
         </section>
 
         <section id="page-clientes" class="hidden">
-          <span class="kicker">Cartera</span><h2>Clientes</h2>
-          <p class="lead">Clientes con campañas visibles en las pantallas de Arcuva.</p>
+          <div class="page-top"><div><span class="kicker">Cartera</span><h2>Clientes</h2><p class="lead">Clientes registrados de Arcuva.</p></div><button type="button" class="primary hidden" id="addClientBtn">+ Nuevo cliente</button></div>
           <div id="clientTable" class="panel"><div class="empty">Cargando clientes…</div></div>
         </section>
 
@@ -105,9 +106,11 @@
           </div>
           <div id="reportTable" class="panel"><div class="empty">Cargando reporte…</div></div>
         </section>
+        <div class="message note-role" id="roleInfo" aria-live="polite">Verificando permisos de edición de Arcuva…</div>
         <div class="footer">Arcuva · Desarrollado por NextWork · Versión de pruebas</div>
       </main>
     </div>
   </section>
+  <div id="adminModalRoot"></div>
 </body>
 </html>
