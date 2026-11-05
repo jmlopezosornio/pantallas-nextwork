@@ -88,7 +88,8 @@
     return '<div class="scroll"><table><thead><tr>'+columns.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
   }
   function renderCounts(){
-    $('numClients').textContent=String(clients.length);
+    const count = $('numClients');
+    if(count) count.textContent=String(clients.length);
   }
   async function refresh(){
     const stamp=++revision;
