@@ -158,3 +158,9 @@ tbody tr:hover{background:#fbfcff}
 .rpt-table .rpt-empty{padding:32px;text-align:center;color:#64748b;background:#fff}
 @media(max-width:900px){.rpt-head{flex-direction:column}.rpt-actions{justify-content:flex-start}.rpt-filters{grid-template-columns:1fr}.rpt-date{margin-left:0}}
 @media(max-width:520px){.rpt-head{padding:18px}.rpt-filterbox{margin:12px;padding:13px}.rpt-summary{padding:0 14px 12px}.rpt-scroll{margin:0 12px 16px}}
+
+/* Enlaces a la administración global, solo mostrados al Superadmin. */
+.superadmin-tools{padding:20px;margin-bottom:18px}
+.superadmin-tools h3{margin:0 0 12px}
+.superadmin-tools p{max-width:760px;line-height:1.6}
+.superadmin-link{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;margin-top:10px;font-size:13px}
