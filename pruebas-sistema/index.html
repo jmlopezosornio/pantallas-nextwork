@@ -247,9 +247,10 @@
     html = html.replace('</head>', groupsStyle + '</head>');
 
     const editScript = '<script src="/pruebas-sistema/screen-edit.js?v=1">' + '<' + '/script>';
+    const geoScript = '<script src="/pruebas-sistema/geolocalizacion-real.js?v=1">' + '<' + '/script>';
     const campaignLayoutScript = '<script src="./campaign-layout-v31.js?v=1">' + '<' + '/script>';
     const groupLayoutScript = '<script src="./groups-layout-v32.js?v=1">' + '<' + '/script>';
-    html = html.replace('</body>', editScript + campaignLayoutScript + groupLayoutScript + '</body>');
+    html = html.replace('</body>', editScript + geoScript + campaignLayoutScript + groupLayoutScript + '</body>');
 
     document.open();
     document.write(html);
