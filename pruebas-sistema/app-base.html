@@ -4292,7 +4292,7 @@
             <div class="field">
               <label>Tipo de contenido</label>
               <select id="cTipo" onchange="renderContentInput()">
-                <option value="video" ${existing?.tipo_contenido==='video'?'selected':''}>Video</option>
+                <option value="video" ${(!existing || existing?.tipo_contenido==='video')?'selected':''}>Video</option>
                 <option value="imagen" ${existing?.tipo_contenido==='imagen'?'selected':''}>Imagen</option>
                 <option value="web" ${existing?.tipo_contenido==='web'?'selected':''}>Página web</option>
               </select>
@@ -4304,7 +4304,8 @@
                 <option value="25">25%</option>
                 <option value="50">50%</option>
                 <option value="75">75%</option>
-                <option value="100">100%</option>
+                <option value="100" selected>100%</option>
+                <option value="150">150%</option>
               </select>
             </div>
 
