@@ -13,7 +13,7 @@ const state=c=>{const t=String(c.estado||'').toLowerCase();const d=daysTo(c.fech
 function set(id,v){const el=$(id);if(el)el.textContent=v;}
 function renderCampaigns(campaigns){
  const counts={Activa:0,Pausada:0,Finalizada:0,Programada:0};
- campaigns.forEach(c=>counts[state(c)]++);
+ campaigns.filter(c=>!c.eliminada).forEach(c=>counts[state(c)]++);
  set('dashActive',counts.Activa);set('dashPaused',counts.Pausada);set('dashFinished',counts.Finalizada);
  const alerts=campaigns.map(c=>({c,days:daysTo(c.fecha_hasta),status:state(c)}))
   .filter(x=>x.days!==null&&x.status==='Activa'&&x.days>=0&&x.days<=10)
@@ -34,9 +34,8 @@ function renderBalance(screens,campaigns){
  if(!screens.length){list.innerHTML='<div class="empty">No hay elementos habilitados.</div>';advice.textContent='Sin elementos para comparar.';return;}
  const max=Math.max(100,...loads.map(x=>x.weight));
  list.innerHTML=loads.map(x=>{
-   const share=x.count?x.weight/100:0;
    const names=x.campaigns.map(c=>esc(c.campania)+' ('+esc(c.porcentaje)+'%)').join(', ');
-   return '<div class="dash-balance-row"><div class="dash-balance-detail"><strong>'+esc(x.nombre)+'</strong><div class="tiny">'+esc(x.ubicacion||'Sin ubicación')+'</div><div class="dash-balance-bar"><span style="width:'+Math.max(0,Math.min(100,x.weight/max*100)).toFixed(1)+'%"></span></div><div class="tiny dash-balance-names">'+(names||'Sin campañas activas asignadas')+'</div></div><div class="dash-balance-values"><b>'+x.count+'</b><span>campañas activas</span><b>'+x.weight+'%</b><span>peso acumulado</span></div></div>';
+   return '<div class="dash-balance-row"><div class="dash-balance-detail"><strong>'+esc(x.nombre)+'</strong><div class="tiny">'+esc(x.ubicacion||'Sin ubicación')+'</div><div class="dash-balance-bar"><span style="width:'+Math.max(0,Math.min(100,x.weight/max*100)).toFixed(1)+'%"></span></div><div class="tiny dash-balance-names">'+(names||'Sin campañas activas asignadas')+'</div></div><div class="dash-balance-values"><b>'+x.count+'</b><span>campañas activas</span><b>'+x.weight+'</b><span>puntos de prioridad</span></div></div>';
  }).join('');
  const high=loads[0],low=loads[loads.length-1];
  if(loads.length<2){advice.textContent='Solo hay un elemento registrado. Se mostrarán comparaciones cuando existan al menos dos.';return;}
