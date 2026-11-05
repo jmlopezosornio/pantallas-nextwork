@@ -62,27 +62,101 @@
     panel.innerHTML=table(['Cliente','Email','Teléfono','Campañas','Acción'],rows);
     panel.querySelectorAll('[data-edit-client]').forEach(btn=>btn.addEventListener('click',()=>openClient(btn.dataset.editClient)));
   }
+  let campaignTab='todas';
+  const today=()=>localDay(new Date());
+  function statusForCampaign(c){
+    const raw=snapshotCampaigns.find(x=>x.id===c.id);
+    if(c.eliminada===true||raw?.eliminada===true)return 'eliminada';
+    if(raw?.pausada===true||c.pausada===true)return 'pausadas';
+    if(c.fecha_desde>today())return 'futuras';
+    if(c.fecha_hasta<today())return 'pasadas';
+    return 'vigentes';
+  }
+  function campaignMediaUrl(c){
+    const path=snapshotCampaigns.find(x=>x.id===c.id)?.archivo_url||c.archivo_url||'';
+    if(!path)return '';
+    try{const u=new URL(path);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}
+  }
   function renderCampaignTable(){
     if(!base.getProfile())return;
-    const filtered=base.getModel().campaigns.filter(c=>{
-      const text=String(c.campania||'')+' '+String(c.cliente||'');
-      return text.toLocaleLowerCase('es').includes(($('campaignSearch').value||'').trim().toLocaleLowerCase('es'));
+    const model=base.getModel(), screenFilter=$('campaignScreenFilter');
+    if(screenFilter){
+      const selected=screenFilter.value;
+      screenFilter.innerHTML='<option value="">Todas las pantallas</option>'+model.screens.filter(p=>p.empresa_id===COMPANY_ID).map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nombre)+'</option>').join('');
+      if([...screenFilter.options].some(o=>o.value===selected))screenFilter.value=selected;
+    }
+    const campaigns=model.campaigns.filter(c=>c.eliminada!==true&&snapshotCampaigns.some(x=>x.id===c.id&&x.eliminada!==true));
+    const search=($('campaignSearch')?.value||'').trim().toLocaleLowerCase('es');
+    const type=$('campaignTypeFilter')?.value||'',screen=screenFilter?.value||'';
+    const searched=campaigns.filter(c=>{
+      const text=[c.campania,c.cliente,...(c.pantallas||[])].join(' ').toLocaleLowerCase('es');
+      return (!search||text.includes(search))&&(!type||c.tipo_contenido===type)&&(!screen||(c.pantallaIds||[]).includes(screen));
     });
+    const counts={todas:searched.length,vigentes:0,futuras:0,pasadas:0,pausadas:0};
+    searched.forEach(c=>{const bucket=statusForCampaign(c);if(bucket in counts)counts[bucket]++;});
+    document.querySelectorAll('#campaignTabs [data-campaign-tab]').forEach(b=>{
+      const tab=b.dataset.campaignTab;b.classList.toggle('active',tab===campaignTab);
+      const n=b.querySelector('.tab-count');if(n)n.textContent=String(counts[tab]||0);
+    });
+    const filtered=campaignTab==='todas'?searched:searched.filter(c=>statusForCampaign(c)===campaignTab);
     const panel=$('campaignTable');
-    if(!filtered.length){panel.innerHTML=empty('No hay campañas visibles que coincidan con el filtro.');return;}
+    if($('campaignListCount'))$('campaignListCount').textContent=filtered.length+' campaña'+(filtered.length===1?'':'s')+' · '+(campaignTab==='todas'?'Todas':({vigentes:'Vigentes',futuras:'Futuras',pasadas:'Pasadas',pausadas:'Pausadas'}[campaignTab]||''));
+    if(!filtered.length){panel.innerHTML=empty('No hay campañas que coincidan con los filtros seleccionados.');return;}
     const rows=filtered.map(c=>{
       const raw=snapshotCampaigns.find(x=>x.id===c.id);
-      const groupId=raw?.grupo_id||'';
-      const authorized=canEdit&&groupWritable(groupId);
-      const button=authorized
-        ?'<div class="action-group"><button type="button" class="secondary small-btn" data-edit-campaign="'+esc(c.id)+'">Editar</button><button type="button" class="secondary small-btn" data-pause-campaign="'+esc(c.id)+'">'+(raw?.pausada?'Reactivar':'Pausar')+'</button></div>'
-        :'<span class="tiny">Solo consulta</span>';
-      const state=raw?.pausada?'Pausada':(c.estado||'Activa');
-      return '<tr><td><strong>'+esc(c.campania)+'</strong><span class="tiny">'+esc(c.tipo_contenido||'')+'</span></td><td>'+esc(c.cliente)+'</td><td>'+dates(c.fecha_desde)+' – '+dates(c.fecha_hasta)+'</td><td>'+esc((c.pantallas||[]).join(', '))+'</td><td>'+esc(c.porcentaje)+'%</td><td>'+esc(state)+'</td><td>'+button+'</td></tr>';
+      const authorized=!!raw&&canEdit&&groupWritable(raw.grupo_id);
+      const superadmin=base.getProfile()?.es_superadmin===true&&!!raw&&groupWritable(raw.grupo_id);
+      const status=statusForCampaign(c);
+      const label={vigentes:'Vigente',futuras:'Futura',pasadas:'Pasada',pausadas:'Pausada'}[status]||status;
+      const menu=(authorized||superadmin)?'<div class="campaign-menu-wrap"><button class="campaign-more" type="button" data-campaign-menu="'+esc(c.id)+'" aria-label="Acciones para '+esc(c.campania)+'" aria-expanded="false">⋮</button><div class="campaign-menu hidden" data-campaign-options="'+esc(c.id)+'">'+
+        (authorized?'<button type="button" data-edit-campaign="'+esc(c.id)+'">Editar</button><button type="button" data-pause-campaign="'+esc(c.id)+'">'+(raw.pausada?'Reactivar':'Pausar')+'</button>':'')+
+        (superadmin?'<button type="button" class="menu-danger" data-delete-campaign="'+esc(c.id)+'">Eliminar</button>':'')+
+        '</div></div>':'<span class="tiny">—</span>';
+      const media=campaignMediaUrl(c),kind=c.tipo_contenido||'video';
+      const typeLabel=kind==='imagen'?'Imagen':kind==='web'?'Web':'Video';
+      const content='<span class="campaign-type-chip">'+esc(typeLabel)+(kind==='video'&&Number(c.duracion_seg)>0?' · '+esc(Number(c.duracion_seg))+'s':'')+'</span>'+
+        (media?'<button type="button" class="campaign-media-btn" data-preview-campaign="'+esc(c.id)+'">Vista previa</button><a class="campaign-media-btn" href="'+esc(media)+'" target="_blank" rel="noopener noreferrer" download>Descargar</a>':'<span class="tiny">Sin archivo</span>');
+      return '<tr><td class="campaign-action-cell">'+menu+'</td><td><strong>'+esc(c.campania)+'</strong></td><td>'+esc(c.cliente||'—')+'</td><td><span class="campaign-screen-chip">'+esc((c.pantallas||[]).join(', ')||'Sin pantalla')+'</span></td><td class="campaign-date">'+dates(c.fecha_desde)+'</td><td class="campaign-date">'+dates(c.fecha_hasta)+'</td><td><strong>'+esc(c.porcentaje)+'%</strong></td><td><span class="campaign-state state-'+esc(status)+'">'+esc(label)+'</span></td><td class="campaign-content">'+content+'</td></tr>';
     });
-    panel.innerHTML=table(['Campaña','Cliente','Vigencia','Pantallas','Participación','Estado','Acciones'],rows);
+    panel.innerHTML='<div class="campaign-table-scroll"><table class="campaign-list-table"><thead><tr>'+['Acciones','Campaña','Cliente','Pantalla / Grupo','Desde','Hasta','Frecuencia','Estado','Contenido'].map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
+    panel.querySelectorAll('[data-campaign-menu]').forEach(btn=>btn.addEventListener('click',()=>{
+      const target=panel.querySelector('[data-campaign-options="'+btn.dataset.campaignMenu+'"]');
+      panel.querySelectorAll('[data-campaign-options]').forEach(menu=>{if(menu!==target)menu.classList.add('hidden');});
+      target?.classList.toggle('hidden');
+      btn.setAttribute('aria-expanded',String(target&&!target.classList.contains('hidden')));
+    }));
     panel.querySelectorAll('[data-edit-campaign]').forEach(btn=>btn.addEventListener('click',()=>openCampaign(btn.dataset.editCampaign)));
     panel.querySelectorAll('[data-pause-campaign]').forEach(btn=>btn.addEventListener('click',()=>toggleCampaignPause(btn.dataset.pauseCampaign)));
+    panel.querySelectorAll('[data-delete-campaign]').forEach(btn=>btn.addEventListener('click',()=>deleteCampaign(btn.dataset.deleteCampaign)));
+    panel.querySelectorAll('[data-preview-campaign]').forEach(btn=>btn.addEventListener('click',()=>previewCampaign(btn.dataset.previewCampaign)));
+  }
+  function previewCampaign(id){
+    const c=base.getModel().campaigns.find(x=>x.id===id&&x.eliminada!==true);
+    if(!c)return;
+    const url=campaignMediaUrl(c);
+    if(!url)return alert('El contenido no tiene una URL válida para vista previa.');
+    const kind=c.tipo_contenido;
+    let media='';
+    if(kind==='video')media='<video controls autoplay playsinline preload="metadata" src="'+esc(url)+'"></video>';
+    else if(kind==='imagen')media='<img alt="Vista previa de '+esc(c.campania)+'" src="'+esc(url)+'">';
+    else media='<iframe title="Vista previa de '+esc(c.campania)+'" src="'+esc(url)+'" sandbox="allow-scripts allow-forms allow-popups" referrerpolicy="no-referrer"></iframe>';
+    const root=$('adminModalRoot');if(!root)return;
+    root.innerHTML='<div class="admin-backdrop" role="presentation"><div class="admin-dialog campaign-preview-dialog" role="dialog" aria-modal="true" aria-label="Vista previa"><div class="dialog-head"><h3>Vista previa · '+esc(c.campania)+'</h3><button type="button" class="secondary" id="closeCampaignPreview" aria-label="Cerrar">×</button></div><div class="campaign-preview-box">'+media+'</div></div></div>';
+    $('closeCampaignPreview').addEventListener('click',closeDialog);
+    root.querySelector('.admin-backdrop').addEventListener('click',e=>{if(e.target===root.querySelector('.admin-backdrop'))closeDialog();});
+  }
+  async function deleteCampaign(id){
+    const user=base.getProfile(),raw=snapshotCampaigns.find(x=>x.id===id);
+    if(!user?.es_superadmin||!raw||raw.eliminada||!groupWritable(raw.grupo_id))return alert('Solo Superadmin puede eliminar campañas.');
+    if(!confirm('¿Eliminar la campaña '+raw.nombre+'? Se conservará en el histórico y dejará de mostrarse en este listado.'))return;
+    try{
+      await permission(raw.grupo_id);
+      const {data,error}=await db.from('campanias').update({eliminada:true,pausada:true}).eq('id',raw.id).eq('grupo_id',raw.grupo_id).eq('eliminada',false).select('id');
+      if(error)throw error;
+      if(data?.length!==1)throw Error('No se confirmó la eliminación.');
+      await base.reload();
+      alert('Campaña eliminada del listado. Se conserva en el historial.');
+    }catch(err){alert(err.message||'No se pudo eliminar la campaña.');}
   }
   function table(columns,rows){
     return '<div class="scroll"><table><thead><tr>'+columns.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
@@ -399,6 +473,9 @@
   $('addClientBtn').addEventListener('click',()=>openClient());
   $('addCampaignBtn').addEventListener('click',()=>openCampaign());
   $('campaignSearch').addEventListener('input',renderCampaignTable);
+  $('campaignTypeFilter').addEventListener('change',renderCampaignTable);
+  $('campaignScreenFilter').addEventListener('change',renderCampaignTable);
+  document.querySelectorAll('#campaignTabs [data-campaign-tab]').forEach(btn=>btn.addEventListener('click',()=>{campaignTab=btn.dataset.campaignTab;renderCampaignTable();}));
   window.ArcuvaAdminRefresh=refresh;
   window.ArcuvaAdminReset=reset;
 })();
