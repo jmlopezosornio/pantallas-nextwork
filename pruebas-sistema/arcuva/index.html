@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <title>Arcuva | NextWork — Portal de pruebas</title>
-  <link rel="stylesheet" href="./portal.css?v=6">
+  <link rel="stylesheet" href="./portal.css?v=7">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script defer src="./portal.js?v=6"></script>
+  <script defer src="./portal.js?v=7"></script>
   <script defer src="./portal-admin.js?v=4"></script>
   <script defer src="./dashboard-operativo.js?v=1"></script>
   <script defer src="./reports-empresa.js?v=3"></script>
@@ -58,6 +58,7 @@
         <button type="button" class="nav" data-page="campanias">Campañas</button>
         <button type="button" class="nav" data-page="clientes">Clientes</button>
         <button type="button" class="nav" data-page="reportes">Reportes</button>
+        <button type="button" class="nav hidden" id="superadminUsersNav" data-page="usuarios">Usuarios</button>
       </nav>
       
     </aside>
@@ -97,6 +98,7 @@
             <div><span class="kicker">Inventario</span><h2>Pantallas</h2><p class="lead">Pantallas cuyo propietario es Arcuva.</p></div>
             <button type="button" id="refreshBtn" class="secondary">Actualizar</button>
           </div>
+          <div id="superadminScreenTools" class="panel hidden superadmin-tools"><strong>Administración avanzada de pantallas</strong><p class="lead">Para agregar, editar, asignar o dar de baja pantallas, utilizá el panel central de NextWork. Este portal muestra solamente las pantallas de Arcuva.</p><a class="primary superadmin-link" href="https://pantallas.nextwork.com.ar/pruebas-sistema/" target="_blank" rel="noopener noreferrer">Administrar pantallas en NextWork</a></div>
           <div class="panel" id="screenTable"><div class="empty">Cargando pantallas…</div></div>
         </section>
 
@@ -128,6 +130,14 @@
           <div id="clientTable" class="panel"><div class="empty">Cargando clientes…</div></div>
         </section>
 
+        <section id="page-usuarios" class="hidden">
+          <div class="page-top"><div><span class="kicker">Acceso Superadmin</span><h2>Usuarios</h2><p class="lead">Administración general de cuentas, roles, empresas y accesos a pantallas.</p></div></div>
+          <div class="panel superadmin-tools">
+            <h3>Gestión centralizada de usuarios</h3>
+            <p>La creación de usuarios, asignación de roles y permisos por grupo/pantalla se realiza en el sistema central de NextWork. Ingresá allí con la misma cuenta Superadmin.</p>
+            <a class="primary superadmin-link" href="https://pantallas.nextwork.com.ar/pruebas-sistema/" target="_blank" rel="noopener noreferrer">Abrir administración de usuarios</a>
+          </div>
+        </section>
         <section id="page-reportes" class="hidden">
           <div class="rpt-shell">
             <div class="rpt-head">
