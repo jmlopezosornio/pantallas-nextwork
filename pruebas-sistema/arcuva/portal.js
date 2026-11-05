@@ -27,7 +27,7 @@
     $('pageTitle').textContent=titles[page];
   }
   async function verifyUser(authUser){
-    const {data,error:err}=await db.from('usuarios').select('id,nombre,email,activo,empresa_id,es_superadmin').eq('id',authUser.id).single();
+    const {data,error:err}=await db.from('usuarios').select('id,nombre,email,rol,activo,empresa_id,es_superadmin').eq('id',authUser.id).single();
     if(err||!data||!data.activo)throw Error('Usuario sin perfil activo.');
     if(data.empresa_id!==COMPANY_ID&&data.es_superadmin!==true)throw Error('Este usuario pertenece a otra empresa. Ingresá desde el portal correspondiente.');
     return data;
