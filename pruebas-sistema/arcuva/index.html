@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <title>Arcuva | NextWork — Portal de pruebas</title>
-  <link rel="stylesheet" href="./portal.css?v=5">
+  <link rel="stylesheet" href="./portal.css?v=6">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="./portal.js?v=4"></script>
   <script defer src="./portal-admin.js?v=2"></script>
   <script defer src="./dashboard-operativo.js?v=1"></script>
+  <script defer src="./reports-empresa.js?v=1"></script>
   <link rel="stylesheet" href="./portal-admin.css?v=1">
 </head>
 <body>
@@ -113,11 +114,35 @@
         </section>
 
         <section id="page-reportes" class="hidden">
-          <div class="page-top">
-            <div><span class="kicker">Información</span><h2>Reporte de clientes y campañas</h2><p class="lead">Informe sobre las campañas autorizadas.</p></div>
-            <button type="button" id="printBtn" class="secondary">Imprimir / PDF</button>
+          <div class="rpt-shell">
+            <div class="rpt-head">
+              <div><h2>Reporte de Clientes y Campañas</h2>
+                <p>Listado administrativo por cliente, campaña, vigencia, pantallas asignadas y porcentaje de salidas.</p>
+              </div>
+              <div class="rpt-actions">
+                <button class="secondary" type="button" id="rptReset">Limpiar filtros</button>
+                <button class="primary" type="button" id="rptPrint">Imprimir / PDF</button>
+              </div>
+            </div>
+            <div class="rpt-filterbox">
+              <div class="rpt-period">
+                <strong>Período:</strong>
+                <button type="button" data-rpt-mode="general" class="rpt-mode active">General</button>
+                <button type="button" data-rpt-mode="fechas" class="rpt-mode">Entre fechas</button>
+                <div class="rpt-date" data-rpt-date hidden><label for="rptDesde">Desde</label><input id="rptDesde" type="date"></div>
+                <div class="rpt-date" data-rpt-date hidden><label for="rptHasta">Hasta</label><input id="rptHasta" type="date"></div>
+              </div>
+              <div class="rpt-filters">
+                <div><label for="rptCliente">Cliente</label><select id="rptCliente"><option value="">Todos</option></select></div>
+                <div><label for="rptCampania">Campaña</label><select id="rptCampania"><option value="">Todas</option></select></div>
+                <div><label for="rptPantalla">Pantalla</label><select id="rptPantalla"><option value="">Todas</option></select></div>
+              </div>
+            </div>
+            <div class="rpt-summary"><span id="rptSummary">Preparando reporte…</span><strong id="rptCount"></strong></div>
+            <div class="rpt-scroll"><table class="rpt-table"><thead><tr><th>Cliente</th><th>Campaña</th><th>Vigencia</th><th>Pantallas</th><th>% Salidas</th></tr></thead><tbody id="rptBody"><tr><td colspan="5" class="rpt-empty">Preparando reporte…</td></tr></tbody></table></div>
           </div>
-          <div id="reportTable" class="panel"><div class="empty">Cargando reporte…</div></div>
+          <div id="reportTable" class="hidden" aria-hidden="true"></div>
+          <button id="printBtn" class="hidden" type="button" aria-hidden="true" tabindex="-1"></button>
         </section>
         <div class="message note-role" id="roleInfo" aria-live="polite">Verificando permisos de edición de Arcuva…</div>
         <div class="footer">Arcuva · Desarrollado por NextWork · Versión de pruebas</div>
