@@ -2032,7 +2032,7 @@
   }
 
   function canWriteCampaign(){
-    return ['administrador','operador'].includes(currentRole());
+    return isSuperAdmin() || ['administrador','operador'].includes(currentRole());
   }
 
   function isOperator(){
@@ -2052,11 +2052,11 @@
   }
 
   function canManageUsers(){
-    return isAdmin();
+    return isSuperAdmin() || isAdmin();
   }
 
   function canManageGroups(){
-    return isAdmin();
+    return isSuperAdmin() || isAdmin();
   }
 
   function allowedPagesForCurrentRole(){
@@ -2077,7 +2077,7 @@
     });
 
     document.querySelectorAll('.admin-only').forEach(el => {
-      el.classList.toggle('hidden', !isAdmin());
+      el.classList.toggle('hidden', !(isSuperAdmin() || isAdmin()));
     });
 
     document.querySelectorAll('.superadmin-only').forEach(el => {
