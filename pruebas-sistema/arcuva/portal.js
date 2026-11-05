@@ -70,8 +70,20 @@
             .in('id',campaignIds).order('fecha_desde',{ascending:false});
           if(campErr)console.warn('Campañas:',campErr.message);
           else{
+            // La vista_campanias no incluye eliminada. Recuperar este dato
+            // desde campanias bajo RLS, sin cambiar la vista del sistema base.
+            const {data:flags,error:flagsErr}=await db.from('campanias')
+              .select('id,eliminada').in('id',campaignIds);
+            if(flagsErr){
+              console.error('No se pudo verificar el estado de eliminación de campañas:',flagsErr);
+              throw new Error('No se pudo verificar qué campañas fueron eliminadas.');
+            }
+            if(current!==epoch||!profile)return;
+            const deletedMap=new Map((flags||[]).map(x=>[x.id,x.eliminada===true]));
             const allowedIds=new Set(campaignIds);
-            campaigns=(rows||[]).filter(c=>allowedIds.has(c.id)).map(c=>({...c,pantallaIds:scope.filter(l=>l.campania_id===c.id).map(l=>l.pantalla_id).filter(id=>ids.includes(id)),pantallas:scope.filter(l=>l.campania_id===c.id).map(l=>allowedScreens.find(p=>p.id===l.pantalla_id)?.nombre).filter(Boolean)}));
+            campaigns=(rows||[])
+              .filter(c=>allowedIds.has(c.id)&&deletedMap.has(c.id))
+              .map(c=>({...c,eliminada:deletedMap.get(c.id),pantallaIds:scope.filter(l=>l.campania_id===c.id).map(l=>l.pantalla_id).filter(id=>ids.includes(id)),pantallas:scope.filter(l=>l.campania_id===c.id).map(l=>allowedScreens.find(p=>p.id===l.pantalla_id)?.nombre).filter(Boolean)}));
           }
         }
       }
