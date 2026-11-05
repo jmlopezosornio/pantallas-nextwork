@@ -125,7 +125,8 @@ td{font-size:12px;padding:13px;border-bottom:1px solid #ecf0f7}td strong{font-we
     var arcuva=state.indexOf('arcuva-')===0;
     el('sidebar').classList.toggle('brand-arcuva',arcuva);
     el('brandLogo').src=arcuva?logoArcuva:logoNext;
-    el('brandLogo').onerror=function(){this.style.display='none';this.parentNode.setAttribute('data-label',arcuva?'ARCUVA':'NEXTWORK');this.parentNode.style.color='#162e56';this.parentNode.style.fontWeight='900';this.parentNode.textContent=arcuva?'ARCUVA':'NEXTWORK';};
+    el('brandLogo').style.display='block';
+    el('brandLogo').onerror=function(){this.onerror=null;this.src=logoNext;};
     el('navHeading').textContent=arcuva?'ESPACIO ARCUVA':'ADMINISTRACIÓN CENTRAL';
     el('sideFooter').innerHTML=arcuva?'Arcuva · Powered by NextWork<br>Ejemplo visual sin datos reales':'NextWork · Gestión de pantallas LED<br>Maqueta sin conexión al sistema';
     var html='';
@@ -207,7 +208,7 @@ td{font-size:12px;padding:13px;border-bottom:1px solid #ecf0f7}td strong{font-we
   function login(){
     return headline('IDENTIDAD DE MARCA','Acceso a NextWork','Se reemplaza el nombre escrito a mano por el logo original de NextWork.')+
       '<div class="demo-login"><div class="demo-login-visual"><div style="font-size:12px;font-weight:900;letter-spacing:.13em">NEXTWORK · PANTALLAS</div><div><h2>Todo el control.<br>Una plataforma.</h2><p>Gestioná pantallas, campañas y clientes desde un mismo lugar.</p></div><div style="font-size:12px;color:#a9bfd9">Plataforma de gestión de publicidad digital</div></div>'+
-      '<div class="demo-login-form"><img alt="Logo NextWork" src="'+logoNext+'"><h3>Iniciar sesión</h3><p class="muted">Accedé al panel central de administración.</p><label>Correo electrónico</label><input disabled value="administracion@nextwork.com.ar"><label>Contraseña</label><input disabled type="password" value="example123">'+btn('Ingresar · demostración','demo','primary')+'<p class="tiny">Este formulario no conecta con usuarios reales.</p></div></div>';
+      '<div class="demo-login-form"><img alt="Logo NextWork" src="'+logoNext+'"><h3>Iniciar sesión</h3><p class="muted">Accedé al panel central de administración.</p><label>Correo electrónico</label><input disabled value="usuario@nextwork.com.ar"><label>Contraseña</label><input disabled type="password" value="example123">'+btn('Ingresar · demostración','demo','primary')+'<p class="tiny">Este formulario no conecta con usuarios reales.</p></div></div>';
   }
   function arcuvaHome(){
     return banner('OPCIÓN B · Portal Arcuva con funciones de administración simuladas','b')+
