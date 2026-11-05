@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <title>Arcuva | NextWork — Portal de pruebas</title>
-  <link rel="stylesheet" href="./portal.css?v=8">
+  <link rel="stylesheet" href="./portal.css?v=9">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="./portal.js?v=9"></script>
   <script defer src="./portal-admin.js?v=5"></script>
-  <script defer src="./dashboard-operativo.js?v=1"></script>
+  <script defer src="./dashboard-operativo.js?v=2"></script>
   <script defer src="./reports-empresa.js?v=3"></script>
   <script defer src="./superadmin-usuarios.js?v=1"></script>
   <link rel="stylesheet" href="./portal-admin.css?v=3">
@@ -87,6 +87,12 @@
             <div class="card"><div class="card-label">Campañas pausadas</div><div class="number" id="dashPaused">—</div></div>
             <div class="card"><div class="card-label">Campañas finalizadas</div><div class="number" id="dashFinished">—</div></div>
             <div class="card"><div class="card-label">Próximas a vencer</div><div class="number" id="dashExpiring">—</div><div class="tiny">Dentro de 10 días</div></div>
+          </div>
+          <div class="panel dash-balance-panel">
+            <div class="dash-balance-head"><div><h3>Distribución de campañas por elemento</h3><p class="tiny">Campañas vigentes y no pausadas por pantalla, tótem o parador. La carga ponderada suma las prioridades de reproducción (100 = una campaña estándar).</p></div><span class="dash-pill" id="dashBalanceTotal">Calculando…</span></div>
+            <div id="dashBalanceAdvice" class="dash-balance-advice">Analizando asignaciones…</div>
+            <div id="dashBalanceList" class="dash-balance-list"><div class="empty">Cargando distribución…</div></div>
+            <p class="tiny">Orientación de balanceo: compara cantidad de campañas y carga ponderada. No mide capacidad real, disponibilidad ni salidas reproducidas; mover campañas requiere comprobar compatibilidad de formato, ubicación y autorización.</p>
           </div>
           <div class="dash-panels">
             <div class="panel"><h3>Alertas de vencimiento</h3><div id="dashAlerts" class="empty">Cargando alertas…</div></div>
