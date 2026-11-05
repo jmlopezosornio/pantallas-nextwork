@@ -76,7 +76,9 @@
               .select('id,eliminada').in('id',campaignIds);
             if(flagsErr){
               console.error('No se pudo verificar el estado de eliminación de campañas:',flagsErr);
-              throw new Error('No se pudo verificar qué campañas fueron eliminadas.');
+              // Evita divulgar campañas sin poder comprobar su estado.
+              for(const id of ['campaignTable','rptBody']) { const el=$(id); if(el) el.textContent='No se pudo verificar el estado de las campañas. Volvé a intentar.'; }
+              return;
             }
             if(current!==epoch||!profile)return;
             const deletedMap=new Map((flags||[]).map(x=>[x.id,x.eliminada===true]));
