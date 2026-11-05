@@ -182,3 +182,21 @@ tbody tr:hover{background:#fbfcff}
   object-fit:contain;
   border-radius:17px;
 }
+
+/* Distribución de campañas por pantalla/tótem/parador */
+.dash-balance-panel{margin:0 0 20px;min-width:0}
+.dash-balance-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;flex-wrap:wrap}
+.dash-balance-head h3{margin-top:0;margin-bottom:7px}
+.dash-balance-head p{max-width:780px}
+.dash-balance-advice{padding:12px 14px;background:#f1f6fe;border:1px solid #d9e6f6;border-radius:12px;color:#284769;font-size:12px;line-height:1.6;margin:16px 0}
+.dash-balance-row{display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid #e7edf5;padding:16px 0}
+.dash-balance-row:last-child{border-bottom:0}
+.dash-balance-detail{flex:1;min-width:0}
+.dash-balance-detail strong{display:block;font-size:13px;color:#163554;margin-bottom:5px}
+.dash-balance-bar{height:9px;background:#e8eef7;border-radius:30px;overflow:hidden;margin:10px 0 7px}
+.dash-balance-bar span{display:block;height:100%;background:linear-gradient(90deg,#2464c0,#6654e9);border-radius:30px;min-width:0}
+.dash-balance-names{overflow-wrap:anywhere}
+.dash-balance-values{display:grid;grid-template-columns:70px 110px;column-gap:8px;row-gap:4px;align-items:center;text-align:right}
+.dash-balance-values b{font-size:17px;color:#133c70}
+.dash-balance-values span{font-size:11px;color:#647792;text-align:left}
+@media(max-width:720px){.dash-balance-row{align-items:stretch;flex-direction:column;gap:9px}.dash-balance-values{grid-template-columns:55px 1fr;width:100%;text-align:left}}
