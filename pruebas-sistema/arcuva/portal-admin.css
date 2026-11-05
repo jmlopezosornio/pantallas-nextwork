@@ -106,3 +106,8 @@
  #page-campanias .campaign-list-table td{padding:9px 4px}
  #page-campanias .campaign-list-table th{padding:10px 4px;font-size:8.5px}
 }
+
+/* Separación entre casilla de selección y nombre de pantalla. */
+.screens-list .screen-checkbox{align-items:center;gap:18px}
+.screens-list .screen-checkbox input.campaign-screen{flex:0 0 18px;width:18px!important;min-width:18px!important;margin:0!important}
+.screens-list .screen-checkbox>span{display:block;flex:1;min-width:0;line-height:1.45}
