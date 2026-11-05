@@ -8,10 +8,10 @@
   <link rel="stylesheet" href="./portal.css?v=6">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="./portal.js?v=6"></script>
-  <script defer src="./portal-admin.js?v=3"></script>
+  <script defer src="./portal-admin.js?v=4"></script>
   <script defer src="./dashboard-operativo.js?v=1"></script>
   <script defer src="./reports-empresa.js?v=3"></script>
-  <link rel="stylesheet" href="./portal-admin.css?v=1">
+  <link rel="stylesheet" href="./portal-admin.css?v=2">
 </head>
 <body>
   <section id="loginView" class="login">
@@ -101,11 +101,26 @@
         </section>
 
         <section id="page-campanias" class="hidden">
-          <div class="page-top">
-            <div><span class="kicker">Publicidad</span><h2>Campañas</h2><p class="lead">Campañas vinculadas a las pantallas autorizadas.</p></div>
-            <div class="admin-toolbar"><input class="search" type="search" id="campaignSearch" placeholder="Buscar campaña o cliente" aria-label="Buscar campañas"><button type="button" class="primary hidden" id="addCampaignBtn">+ Nueva campaña</button></div>
+          <div class="campaign-shell">
+            <div class="campaign-header">
+              <div><h2>Campañas</h2><p>Vista compacta por vigencia, estado y pantallas asignadas.</p></div>
+              <button type="button" class="primary hidden" id="addCampaignBtn">+ Nueva campaña</button>
+            </div>
+            <div class="campaign-filter-row">
+              <input class="search" type="search" id="campaignSearch" placeholder="Buscar campaña, cliente o pantalla" aria-label="Buscar campañas">
+              <select id="campaignTypeFilter" aria-label="Filtrar tipo de contenido"><option value="">Todos los contenidos</option><option value="video">Video</option><option value="imagen">Imagen</option><option value="web">Web</option></select>
+              <select id="campaignScreenFilter" aria-label="Filtrar pantalla"><option value="">Todas las pantallas</option></select>
+            </div>
+            <div class="campaign-status-tabs" id="campaignTabs" role="group" aria-label="Estado de campaña">
+              <button type="button" class="campaign-tab active" data-campaign-tab="todas">Todas <span class="tab-count">0</span></button>
+              <button type="button" class="campaign-tab" data-campaign-tab="vigentes">Vigentes <span class="tab-count">0</span></button>
+              <button type="button" class="campaign-tab" data-campaign-tab="futuras">Futuras <span class="tab-count">0</span></button>
+              <button type="button" class="campaign-tab" data-campaign-tab="pasadas">Pasadas <span class="tab-count">0</span></button>
+              <button type="button" class="campaign-tab" data-campaign-tab="pausadas">Pausadas <span class="tab-count">0</span></button>
+            </div>
+            <div class="campaign-list-info"><span id="campaignListCount"></span><span>Las campañas eliminadas se conservan en el historial, pero no se muestran aquí.</span></div>
+            <div id="campaignTable"><div class="empty">Cargando campañas…</div></div>
           </div>
-          <div id="campaignTable" class="panel"><div class="empty">Cargando campañas…</div></div>
         </section>
 
         <section id="page-clientes" class="hidden">
