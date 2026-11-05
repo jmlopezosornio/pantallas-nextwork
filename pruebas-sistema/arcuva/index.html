@@ -9,6 +9,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="./portal.js?v=2"></script>
   <script defer src="./portal-admin.js?v=1"></script>
+  <script defer src="./dashboard-operativo.js?v=1"></script>
   <link rel="stylesheet" href="./portal-admin.css?v=1">
 </head>
 <body>
@@ -46,7 +47,7 @@
       <div class="brand-card"><img id="sidebarLogo" alt="Arcuva"></div>
       <nav aria-label="Menú principal">
         <div class="nav-title">Menú principal</div>
-        <button type="button" class="nav active" data-page="resumen">Resumen</button>
+        <button type="button" class="nav active" data-page="resumen">Dashboard</button>
         <button type="button" class="nav" data-page="pantallas">Pantallas</button>
         <button type="button" class="nav" data-page="campanias">Campañas</button>
         <button type="button" class="nav" data-page="clientes">Clientes</button>
@@ -57,7 +58,7 @@
 
     <div class="main">
       <header class="topbar">
-        <div><strong id="pageTitle">Resumen</strong><div class="subtitle">Arcuva · Plataforma de pantallas LED</div></div>
+        <div><strong id="pageTitle">Dashboard</strong><div class="subtitle">Arcuva · Plataforma de pantallas LED</div></div>
         <div class="userarea">
           <span class="testtag">PORTAL DE PRUEBAS</span>
           <span id="userName" class="user-name"></span>
@@ -66,16 +67,23 @@
       </header>
       <main class="workspace">
         <section id="page-resumen">
-          <span class="kicker">Gestión corporativa</span>
-          <h2>Panel de Arcuva</h2>
-          <p class="lead">Información de las pantallas, campañas y clientes asociados a tu empresa.</p>
-          <div class="message notice"><strong>Administración de Arcuva.</strong> La consulta está disponible para usuarios autorizados; la edición exige permiso de operador o administrador. Esta versión comparte base con el sistema real: los cambios guardados son efectivos y pueden modificar campañas de SMA 01.</div>
-          <div class="cards">
-            <div class="card"><div class="card-label">Pantallas asignadas</div><div class="number" id="numScreens">—</div><div class="tiny">Registradas bajo Arcuva</div></div>
-            <div class="card"><div class="card-label">Campañas visibles</div><div class="number" id="numCampaigns">—</div><div class="tiny">Vinculadas a sus pantallas</div></div>
-            <div class="card"><div class="card-label">Clientes</div><div class="number" id="numClients">—</div><div class="tiny">Con campañas visibles</div></div>
+          <span class="kicker">Centro de control</span>
+          <h2>Dashboard · Arcuva</h2>
+          <p class="lead">Estado operativo de las pantallas y vencimientos de las campañas asociadas a Arcuva.</p>
+          <div class="cards dash-metrics">
+            <div class="card"><div class="card-label">Pantallas registradas</div><div class="number" id="dashScreenCount">—</div><div class="tiny">Equipos de Arcuva</div></div>
+            <div class="card"><div class="card-label">Conexión reciente</div><div class="number" id="dashConnected">—</div><div class="tiny">Heartbeat en los últimos 10 min</div></div>
+            <div class="card"><div class="card-label">Sin conexión confirmada</div><div class="number" id="dashDisconnected">—</div><div class="tiny">Estado negativo informado recientemente</div></div>
+            <div class="card"><div class="card-label">Sin confirmación reciente</div><div class="number" id="dashUnknown">—</div><div class="tiny">Sin heartbeat actual; revisar equipo</div></div>
+            <div class="card"><div class="card-label">Campañas activas</div><div class="number" id="dashActive">—</div></div>
+            <div class="card"><div class="card-label">Campañas pausadas</div><div class="number" id="dashPaused">—</div></div>
+            <div class="card"><div class="card-label">Campañas finalizadas</div><div class="number" id="dashFinished">—</div></div>
+            <div class="card"><div class="card-label">Próximas a vencer</div><div class="number" id="dashExpiring">—</div><div class="tiny">Dentro de 10 días</div></div>
           </div>
-          <div class="panel"><h3>Estado de las pantallas</h3><div id="summary" class="empty">Consultando información…</div></div>
+          <div class="dash-panels">
+            <div class="panel"><h3>Alertas de vencimiento</h3><div id="dashAlerts" class="empty">Cargando alertas…</div></div>
+            <div class="panel"><h3>Estado de las pantallas</h3><p class="tiny">El último estado informado no equivale a conectividad comprobada. Se considera reciente una comunicación registrada dentro de 10 minutos.</p><div id="dashScreenList" class="empty">Consultando reproductores…</div></div>
+          </div>
         </section>
 
         <section id="page-pantallas" class="hidden">
