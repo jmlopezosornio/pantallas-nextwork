@@ -28,6 +28,7 @@
     Object.keys(titles).forEach(key=>$('page-'+key).classList.toggle('hidden',key!==page));
     document.querySelectorAll('.nav[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
     $('pageTitle').textContent=titles[page];
+    if(page==='resumen')window.dispatchEvent(new Event('arcuva-page-resumen'));
     if(page==='campanias')window.dispatchEvent(new Event('arcuva-page-campanias'));
     if(page==='reportes')window.dispatchEvent(new Event('arcuva-page-reportes'));
     if(page==='usuarios')window.dispatchEvent(new Event('arcuva-page-usuarios'));
