@@ -11,6 +11,7 @@
   let groups=[],clients=[],memberships=[],groupScreens=[],scopeIds=new Set(),canEdit=false,validGroup='',pending=false,currentDialog='',revision=0;
   let snapshotCampaigns=[];
   const allowedPercentages=new Set([25,50,75,100]);
+  function localDay(date){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');}
   const urlValid=v=>{try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)&&!!u.hostname;}catch{return false;}};
   const htmlAttr=esc;
   const eName=record=>String(record?.nombre||'');
@@ -227,7 +228,7 @@
   function getVideoDuration(file){
     return new Promise((resolve,reject)=>{
       const v=document.createElement('video'),url=URL.createObjectURL(file);
-      const finish=(err,duration)=>{URL.revokeObjectURL(url);v.removeAttribute('src');v.load();err?reject(err):resolve(duration);};
+      const finish=(err,duration)=>{v.onloadedmetadata=null;v.onerror=null;URL.revokeObjectURL(url);v.removeAttribute('src');v.load();err?reject(err):resolve(duration);};
       v.preload='metadata';
       v.onloadedmetadata=()=>{const n=v.duration;finish(!Number.isFinite(n)||n<=0?Error('Duración de video inválida.'):null,n);};
       v.onerror=()=>finish(Error('No se pudo leer la duración del video.'));
@@ -256,8 +257,8 @@
     if(!getActiveScreens().some(s=>groupForScreen(s.id)===validGroup))return alert('No hay pantallas habilitadas en Arcuva.');
     if(!clients.some(c=>c.grupo_id===validGroup))return alert('Primero creá un cliente en Arcuva.');
     currentDialog='campaign';
-    const start=item?.fecha_desde||new Date().toISOString().slice(0,10);
-    const ending=item?.fecha_hasta||new Date(Date.now()+30*86400000).toISOString().slice(0,10);
+    const start=item?.fecha_desde||localDay(new Date());
+    const ending=item?.fecha_hasta||localDay(new Date(Date.now()+30*86400000));
     const kind=item?.tipo_contenido||'web';
     const info=id
       ?'<div class="message note-role">La asignación a pantallas existente se conserva. Cambiar el contenido, el porcentaje o las fechas puede afectar SMA 01 cuando se publique una nueva programación.</div>'
