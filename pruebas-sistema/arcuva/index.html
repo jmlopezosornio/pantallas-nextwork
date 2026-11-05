@@ -7,10 +7,10 @@
   <title>Arcuva | NextWork — Portal de pruebas</title>
   <link rel="stylesheet" href="./portal.css?v=6">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script defer src="./portal.js?v=5"></script>
+  <script defer src="./portal.js?v=6"></script>
   <script defer src="./portal-admin.js?v=2"></script>
   <script defer src="./dashboard-operativo.js?v=1"></script>
-  <script defer src="./reports-empresa.js?v=1"></script>
+  <script defer src="./reports-empresa.js?v=2"></script>
   <link rel="stylesheet" href="./portal-admin.css?v=1">
 </head>
 <body>
@@ -136,6 +136,7 @@
                 <div><label for="rptCliente">Cliente</label><select id="rptCliente"><option value="">Todos</option></select></div>
                 <div><label for="rptCampania">Campaña</label><select id="rptCampania"><option value="">Todas</option></select></div>
                 <div><label for="rptPantalla">Pantalla</label><select id="rptPantalla"><option value="">Todas</option></select></div>
+                <div><label for="rptEstado">Estado</label><select id="rptEstado"><option value="vigentes">Activas y pausadas</option><option value="todas">Todas</option><option value="activa">Activas</option><option value="finalizada">Finalizadas</option><option value="pausada">Pausadas</option><option value="eliminada">Eliminadas</option></select></div>
               </div>
             </div>
             <div class="rpt-summary"><span id="rptSummary">Preparando reporte…</span><strong id="rptCount"></strong></div>
