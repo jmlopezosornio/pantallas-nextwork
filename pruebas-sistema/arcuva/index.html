@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <title>Arcuva | NextWork — Portal de pruebas</title>
-  <link rel="stylesheet" href="./portal.css?v=10">
+  <link rel="stylesheet" href="./portal.css?v=11">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="./portal.js?v=9"></script>
   <script defer src="./portal-admin.js?v=5"></script>
-  <script defer src="./dashboard-operativo.js?v=3"></script>
+  <script defer src="./dashboard-operativo.js?v=4"></script>
   <script defer src="./reports-empresa.js?v=3"></script>
   <script defer src="./superadmin-usuarios.js?v=1"></script>
   <link rel="stylesheet" href="./portal-admin.css?v=3">
@@ -74,30 +74,50 @@
         </div>
       </header>
       <main class="workspace">
-        <section id="page-resumen">
-          <span class="kicker">Centro de control</span>
-          <h2>Dashboard · Arcuva</h2>
-          <p class="lead">Estado operativo de las pantallas y vencimientos de las campañas asociadas a Arcuva.</p>
-          <div class="cards dash-metrics">
-            <div class="card"><div class="card-label">Pantallas registradas</div><div class="number" id="dashScreenCount">—</div><div class="tiny">Equipos de Arcuva</div></div>
-            <div class="card"><div class="card-label">Conexión reciente</div><div class="number" id="dashConnected">—</div><div class="tiny">Heartbeat en los últimos 10 min</div></div>
-            <div class="card"><div class="card-label">Sin conexión confirmada</div><div class="number" id="dashDisconnected">—</div><div class="tiny">Estado negativo informado recientemente</div></div>
-            <div class="card"><div class="card-label">Sin confirmación reciente</div><div class="number" id="dashUnknown">—</div><div class="tiny">Sin heartbeat actual; revisar equipo</div></div>
-            <div class="card"><div class="card-label">Campañas activas</div><div class="number" id="dashActive">—</div></div>
-            <div class="card"><div class="card-label">Campañas pausadas</div><div class="number" id="dashPaused">—</div></div>
-            <div class="card"><div class="card-label">Campañas finalizadas</div><div class="number" id="dashFinished">—</div></div>
-            <div class="card"><div class="card-label">Próximas a vencer</div><div class="number" id="dashExpiring">—</div><div class="tiny">Dentro de 10 días</div></div>
+        <section id="page-resumen" class="nw-dashboard">
+          <div class="nw-dash-heading">
+            <div><span class="kicker">Centro de control</span><h2>Dashboard · Arcuva</h2><p class="lead">Resumen operativo de pantallas, campañas y reproducciones registradas.</p></div>
+            <div class="nw-period-box"><label for="nwDashFrom">Período</label><input type="date" id="nwDashFrom" aria-label="Fecha desde"><span>al</span><input type="date" id="nwDashTo" aria-label="Fecha hasta"></div>
           </div>
-          <div class="panel dash-balance-panel">
-            <div class="dash-balance-head"><div><h3>Distribución de campañas por elemento</h3><p class="tiny">Compará de un vistazo la cantidad de campañas activas y su prioridad por elemento.</p></div><span class="dash-pill" id="dashBalanceTotal">Calculando…</span></div>
-            <div id="dashBalanceAdvice" class="dash-balance-advice">Analizando asignaciones…</div>
-            <div id="dashBalanceList" class="dash-balance-list"><div class="empty">Cargando distribución…</div></div>
-            <p class="tiny">Vista resumida. Seleccioná un elemento para consultar sus campañas. La carga comparada no representa capacidad real ni reproducciones efectivas.</p>
+          <div class="nw-dash-filters">
+            <label>Ciudad<select id="nwDashCity"><option value="">Todas las ciudades</option></select></label>
+            <label>Cliente<select id="nwDashClient"><option value="">Todos</option></select></label>
+            <label>Campaña<select id="nwDashCampaign"><option value="">Todas</option></select></label>
+            <button class="secondary" type="button" id="nwDashRefresh">Actualizar</button>
           </div>
-          <div class="dash-panels">
-            <div class="panel"><h3>Alertas de vencimiento</h3><div id="dashAlerts" class="empty">Cargando alertas…</div></div>
-            <div class="panel"><h3>Estado de las pantallas</h3><p class="tiny">El último estado informado no equivale a conectividad comprobada. Se considera reciente una comunicación registrada dentro de 10 minutos.</p><div id="dashScreenList" class="empty">Consultando reproductores…</div></div>
+          <div class="nw-metric-layout">
+            <div class="nw-metrics">
+              <div class="nw-kpi"><span class="nw-kpi-icon">▣</span><strong id="nwKpiScreens">—</strong><span>Elementos</span></div>
+              <div class="nw-kpi"><span class="nw-kpi-icon">◉</span><strong id="nwKpiCampaigns">—</strong><span>Campañas</span></div>
+              <div class="nw-kpi nw-kpi-green"><span class="nw-kpi-icon">▶</span><strong id="nwKpiActive">—</strong><span>Activas</span></div>
+              <div class="nw-kpi"><span class="nw-kpi-icon">♧</span><strong id="nwKpiClients">—</strong><span>Clientes</span></div>
+              <div class="nw-kpi nw-kpi-purple"><span class="nw-kpi-icon">▷</span><strong id="nwKpiPlays">—</strong><span>Salidas registradas</span></div>
+            </div>
+            <div class="nw-connectivity">
+              <div class="nw-online"><span>▣</span><strong id="nwKpiOnline">—</strong><span>En línea</span></div>
+              <div class="nw-offline"><span>▣</span><strong id="nwKpiOffline">—</strong><span>Sin conexión reciente</span></div>
+            </div>
           </div>
+          <p id="nwDashNotice" class="nw-dash-notice" aria-live="polite">Consultando los datos de Arcuva…</p>
+          <div class="nw-charts">
+            <div class="panel nw-analytics-panel"><h3>Campañas por estado</h3><div id="nwStatusChart" class="nw-chart-slot">Consultando campañas…</div></div>
+            <div class="panel nw-analytics-panel"><h3>Salidas por elemento</h3><div id="nwScreenChart" class="nw-chart-slot">Consultando reproducciones…</div></div>
+            <div class="panel nw-analytics-panel"><h3>Salidas diarias del período</h3><div id="nwDailyChart" class="nw-chart-slot">Consultando reproducciones…</div></div>
+          </div>
+          <div class="nw-bottom-charts">
+            <div class="panel nw-analytics-panel">
+              <h3>Elementos por ciudad</h3>
+              <p class="tiny">Campañas activas asignadas y promedio diario de salidas en días con reproducciones registradas.</p>
+              <div id="nwElementsTable" class="nw-table-holder">Consultando elementos…</div>
+              <div id="nwElementsPager" class="nw-table-pager"></div>
+            </div>
+            <div class="panel nw-analytics-panel">
+              <h3>Elementos por salidas · de mayor a menor</h3>
+              <p class="tiny">Ranking según reproducciones registradas en el período seleccionado.</p>
+              <div id="nwRankingChart" class="nw-chart-slot">Consultando ranking…</div>
+            </div>
+          </div>
+          <p class="nw-dash-method">Las salidas corresponden únicamente a reproducciones registradas por los equipos. Una campaña asignada no equivale a una reproducción confirmada. El estado de conexión se basa en comunicaciones recientes del reproductor.</p>
         </section>
 
         <section id="page-pantallas" class="hidden">
