@@ -22,11 +22,34 @@ function renderCampaigns(campaigns){
  const root=$('dashAlerts');if(!root)return;
  root.innerHTML=alerts.length?alerts.map(({c,days})=>'<div class="dash-list-row"><div><strong>'+esc(c.campania||'Campaña')+'</strong><div class="tiny">'+esc(c.cliente||'Sin cliente')+' · vence '+dates(c.fecha_hasta)+'</div></div><span class="dash-pill '+(days<=3?'dash-warn':'')+'">'+(days===0?'Vence hoy':days===1?'Falta 1 día':'Faltan '+days+' días')+'</span></div>').join(''):'<div class="empty">No hay campañas activas que venzan en los próximos 10 días.</div>';
 }
+function renderBalance(screens,campaigns){
+ const list=$('dashBalanceList'),advice=$('dashBalanceAdvice');if(!list||!advice)return;
+ const active=campaigns.filter(c=>!c.eliminada&&state(c)==='Activa');
+ const loads=screens.map(screen=>{
+   const assigned=active.filter(c=>(c.pantallaIds||[]).includes(screen.id));
+   return {...screen,count:assigned.length,weight:assigned.reduce((n,c)=>n+(Number(c.porcentaje)||100),0),campaigns:assigned};
+ }).sort((a,b)=>b.weight-a.weight||b.count-a.count||String(a.nombre).localeCompare(String(b.nombre),'es'));
+ const unique=new Set(active.flatMap(c=>[c.id]));
+ set('dashBalanceTotal',unique.size+' campañas · '+screens.length+' elementos');
+ if(!screens.length){list.innerHTML='<div class="empty">No hay elementos habilitados.</div>';advice.textContent='Sin elementos para comparar.';return;}
+ const max=Math.max(100,...loads.map(x=>x.weight));
+ list.innerHTML=loads.map(x=>{
+   const share=x.count?x.weight/100:0;
+   const names=x.campaigns.map(c=>esc(c.campania)+' ('+esc(c.porcentaje)+'%)').join(', ');
+   return '<div class="dash-balance-row"><div class="dash-balance-detail"><strong>'+esc(x.nombre)+'</strong><div class="tiny">'+esc(x.ubicacion||'Sin ubicación')+'</div><div class="dash-balance-bar"><span style="width:'+Math.max(0,Math.min(100,x.weight/max*100)).toFixed(1)+'%"></span></div><div class="tiny dash-balance-names">'+(names||'Sin campañas activas asignadas')+'</div></div><div class="dash-balance-values"><b>'+x.count+'</b><span>campañas activas</span><b>'+x.weight+'%</b><span>peso acumulado</span></div></div>';
+ }).join('');
+ const high=loads[0],low=loads[loads.length-1];
+ if(loads.length<2){advice.textContent='Solo hay un elemento registrado. Se mostrarán comparaciones cuando existan al menos dos.';return;}
+ if(high.weight===low.weight){advice.textContent='La carga ponderada está equilibrada entre los elementos registrados. No es necesario proponer un traslado solo por cantidad.';return;}
+ const gap=(high.weight-low.weight);
+ advice.innerHTML='Posible oportunidad de balanceo: <strong>'+esc(high.nombre)+'</strong> tiene '+high.count+' campañas ('+high.weight+' puntos de prioridad), mientras <strong>'+esc(low.nombre)+'</strong> tiene '+low.count+' ('+low.weight+' puntos). Diferencia: '+gap+' puntos. <strong>Es solo una comparación:</strong> revisá si los anunciantes pueden utilizar el otro elemento antes de reasignar.';
+}
 async function refresh(){
  const profile=base.getProfile();if(!profile)return;
  const seq=++refreshSeq;
  const screens=base.getModel().screens.filter(s=>s.empresa_id===COMPANY_ID);
  renderCampaigns(base.getModel().campaigns);
+ renderBalance(screens,base.getModel().campaigns);
  set('dashScreenCount',screens.length);
  if(!screens.length){set('dashConnected','0');set('dashDisconnected','0');set('dashUnknown','0');$('dashScreenList').innerHTML='<div class="empty">No hay pantallas autorizadas para esta empresa.</div>';return;}
  const ids=screens.map(s=>s.id);
