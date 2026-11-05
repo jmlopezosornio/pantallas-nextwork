@@ -13,7 +13,7 @@
   function applyBrand(logo){$('loginLogo').src=logo;$('sidebarLogo').src=logo;}
   applyBrand(LOGO);
   function error(message){$('loginError').textContent=message;$('loginError').classList.remove('hidden');}
-  function showLogin(){profile=null;$('loginView').classList.remove('hidden');$('appView').classList.add('hidden');$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar';}
+  function showLogin(){profile=null;if(window.ArcuvaAdminReset)window.ArcuvaAdminReset();$('loginView').classList.remove('hidden');$('appView').classList.add('hidden');$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar';}
   function showApp(){
     $('loginError').classList.add('hidden');$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');
     $('userName').textContent=profile.nombre||profile.email||'Usuario';
@@ -65,7 +65,7 @@
         const campaignIds=[...new Set(scope.map(l=>l.campania_id))];
         if(campaignIds.length){
           const {data:rows,error:campErr}=await db.from('vista_campanias')
-            .select('id,campania,cliente,fecha_desde,fecha_hasta,estado,porcentaje')
+            .select('id,campania,cliente,cliente_id,tipo_contenido,duracion_seg,archivo_url,fecha_desde,fecha_hasta,estado,porcentaje,pausada')
             .in('id',campaignIds).order('fecha_desde',{ascending:false});
           if(campErr)console.warn('Campañas:',campErr.message);
           else{
@@ -78,6 +78,7 @@
     if(current!==epoch||!profile)return;
     const clients=[...new Set(campaigns.map(c=>c.cliente).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
     model={screens:allowedScreens,campaigns,clients};render();
+    if(window.ArcuvaAdminRefresh)await window.ArcuvaAdminRefresh();
   }
   function render(){
     $('numScreens').textContent=model.screens.length;
@@ -104,6 +105,8 @@
       ?renderTable(['Campaña','Cliente','Vigencia','Pantallas','Participación'],campaigns.map(c=>'<tr><td><strong>'+escapeHtml(c.campania)+'</strong><span class="tiny">'+escapeHtml(c.estado||'')+'</span></td><td>'+escapeHtml(c.cliente)+'</td><td>'+dates(c.fecha_desde)+' – '+dates(c.fecha_hasta)+'</td><td>'+escapeHtml(c.pantallas.join(', '))+'</td><td>'+escapeHtml(c.porcentaje)+'%</td></tr>'))
       :empty(search?'No hay campañas que coincidan con la búsqueda.':'No hay campañas visibles de Arcuva.');
   }
+  // API interna del portal de pruebas. Sin service-role y sin saltear políticas RLS.
+  window.ArcuvaPortalBase=Object.freeze({db,getProfile:()=>profile,getModel:()=>model,reload:loadData,escapeHtml,empty,dates});
   $('loginForm').addEventListener('submit',async e=>{
     e.preventDefault();$('loginError').classList.add('hidden');$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';
     try{
