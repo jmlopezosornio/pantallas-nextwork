@@ -29,6 +29,7 @@
     document.querySelectorAll('.nav[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
     $('pageTitle').textContent=titles[page];
     if(page==='reportes')window.dispatchEvent(new Event('arcuva-page-reportes'));
+    if(page==='usuarios')window.dispatchEvent(new Event('arcuva-page-usuarios'));
   }
   async function verifyUser(authUser){
     const {data,error:err}=await db.from('usuarios').select('id,nombre,email,rol,activo,empresa_id,es_superadmin').eq('id',authUser.id).single();
