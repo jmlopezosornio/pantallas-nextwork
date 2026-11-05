@@ -62,7 +62,7 @@
     panel.innerHTML=table(['Cliente','Email','Teléfono','Campañas','Acción'],rows);
     panel.querySelectorAll('[data-edit-client]').forEach(btn=>btn.addEventListener('click',()=>openClient(btn.dataset.editClient)));
   }
-  let campaignTab='todas';
+  let campaignTab='vigentes';
   const today=()=>localDay(new Date());
   function statusForCampaign(c){
     const raw=snapshotCampaigns.find(x=>x.id===c.id);
@@ -472,6 +472,7 @@
   }
   $('addClientBtn').addEventListener('click',()=>openClient());
   $('addCampaignBtn').addEventListener('click',()=>openCampaign());
+  window.addEventListener('arcuva-page-campanias',()=>{campaignTab='vigentes';renderCampaignTable();});
   $('campaignSearch').addEventListener('input',renderCampaignTable);
   $('campaignTypeFilter').addEventListener('change',renderCampaignTable);
   $('campaignScreenFilter').addEventListener('change',renderCampaignTable);
