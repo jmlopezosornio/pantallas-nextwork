@@ -1,0 +1,33 @@
+/* Administración de Arcuva: conserva intactos login, logos y colores existentes. */
+.admin-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.admin-toolbar .search{min-width:210px}
+.admin-toolbar .primary{font-size:12px;white-space:nowrap;min-height:41px}
+.small-btn{font-size:11px!important;padding:7px 10px!important}
+.action-group{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.note-role{background:#f7f9fd;border:1px solid #dce5f4;color:#5f7290}
+.role-writer{background:#edf7f2;border:1px solid #c8e6d4;color:#276745}
+#roleInfo{margin-top:17px;margin-bottom:14px}
+.admin-backdrop{position:fixed;inset:0;background:rgba(8,17,35,.72);z-index:1000;overflow:auto;padding:20px;display:flex;align-items:flex-start;justify-content:center;backdrop-filter:blur(4px)}
+.admin-dialog{background:#fff;border-radius:21px;width:min(780px,100%);max-height:calc(100vh - 40px);overflow:auto;box-shadow:0 30px 90px rgba(3,17,37,.3);padding:25px;margin:auto 0}
+.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:15px}
+.dialog-head h3{margin:0;font-size:22px;letter-spacing:-.03em;color:var(--navy)}
+.dialog-head .secondary{font-size:22px;line-height:1}
+.admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:17px}
+.admin-field{min-width:0}
+.admin-field.full{grid-column:1/-1}
+.admin-field label{display:block;font-size:12px;color:#4a5d76;font-weight:850;margin-bottom:7px}
+.admin-field input,.admin-field select{background:#fff;color:#21344f;border:1px solid #d1dceb;border-radius:11px;padding:10px 13px;min-height:44px;width:100%;max-width:100%;font:inherit;font-size:13px}
+.admin-field input:focus,.admin-field select:focus{outline:0;border-color:#7ba1c7;box-shadow:0 0 0 3px rgba(41,102,167,.11)}
+.admin-field input[type=file]{padding:11px;min-height:57px}
+.admin-field small{display:block;margin-top:8px;color:#7388a3;line-height:1.6}
+.admin-grid .tiny{line-height:1.6}
+.screen-checkbox{display:flex;gap:10px;align-items:flex-start;border:1px solid #dfe7f3;background:#f8fafd;padding:13px;border-radius:11px;margin:6px 0;font-size:12px;font-weight:750;color:#375277}
+.screen-checkbox input{width:18px!important;min-height:18px!important;height:18px;padding:0;margin:0;accent-color:var(--navy)}
+.screens-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+.frozen-screens{border-radius:11px;background:#f1f5fb;padding:12px;color:#516681;font-size:12px}
+.dialog-actions{display:flex;justify-content:flex-end;align-items:center;gap:10px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid #e8edf5}
+.dialog-error{margin-top:15px;padding:12px 14px;background:#fff0f1;color:#9b293b;border:1px solid #efbac4;border-radius:11px;font-size:12px;line-height:1.6}
+#campaignTable th,#campaignTable td{white-space:normal}
+#campaignTable td:first-child{min-width:140px}
+#campaignTable td:last-child{min-width:150px}
+@media(max-width:650px){.admin-grid{grid-template-columns:1fr}.admin-field.full{grid-column:auto}.admin-backdrop{padding:8px}.admin-dialog{max-height:calc(100vh - 16px);padding:18px}.dialog-head h3{font-size:19px}.admin-toolbar{width:100%}.admin-toolbar .search{flex:1;min-width:160px}.admin-toolbar .primary{flex:1}}
