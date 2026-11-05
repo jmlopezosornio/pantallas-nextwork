@@ -53,7 +53,7 @@
       .select('id,nombre,ubicacion,ancho,alto,empresa_id,activo')
       .eq('empresa_id',COMPANY_ID).eq('activo',true).order('nombre');
     if(current!==epoch||!profile)return;
-    if(err){for(const id of ['summary','screenTable','campaignTable','clientTable','reportTable']) $(id).innerHTML=empty('No se pudieron leer las pantallas: '+err.message);return;}
+    if(err){for(const id of ['dashScreenList','screenTable','campaignTable','clientTable','reportTable']) { const el=$(id); if(el) el.innerHTML=empty('No se pudieron leer las pantallas: '+err.message); } return;}
     const allowedScreens=(screens||[]).filter(p=>p.empresa_id===COMPANY_ID&&p.activo===true);
     let campaigns=[];
     if(allowedScreens.length){
