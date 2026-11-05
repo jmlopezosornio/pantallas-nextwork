@@ -22,6 +22,8 @@ function renderCampaigns(campaigns){
  const root=$('dashAlerts');if(!root)return;
  root.innerHTML=alerts.length?alerts.map(({c,days})=>'<div class="dash-list-row"><div><strong>'+esc(c.campania||'Campaña')+'</strong><div class="tiny">'+esc(c.cliente||'Sin cliente')+' · vence '+dates(c.fecha_hasta)+'</div></div><span class="dash-pill '+(days<=3?'dash-warn':'')+'">'+(days===0?'Vence hoy':days===1?'Falta 1 día':'Faltan '+days+' días')+'</span></div>').join(''):'<div class="empty">No hay campañas activas que venzan en los próximos 10 días.</div>';
 }
+let balancePage=0,expandedBalanceId='';
+const BALANCE_PAGE_SIZE=6;
 function renderBalance(screens,campaigns){
  const list=$('dashBalanceList'),advice=$('dashBalanceAdvice');if(!list||!advice)return;
  const active=campaigns.filter(c=>!c.eliminada&&state(c)==='Activa');
@@ -29,19 +31,35 @@ function renderBalance(screens,campaigns){
    const assigned=active.filter(c=>(c.pantallaIds||[]).includes(screen.id));
    return {...screen,count:assigned.length,weight:assigned.reduce((n,c)=>n+(Number(c.porcentaje)||100),0),campaigns:assigned};
  }).sort((a,b)=>b.weight-a.weight||b.count-a.count||String(a.nombre).localeCompare(String(b.nombre),'es'));
- const unique=new Set(active.flatMap(c=>[c.id]));
- set('dashBalanceTotal',unique.size+' campañas · '+screens.length+' elementos');
+ const uniqueCount=new Set(active.map(c=>c.id)).size;
+ set('dashBalanceTotal',uniqueCount+' campañas · '+screens.length+' elementos');
  if(!screens.length){list.innerHTML='<div class="empty">No hay elementos habilitados.</div>';advice.textContent='Sin elementos para comparar.';return;}
- const max=Math.max(100,...loads.map(x=>x.weight));
- list.innerHTML=loads.map(x=>{
-   const names=x.campaigns.map(c=>esc(c.campania)+' ('+esc(c.porcentaje)+'%)').join(', ');
-   return '<div class="dash-balance-row"><div class="dash-balance-detail"><strong>'+esc(x.nombre)+'</strong><div class="tiny">'+esc(x.ubicacion||'Sin ubicación')+'</div><div class="dash-balance-bar"><span style="width:'+Math.max(0,Math.min(100,x.weight/max*100)).toFixed(1)+'%"></span></div><div class="tiny dash-balance-names">'+(names||'Sin campañas activas asignadas')+'</div></div><div class="dash-balance-values"><b>'+x.count+'</b><span>campañas activas</span><b>'+x.weight+'</b><span>puntos de prioridad</span></div></div>';
+ const peak=loads[0],lowest=loads[loads.length-1];
+ if(loads.length===1)advice.textContent='Un elemento registrado. Incorporá otros para comparar la distribución.';
+ else if(peak.weight===lowest.weight)advice.textContent='Distribución equilibrada: todos los elementos registran el mismo peso publicitario.';
+ else advice.innerHTML='Mayor carga: <strong>'+esc(peak.nombre)+'</strong> ('+peak.count+' campañas). Menor carga: <strong>'+esc(lowest.nombre)+'</strong> ('+lowest.count+' campañas). Revisá compatibilidad antes de mover contenido.';
+ const maxWeight=Math.max(100,...loads.map(x=>x.weight));
+ const totalPages=Math.ceil(loads.length/BALANCE_PAGE_SIZE);
+ balancePage=Math.max(0,Math.min(balancePage,totalPages-1));
+ const slice=loads.slice(balancePage*BALANCE_PAGE_SIZE,(balancePage+1)*BALANCE_PAGE_SIZE);
+ const cards=slice.map(x=>{
+   const expanded=expandedBalanceId===x.id;
+   const details=x.campaigns.length
+      ?x.campaigns.map(c=>'<div class="balance-campaign"><span>'+esc(c.campania||'Campaña')+'</span><strong>'+esc(c.porcentaje)+' puntos</strong></div>').join('')
+      :'<div class="tiny">Sin campañas activas asignadas.</div>';
+   return '<article class="balance-card"><button type="button" class="balance-card-main" data-balance-toggle="'+esc(x.id)+'" aria-expanded="'+expanded+'"><span class="balance-card-title">'+esc(x.nombre)+'</span><span class="balance-card-num">'+x.count+' <small>campañas</small></span><span class="balance-mini-track"><span style="width:'+(x.weight/maxWeight*100).toFixed(1)+'%"></span></span><span class="balance-card-foot"><span>'+x.weight+' puntos de prioridad</span><span>'+(expanded?'Ocultar detalle −':'Ver detalle +')+'</span></span></button>'+(expanded?'<div class="balance-card-details">'+details+'</div>':'')+'</article>';
  }).join('');
- const high=loads[0],low=loads[loads.length-1];
- if(loads.length<2){advice.textContent='Solo hay un elemento registrado. Se mostrarán comparaciones cuando existan al menos dos.';return;}
- if(high.weight===low.weight){advice.textContent='La carga ponderada está equilibrada entre los elementos registrados. No es necesario proponer un traslado solo por cantidad.';return;}
- const gap=(high.weight-low.weight);
- advice.innerHTML='Posible oportunidad de balanceo: <strong>'+esc(high.nombre)+'</strong> tiene '+high.count+' campañas ('+high.weight+' puntos de prioridad), mientras <strong>'+esc(low.nombre)+'</strong> tiene '+low.count+' ('+low.weight+' puntos). Diferencia: '+gap+' puntos. <strong>Es solo una comparación:</strong> revisá si los anunciantes pueden utilizar el otro elemento antes de reasignar.';
+ const navigation=totalPages>1?'<div class="balance-pagination"><button type="button" data-balance-nav="prev" '+(balancePage===0?'disabled':'')+'>Anterior</button><span>'+(balancePage+1)+' de '+totalPages+'</span><button type="button" data-balance-nav="next" '+(balancePage===totalPages-1?'disabled':'')+'>Siguiente</button></div>':'';
+ list.innerHTML='<div class="balance-card-grid">'+cards+'</div>'+navigation;
+ list.querySelectorAll('[data-balance-toggle]').forEach(b=>b.addEventListener('click',()=>{
+   expandedBalanceId=expandedBalanceId===b.dataset.balanceToggle?'':b.dataset.balanceToggle;
+   renderBalance(screens,campaigns);
+ }));
+ list.querySelectorAll('[data-balance-nav]').forEach(b=>b.addEventListener('click',()=>{
+   balancePage+=b.dataset.balanceNav==='next'?1:-1;
+   expandedBalanceId='';
+   renderBalance(screens,campaigns);
+ }));
 }
 async function refresh(){
  const profile=base.getProfile();if(!profile)return;
