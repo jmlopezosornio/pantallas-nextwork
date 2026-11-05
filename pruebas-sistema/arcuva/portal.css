@@ -200,3 +200,28 @@ tbody tr:hover{background:#fbfcff}
 .dash-balance-values b{font-size:17px;color:#133c70}
 .dash-balance-values span{font-size:11px;color:#647792;text-align:left}
 @media(max-width:720px){.dash-balance-row{align-items:stretch;flex-direction:column;gap:9px}.dash-balance-values{grid-template-columns:55px 1fr;width:100%;text-align:left}}
+
+/* Balance visual compacto: hasta seis elementos por página y detalles opcionales */
+.dash-balance-panel{padding:20px}
+.dash-balance-advice{margin:10px 0 15px;padding:9px 12px;font-size:12px}
+.balance-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.balance-card{min-width:0;border:1px solid #dae5f2;border-radius:13px;background:#f9fbfe;overflow:hidden}
+.balance-card-main{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:center;text-align:left;border:0;background:none;width:100%;padding:12px;color:#18365c;cursor:pointer}
+.balance-card-main:hover{background:#f0f5fc}
+.balance-card-title{font-weight:850;font-size:12px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.balance-card-num{font-size:19px;font-weight:900;color:#13477d;white-space:nowrap}
+.balance-card-num small{font-size:10px;font-weight:600;color:#6a7d94}
+.balance-mini-track{grid-column:1/-1;height:7px;border-radius:12px;background:#e6edf6;overflow:hidden}
+.balance-mini-track>span{display:block;height:100%;border-radius:12px;background:linear-gradient(90deg,#266bbf,#6550e8)}
+.balance-card-foot{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#64758d}
+.balance-card-foot span:last-child{color:#3e4ec3;font-weight:800;white-space:nowrap}
+.balance-card-details{border-top:1px solid #dce6f2;padding:9px 12px;max-height:175px;overflow-y:auto;background:white}
+.balance-campaign{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f3f8;font-size:10.5px}
+.balance-campaign:last-child{border-bottom:0}
+.balance-campaign span{min-width:0;overflow-wrap:anywhere}
+.balance-campaign strong{flex-shrink:0;color:#315e9a;font-size:10px}
+.balance-pagination{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px;color:#657890;font-size:11px}
+.balance-pagination button{background:white;border:1px solid #d5dfec;color:#22466f;border-radius:9px;padding:7px 12px;font-weight:750}
+.balance-pagination button:disabled{opacity:.35;cursor:default}
+@media(max-width:1150px){.balance-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.balance-card-grid{grid-template-columns:1fr}.dash-balance-panel{padding:14px}}
