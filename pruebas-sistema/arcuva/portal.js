@@ -20,7 +20,7 @@
     showPage('resumen');
   }
   function showPage(page){
-    const titles={resumen:'Resumen',pantallas:'Pantallas',campanias:'Campañas',clientes:'Clientes',reportes:'Reportes'};
+    const titles={resumen:'Dashboard',pantallas:'Pantallas',campanias:'Campañas',clientes:'Clientes',reportes:'Reportes'};
     if(!profile||!titles[page])return;
     Object.keys(titles).forEach(key=>$('page-'+key).classList.toggle('hidden',key!==page));
     document.querySelectorAll('.nav[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
@@ -77,16 +77,11 @@
     }
     if(current!==epoch||!profile)return;
     const clients=[...new Set(campaigns.map(c=>c.cliente).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
-    model={screens:allowedScreens,campaigns,clients};render();
+    model={screens:allowedScreens,campaigns,clients};render();window.dispatchEvent(new Event('arcuva-data-loaded'));
+
     if(window.ArcuvaAdminRefresh)await window.ArcuvaAdminRefresh();
   }
   function render(){
-    $('numScreens').textContent=model.screens.length;
-    $('numCampaigns').textContent=model.campaigns.length;
-    $('numClients').textContent=model.clients.length;
-    $('summary').innerHTML=model.screens.length
-      ?'<p>Tenés <strong>'+model.screens.length+'</strong> pantalla(s) activa(s) asignada(s) a Arcuva.</p>'
-      :'<div class="empty"><strong>El acceso a Arcuva está preparado.</strong><p>Por ahora no tiene pantallas propias en Supabase. SMA 01 sigue bajo NextWork hasta una migración controlada. Recursos Hídricos no fue modificado.</p></div>';
     $('screenTable').innerHTML=model.screens.length
       ?renderTable(['Pantalla','Ubicación','Resolución','Estado'],model.screens.map(p=>'<tr><td><strong>'+escapeHtml(p.nombre)+'</strong></td><td>'+escapeHtml(p.ubicacion||'—')+'</td><td>'+escapeHtml(p.ancho)+' × '+escapeHtml(p.alto)+'</td><td><span class="ok">Activa</span></td></tr>'))
       :empty('Todavía no hay pantallas registradas a nombre de Arcuva.');
