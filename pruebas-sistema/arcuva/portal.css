@@ -86,3 +86,7 @@ tbody tr:hover{background:#fbfcff}
 .dash-pill.dash-bad,.dash-pill.dash-warn{background:#fff0df;color:#9a5716}
 @media(max-width:1100px){.dash-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-panels{grid-template-columns:1fr}}
 @media(max-width:520px){.dash-metrics{gap:9px}.dash-metrics .card{padding:14px}.dash-list-row,.dash-screen-row{align-items:flex-start;flex-direction:column}.dash-pill{white-space:normal}}
+
+/* Opción B aprobada: logotipo de Arcuva con esquinas suavemente redondeadas. */
+#loginLogo{border-radius:20px;overflow:hidden;object-fit:contain;}
+#sidebarLogo{border-radius:16px;overflow:hidden;}
