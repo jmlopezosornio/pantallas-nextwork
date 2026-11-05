@@ -25,6 +25,7 @@
     Object.keys(titles).forEach(key=>$('page-'+key).classList.toggle('hidden',key!==page));
     document.querySelectorAll('.nav[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
     $('pageTitle').textContent=titles[page];
+    if(page==='reportes')window.dispatchEvent(new Event('arcuva-page-reportes'));
   }
   async function verifyUser(authUser){
     const {data,error:err}=await db.from('usuarios').select('id,nombre,email,rol,activo,empresa_id,es_superadmin').eq('id',authUser.id).single();
@@ -70,7 +71,7 @@
           if(campErr)console.warn('Campañas:',campErr.message);
           else{
             const allowedIds=new Set(campaignIds);
-            campaigns=(rows||[]).filter(c=>allowedIds.has(c.id)).map(c=>({...c,pantallas:scope.filter(l=>l.campania_id===c.id).map(l=>allowedScreens.find(p=>p.id===l.pantalla_id)?.nombre).filter(Boolean)}));
+            campaigns=(rows||[]).filter(c=>allowedIds.has(c.id)).map(c=>({...c,pantallaIds:scope.filter(l=>l.campania_id===c.id).map(l=>l.pantalla_id).filter(id=>ids.includes(id)),pantallas:scope.filter(l=>l.campania_id===c.id).map(l=>allowedScreens.find(p=>p.id===l.pantalla_id)?.nombre).filter(Boolean)}));
           }
         }
       }
