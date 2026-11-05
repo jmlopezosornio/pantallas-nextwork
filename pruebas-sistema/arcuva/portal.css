@@ -90,3 +90,39 @@ tbody tr:hover{background:#fbfcff}
 /* Opción B aprobada: logotipo de Arcuva con esquinas suavemente redondeadas. */
 #loginLogo{border-radius:20px;overflow:hidden;object-fit:contain;}
 #sidebarLogo{border-radius:16px;overflow:hidden;}
+
+/* Marca NextWork ubicada debajo del logo de la empresa, con estilo de tarjeta. */
+.sidebar .brand-card{margin-bottom:12px}
+.sidebar .powered-card{
+  background:#f6f8fb;
+  border-radius:16px;
+  min-height:70px;
+  padding:13px 12px;
+  margin-bottom:30px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  overflow:hidden;
+}
+.sidebar .powered-label{
+  flex:0 0 auto;
+  font-size:12px;
+  line-height:1.12;
+  text-align:center;
+  color:#7888a2;
+  font-weight:850;
+}
+.sidebar .powered-divider{
+  flex:0 0 1px;
+  height:34px;
+  background:#cbd5e1;
+}
+.sidebar .powered-logo{
+  display:block;
+  width:116px;
+  max-width:100%;
+  height:auto;
+  max-height:42px;
+  object-fit:contain;
+}
