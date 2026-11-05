@@ -71,3 +71,18 @@ tbody tr:hover{background:#fbfcff}
 @media(max-width:920px){.login{grid-template-columns:1fr}.login-art{min-height:240px;padding:32px}.login-art h1{font-size:37px}.sidebar{width:206px}}
 @media(max-width:630px){.nw-logo{flex-wrap:wrap}.nw-logo-label{max-width:unset}.shell{display:block}.sidebar{display:flex;width:100%;padding:10px;min-height:0;gap:6px;overflow-x:auto}.sidebar .brand-card,.sidebar .nav-title,.sidebar .sidebar-foot{display:none}.nav{white-space:nowrap;width:auto;margin:0}.topbar{padding:15px}.userarea{gap:7px}.user-name{display:none}.workspace{padding:22px 15px}.cards{grid-template-columns:1fr}.panel{padding:15px}.login-area{padding:14px}.login-form h2{font-size:26px}}
 @media print{.sidebar,.topbar,.secondary,.search,.footer,.message,.cards{display:none!important}.shell{display:block}.workspace{padding:0}.panel{box-shadow:none}.workspace section:not(#page-reportes){display:none!important}#page-reportes{display:block!important}.panel{break-inside:avoid}thead{display:table-header-group}}
+
+/* Dashboard operativo Arcuva */
+.dash-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.dash-metrics .card{min-width:0}
+.dash-metrics .number{font-variant-numeric:tabular-nums}
+.dash-panels{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.dash-panels .panel{min-width:0;margin-top:0}
+.dash-list-row,.dash-screen-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:14px 0}
+.dash-list-row:last-child,.dash-screen-row:last-child{border-bottom:0}
+.dash-list-row strong,.dash-screen-row strong{font-size:13px;display:block;margin-bottom:4px}
+.dash-pill{display:inline-flex;align-items:center;flex-shrink:0;border-radius:100px;padding:7px 10px;background:#edf2f8;color:#4b5970;font-size:11px;font-weight:800;white-space:nowrap}
+.dash-pill.dash-good{background:#e1f7e9;color:#17663a}
+.dash-pill.dash-bad,.dash-pill.dash-warn{background:#fff0df;color:#9a5716}
+@media(max-width:1100px){.dash-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-panels{grid-template-columns:1fr}}
+@media(max-width:520px){.dash-metrics{gap:9px}.dash-metrics .card{padding:14px}.dash-list-row,.dash-screen-row{align-items:flex-start;flex-direction:column}.dash-pill{white-space:normal}}
