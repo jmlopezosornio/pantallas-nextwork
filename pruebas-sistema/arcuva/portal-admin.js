@@ -10,7 +10,7 @@
   const $=id=>document.getElementById(id);
   let groups=[],clients=[],memberships=[],groupScreens=[],scopeIds=new Set(),canEdit=false,validGroup='',pending=false,currentDialog='',revision=0;
   let snapshotCampaigns=[];
-  const allowedPercentages=new Set([25,50,75,100]);
+  const allowedPercentages=new Set([25,50,75,100,150]);
   function localDay(date){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');}
   const urlValid=v=>{try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)&&!!u.hostname;}catch{return false;}};
   const htmlAttr=esc;
@@ -260,7 +260,7 @@
     currentDialog='campaign';
     const start=item?.fecha_desde||localDay(new Date());
     const ending=item?.fecha_hasta||localDay(new Date(Date.now()+30*86400000));
-    const kind=item?.tipo_contenido||'web';
+    const kind=item?.tipo_contenido||'video';
     const info=id
       ?'<div class="message note-role">La asignación a pantallas existente se conserva. Cambiar el contenido, el porcentaje o las fechas puede afectar SMA 01 cuando se publique una nueva programación.</div>'
       :'<div class="message notice"><strong>Seguridad:</strong> la campaña nueva se creará <b>pausada</b>. Después podrás activarla conscientemente desde el listado.</div>';
@@ -277,7 +277,7 @@
       +'<div class="admin-field" id="mediaDuration"><label for="campaignDuration">Duración en segundos *</label><select id="campaignDuration">'
       +[5,10,15,20].map(n=>'<option value="'+n+'" '+(Number(item?.duracion_seg||10)===n?'selected':'')+'>'+n+' segundos</option>').join('')+'</select></div>'
       +'<div class="admin-field"><label for="campaignPercent">Participación *</label><select id="campaignPercent">'
-      +[25,50,75,100].map(n=>'<option value="'+n+'" '+(Number(item?.porcentaje||25)===n?'selected':'')+'>'+n+'%</option>').join('')+'</select></div>'
+      +[25,50,75,100,150].map(n=>'<option value="'+n+'" '+(Number(item?.porcentaje??100)===n?'selected':'')+'>'+n+'%</option>').join('')+'</select></div>'
       +'<div class="admin-field"><label for="campaignStart">Fecha desde *</label><input id="campaignStart" type="date" value="'+esc(start)+'" required></div>'
       +'<div class="admin-field"><label for="campaignEnd">Fecha hasta *</label><input id="campaignEnd" type="date" value="'+esc(ending)+'" required></div>'
       +extra+'<div class="admin-field full"><div id="fileDetails" class="tiny"></div></div>'
@@ -329,7 +329,7 @@
     if(!customer)return fail('Seleccioná un cliente propio de Arcuva.');
     if(!nombre||nombre.length>150)return fail('Ingresá un nombre válido.');
     if(!desde||!hasta||hasta<desde)return fail('Revisá el rango de fechas de la campaña.');
-    if(!allowedPercentages.has(percent))return fail('La participación debe ser 25%, 50%, 75% o 100%.');
+    if(!allowedPercentages.has(percent))return fail('La participación debe ser 25%, 50%, 75%, 100% o 150%.');
     const selectedScreenIds=id
       ?[]:[...document.querySelectorAll('.campaign-screen:checked')].map(x=>x.value);
     const permittedIds=getActiveScreens().filter(s=>groupForScreen(s.id)===validGroup).map(s=>s.id);
