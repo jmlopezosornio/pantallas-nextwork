@@ -300,15 +300,49 @@
     $('campaignFile').addEventListener('change',updateFileMetadata);
     $('mediaDuration').classList.toggle('hidden',video);
   }
-  function getVideoDuration(file){
+  function getVideoMetadata(file){
     return new Promise((resolve,reject)=>{
       const v=document.createElement('video'),url=URL.createObjectURL(file);
-      const finish=(err,duration)=>{v.onloadedmetadata=null;v.onerror=null;URL.revokeObjectURL(url);v.removeAttribute('src');v.load();err?reject(err):resolve(duration);};
+      let finished=false;
+      const finish=(err,metadata)=>{
+        if(finished)return;
+        finished=true;
+        v.onloadedmetadata=null;v.onerror=null;
+        URL.revokeObjectURL(url);v.removeAttribute('src');v.load();
+        err?reject(err):resolve(metadata);
+      };
       v.preload='metadata';
-      v.onloadedmetadata=()=>{const n=v.duration;finish(!Number.isFinite(n)||n<=0?Error('Duración de video inválida.'):null,n);};
-      v.onerror=()=>finish(Error('No se pudo leer la duración del video.'));
+      v.onloadedmetadata=()=>{
+        const duration=Number(v.duration),width=Number(v.videoWidth),height=Number(v.videoHeight);
+        finish(!Number.isFinite(duration)||duration<=0||!width||!height
+          ?Error('No se pudo determinar la duración o las dimensiones reales del video.'):null,
+          {duration,width,height});
+      };
+      v.onerror=()=>finish(Error('No se pudo leer el video. Comprobá que sea MP4 compatible.'));
       v.src=url;
     });
+  }
+  function targetVideoScreens(id,selectedScreenIds){
+    const ids=id
+      ?(base.getModel().campaigns.find(c=>c.id===id)?.pantallaIds||[])
+      :selectedScreenIds;
+    const authorized=new Set(getActiveScreens().filter(p=>groupForScreen(p.id)===validGroup).map(p=>p.id));
+    return getActiveScreens().filter(p=>ids.includes(p.id)&&authorized.has(p.id));
+  }
+  async function verifyVideoDimensions(file,id,selectedScreenIds){
+    const metadata=await getVideoMetadata(file);
+    const screens=targetVideoScreens(id,selectedScreenIds);
+    if(!screens.length)throw Error('No se pudieron determinar las pantallas destino del video.');
+    const mismatches=screens.filter(p=>Number(p.ancho)!==metadata.width||Number(p.alto)!==metadata.height);
+    if(mismatches.length){
+      const required=mismatches.map(p=>p.nombre+': '+p.ancho+'×'+p.alto).join(' · ');
+      throw Error('Video no compatible: el archivo mide '+metadata.width+'×'+metadata.height+
+        ' px. Las pantallas seleccionadas requieren '+required+
+        '. Convertí el video antes de cargarlo; no se guardó ningún cambio.');
+    }
+    if(metadata.duration>300)throw Error('El video dura '+metadata.duration.toFixed(1)+
+      ' segundos. Revisá el archivo: por seguridad se bloquean videos superiores a 5 minutos.');
+    return metadata;
   }
   async function updateFileMetadata(){
     const file=$('campaignFile')?.files?.[0];
@@ -316,10 +350,11 @@
     feedback.textContent=file?'Archivo: '+file.name:'';
     if(file&&$('campaignType').value==='video'){
       try{
-        const seconds=await getVideoDuration(file);
+        const metadata=await getVideoMetadata(file);
         if($('campaignFile')?.files?.[0]===file){
-          $('campaignDuration').value=String(Math.round(seconds*100)/100);
-          feedback.textContent='Video seleccionado · Duración: '+seconds.toFixed(2)+' segundos.';
+          $('campaignDuration').value=String(Math.round(metadata.duration*100)/100);
+          feedback.textContent='Video: '+metadata.width+'×'+metadata.height+
+            ' px · '+metadata.duration.toFixed(2)+' segundos. Se verificará la resolución al guardar.';
         }
       }catch(err){feedback.textContent=err.message;}
     }
@@ -420,6 +455,12 @@
       if(file)try{validateFile(file,type);}catch(err){return fail(err.message);}
     }
     if(type==='video'){
+      if(file){
+        try{
+          const verified=await verifyVideoDimensions(file,id,selectedScreenIds);
+          duracion=Math.round(verified.duration*100)/100;
+        }catch(err){return fail(err.message);}
+      }
       if(!file)duracion=Number(existing?.tipo_contenido==='video'?existing.duracion_seg:0);
       if(!Number.isFinite(duracion)||duracion<=0||duracion>86400)return fail('No se pudo determinar la duración del video.');
     }else if(![5,10,15,20].includes(duracion))return fail('La duración admitida es 5, 10, 15 o 20 segundos.');
