@@ -98,14 +98,47 @@
     }
     if(current!==epoch||!profile)return;
     const clients=[...new Set(campaigns.map(c=>c.cliente).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
-    model={screens:allowedScreens,campaigns,clients};render();window.dispatchEvent(new Event('arcuva-data-loaded'));
+    // Estado de conexión: no confundir pantalla habilitada con reproductor conectado.
+    // La columna es conservadora: sin reproductor vinculado = sin monitoreo.
+    let playerRows=[],playerQueryFailed=false;
+    if(allowedScreens.length){
+      const {data:rows,error:playerError}=await db.from('players')
+        .select('pantalla_id,tipo,estado,ultima_conexion,vnnox_online_status')
+        .in('pantalla_id',allowedScreens.map(p=>p.id));
+      if(current!==epoch||!profile)return;
+      if(playerError){
+        playerQueryFailed=true;
+        console.warn('Estado de conexión de reproductores:',playerError.message);
+      }else playerRows=rows||[];
+    }
+    model={screens:allowedScreens,campaigns,clients,playerRows,playerQueryFailed};
+    render();window.dispatchEvent(new Event('arcuva-data-loaded'));
 
     if(window.ArcuvaAdminRefresh)await window.ArcuvaAdminRefresh();
   }
-  function render(){
+  function screenConnection(p){
+    if(model.playerQueryFailed)return {label:'Sin información',cls:'nw-connection-unknown',detail:'No se pudo consultar el estado del reproductor.'};
+    const linked=(model.playerRows||[]).filter(x=>x.pantalla_id===p.id);
+    if(!linked.length)return {label:'Sin monitoreo',cls:'nw-connection-unknown',detail:'Esta pantalla todavía no tiene un reproductor vinculado.'};
+    const now=Date.now();
+    const fresh=linked.some(x=>{
+      const last=Date.parse(x.ultima_conexion||'');
+      return Number.isFinite(last)&&last<=now&&now-last<=10*60*1000&&String(x.estado||'').toLowerCase()==='online';
+    });
+    if(fresh)return {label:'En línea',cls:'nw-connection-online',detail:'Reproductor con comunicación registrada en los últimos 10 minutos.'};
+    const last=linked.map(x=>Date.parse(x.ultima_conexion||'')).filter(Number.isFinite).sort((a,b)=>b-a)[0];
+    return {label:'Fuera de línea',cls:'nw-connection-offline',detail:last?'Última comunicación registrada: '+new Date(last).toLocaleString('es-AR')+'.':'No hay comunicaciones registradas del reproductor.'};
+  }
+  function renderScreens(){
     $('screenTable').innerHTML=model.screens.length
-      ?renderTable(['Pantalla','Ubicación','Resolución','Estado'],model.screens.map(p=>'<tr><td><strong>'+escapeHtml(p.nombre)+'</strong></td><td>'+escapeHtml(p.ubicacion||'—')+'</td><td>'+escapeHtml(p.ancho)+' × '+escapeHtml(p.alto)+'</td><td><span class="ok">Activa</span></td></tr>'))
+      ?renderTable(['Pantalla','Ubicación','Resolución','Conexión'],model.screens.map(p=>{
+        const c=screenConnection(p);
+        return '<tr><td><strong>'+escapeHtml(p.nombre)+'</strong></td><td>'+escapeHtml(p.ubicacion||'—')+'</td><td>'+escapeHtml(p.ancho)+' × '+escapeHtml(p.alto)+'</td><td><span class="nw-connection-status '+c.cls+'" title="'+escapeHtml(c.detail)+'">'+escapeHtml(c.label)+'</span></td></tr>';
+      }))
       :empty('Todavía no hay pantallas registradas a nombre de Arcuva.');
+  }
+  function render(){
+    renderScreens();
     renderCampaigns();
     $('clientTable').innerHTML=model.clients.length
       ?renderTable(['Cliente','Campañas visibles'],model.clients.map(name=>'<tr><td>'+escapeHtml(name)+'</td><td>'+model.campaigns.filter(c=>c.cliente===name).length+'</td></tr>'))
@@ -121,6 +154,10 @@
       ?renderTable(['Campaña','Cliente','Vigencia','Pantallas','Participación'],campaigns.map(c=>'<tr><td><strong>'+escapeHtml(c.campania)+'</strong><span class="tiny">'+escapeHtml(c.estado||'')+'</span></td><td>'+escapeHtml(c.cliente)+'</td><td>'+dates(c.fecha_desde)+' – '+dates(c.fecha_hasta)+'</td><td>'+escapeHtml(c.pantallas.join(', '))+'</td><td>'+escapeHtml(c.porcentaje)+'%</td></tr>'))
       :empty(search?'No hay campañas que coincidan con la búsqueda.':'No hay campañas visibles de Arcuva.');
   }
+  // Los datos de conexión caducan; refrescar sin volver a abrir la página.
+  setInterval(()=>{
+    if(profile && !$('page-pantallas')?.classList.contains('hidden'))loadData();
+  },60_000);
   // API interna del portal de pruebas. Sin service-role y sin saltear políticas RLS.
   window.ArcuvaPortalBase=Object.freeze({db,getProfile:()=>profile,getModel:()=>model,reload:loadData,escapeHtml,empty,dates});
   $('loginForm').addEventListener('submit',async e=>{
