@@ -306,3 +306,10 @@ tbody tr:hover{background:#fbfcff}
 .nw-connectivity .nw-connection-icon{display:flex;align-items:center;justify-content:center;flex:0 0 33px}
 .nw-connectivity .nw-connection-icon svg{width:30px;height:30px;stroke:currentColor}
 @media(max-width:600px){.nw-kpi-icon{width:43px;height:43px}.nw-kpi-icon svg{width:29px;height:29px}}
+
+/* Estado real de conectividad en Pantallas. No equivale a "activo" administrativo. */
+.nw-connection-status{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:800;white-space:nowrap}
+.nw-connection-status::before{content:'';width:7px;height:7px;flex-shrink:0;border-radius:50%;background:currentColor}
+.nw-connection-online{color:#167e42;background:#e8f7ed}
+.nw-connection-offline{color:#b42b37;background:#fff0f1}
+.nw-connection-unknown{color:#687c94;background:#eef2f7}
