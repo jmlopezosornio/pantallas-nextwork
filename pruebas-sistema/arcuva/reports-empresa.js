@@ -148,12 +148,14 @@ function reset(){
  updateMode('general');
 }
 async function printReport(){
- render();if(mode==='fechas'){await fetchCounts();if(!countsReady||countIssue){alert(countIssue||'No se pudo confirmar la cantidad de reproducciones. Intentá nuevamente.');return;}}if(!rows?.length){alert('No hay campañas para imprimir con estos filtros.');return;}
+ if(!rows?.length){alert('No hay campañas para imprimir con estos filtros.');return;}
+ const w=window.open('','_blank','width=1200,height=800');if(!w){alert('Habilitá las ventanas emergentes para imprimir el reporte.');return;}
+ if(mode==='fechas'&&!countsReady){await fetchCounts();}
+ if(mode==='fechas'&&(!countsReady||countIssue)){w.close();alert(countIssue||'No se pudo confirmar la cantidad de reproducciones. Intentá nuevamente.');return;}
  const logo=$('sidebarLogo')?.getAttribute('src')||'';
  const head=logo?'<img src="'+esc(logo)+'" alt="Arcuva">':'<strong>Arcuva</strong>';
  const filters=['Período: '+labelPeriod(),'Cliente: '+selectedText('rptCliente','Todos'),'Campaña: '+selectedText('rptCampania','Todas'),'Pantalla: '+selectedText('rptPantalla','Todas'),'Estado: '+selectedText('rptEstado','Activas y pausadas')];
- const trs=rows.map(r=>'<tr><td>'+esc(r.cliente)+'</td><td>'+esc(r.campania)+'</td><td>'+display(r.desde)+' – '+display(r.hasta)+'</td><td>'+esc(r.pantallas.join(', ')||'Sin pantalla')+'</td><td>'+r.pct+'%</td></tr>').join('');
- const w=window.open('','_blank','width=1200,height=800');if(!w){alert('Habilitá las ventanas emergentes para imprimir el reporte.');return;}
+ const trs=rows.map(r=>'<tr><td>'+esc(r.cliente)+'</td><td>'+esc(r.campania)+'</td><td>'+display(r.desde)+' – '+display(r.hasta)+'</td><td>'+esc(r.pantallas.join(', ')||'Sin pantalla')+'</td><td>'+r.pct+'%</td><td>'+(r.plays===null?'—':number(r.plays))+'</td></tr>').join('');
  w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Arcuva · Reporte de Clientes y Campañas</title><style>@page{size:A4 landscape;margin:0}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#17243b;margin:0;padding:12mm}.head{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:2px solid #1769d2;margin-bottom:15px}.head img{max-width:160px;max-height:70px;border-radius:12px;object-fit:contain}.head h1{font-size:22px;color:#0b2b59;margin:0}.head p{font-size:11px;color:#657790}.filters{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;background:#edf4fc;padding:12px;border-radius:8px;font-size:10px;margin-bottom:15px}table{border-collapse:collapse;width:100%;font-size:10px}th{background:#0d457b;color:white;text-align:left;padding:9px}td{padding:8px;border:1px solid #dce5ee}tr:nth-child(even){background:#f4f7fb}.footer{display:flex;justify-content:space-between;border-top:1px solid #ccd5e1;padding-top:10px;margin-top:16px;color:#64748b;font-size:9px}</style></head><body><div class="head"><div>'+head+'</div><div><h1>Reporte de Clientes y Campañas</h1><p>Arcuva · Sistema de Gestión de Pantallas</p></div></div><div class="filters">'+filters.map(s=>'<div>'+esc(s)+'</div>').join('')+'</div><table><thead><tr><th>Cliente</th><th>Campaña</th><th>Vigencia</th><th>Pantallas</th><th>% Salidas</th><th>Salidas registradas</th></tr></thead><tbody>'+trs+'</tbody></table><div class="footer"><span>Reporte generado el '+esc(new Date().toLocaleString('es-AR'))+'</span><span>Arcuva · Powered by NextWork</span></div><script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>');
  w.document.close();
 }
