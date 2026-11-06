@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <title>Arcuva | NextWork — Portal de pruebas</title>
-  <link rel="stylesheet" href="./portal.css?v=13">
+  <link rel="stylesheet" href="./portal.css?v=14">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="./portal.js?v=11"></script>
   <script defer src="./portal-admin.js?v=6"></script>
   <script defer src="./dashboard-operativo.js?v=4"></script>
-  <script defer src="./reports-empresa.js?v=3"></script>
+  <script defer src="./reports-empresa.js?v=4"></script>
   <script defer src="./superadmin-usuarios.js?v=1"></script>
   <link rel="stylesheet" href="./portal-admin.css?v=4">
 </head>
@@ -191,8 +191,8 @@
                 <div><label for="rptEstado">Estado</label><select id="rptEstado"><option value="vigentes">Activas y pausadas</option><option value="todas">Todas</option><option value="activa">Activas</option><option value="finalizada">Finalizadas</option><option value="pausada">Pausadas</option><option value="eliminada">Eliminadas</option></select></div>
               </div>
             </div>
-            <div class="rpt-summary"><span id="rptSummary">Preparando reporte…</span><strong id="rptCount"></strong></div>
-            <div class="rpt-scroll"><table class="rpt-table"><thead><tr><th>Cliente</th><th>Campaña</th><th>Vigencia</th><th>Pantallas</th><th>% Salidas</th></tr></thead><tbody id="rptBody"><tr><td colspan="5" class="rpt-empty">Preparando reporte…</td></tr></tbody></table></div>
+            <div class="rpt-summary"><span id="rptSummary">Preparando reporte…</span><strong id="rptCount"></strong></div><div class="rpt-plays-info" id="rptPlaysInfo" aria-live="polite">Seleccioná «Entre fechas» para consultar salidas registradas.</div>
+            <div class="rpt-scroll"><table class="rpt-table"><thead><tr><th>Cliente</th><th>Campaña</th><th>Vigencia</th><th>Pantallas</th><th>% Salidas</th><th>Salidas registradas</th></tr></thead><tbody id="rptBody"><tr><td colspan="6" class="rpt-empty">Preparando reporte…</td></tr></tbody></table></div>
           </div>
           <div id="reportTable" class="hidden" aria-hidden="true"></div>
           <button id="printBtn" class="hidden" type="button" aria-hidden="true" tabindex="-1"></button>
