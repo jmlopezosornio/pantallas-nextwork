@@ -296,7 +296,7 @@
       $('mediaDuration').classList.remove('hidden');return;
     }
     const video=type==='video';
-    out.innerHTML='<div class="admin-field full"><label for="campaignFile">'+(video?'Video MP4 (H.264 recomendado)':'Imagen JPG, PNG o WebP')+'</label><input id="campaignFile" type="file" accept="'+(video?'video/mp4,.mp4':'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp')+'"><small>'+(oldPath?'Contenido actual conservado si no seleccionás un archivo nuevo.':'Seleccioná un archivo compatible con la pantalla.')+'</small></div>';
+    out.innerHTML='<div class="admin-field full"><label for="campaignFile">'+(video?'Video MP4 (H.264 recomendado)':'Imagen JPG, PNG o WebP')+'</label><input id="campaignFile" type="file" accept="'+(video?'video/mp4,.mp4':'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp')+'"><small>'+(oldPath?'Contenido actual conservado si no seleccionás un archivo nuevo.' :'Seleccioná un archivo MP4; el servidor adaptará su resolución para cada pantalla.')+'</small></div>';
     $('campaignFile').addEventListener('change',updateFileMetadata);
     $('mediaDuration').classList.toggle('hidden',video);
   }
@@ -333,13 +333,9 @@
     const metadata=await getVideoMetadata(file);
     const screens=targetVideoScreens(id,selectedScreenIds);
     if(!screens.length)throw Error('No se pudieron determinar las pantallas destino del video.');
-    const mismatches=screens.filter(p=>Number(p.ancho)!==metadata.width||Number(p.alto)!==metadata.height);
-    if(mismatches.length){
-      const required=mismatches.map(p=>p.nombre+': '+p.ancho+'×'+p.alto).join(' · ');
-      throw Error('Video no compatible: el archivo mide '+metadata.width+'×'+metadata.height+
-        ' px. Las pantallas seleccionadas requieren '+required+
-        '. Convertí el video antes de cargarlo; no se guardó ningún cambio.');
-    }
+    // La resolución de origen no determina compatibilidad con la pantalla.
+    // El Taurus Server genera un MP4 por pantalla con escalado proporcional
+    // y relleno, y valida su formato antes de publicarlo.
     if(metadata.duration>300)throw Error('El video dura '+metadata.duration.toFixed(1)+
       ' segundos. Revisá el archivo: por seguridad se bloquean videos superiores a 5 minutos.');
     return metadata;
@@ -354,7 +350,7 @@
         if($('campaignFile')?.files?.[0]===file){
           $('campaignDuration').value=String(Math.round(metadata.duration*100)/100);
           feedback.textContent='Video: '+metadata.width+'×'+metadata.height+
-            ' px · '+metadata.duration.toFixed(2)+' segundos. Se verificará la resolución al guardar.';
+            ' px · '+metadata.duration.toFixed(2)+' segundos. El servidor adaptará el video a la resolución de cada pantalla antes de publicarlo.';
         }
       }catch(err){feedback.textContent=err.message;}
     }
