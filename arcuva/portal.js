@@ -175,16 +175,19 @@
   }
   function renderScreens(){
     const admin=profile&&(profile.es_superadmin===true||(profile.empresa_id===COMPANY_ID&&profile.rol==='administrador'));
-    const cols=['Pantalla','Ubicación','Resolución','Conexión',...(admin?['Administrar']:[])];
+    const cols=['Pantalla','Ubicación','Resolución','Conexión','Diagnóstico',...(admin?['Administrar']:[])];
     $('screenTable').innerHTML=model.screens.length
       ?renderTable(cols,model.screens.map(p=>{
         const c=screenConnection(p);
         return '<tr><td><strong>'+escapeHtml(p.nombre)+'</strong></td><td>'+escapeHtml(p.ubicacion||'—')+'</td><td>'+escapeHtml(p.ancho)+' × '+escapeHtml(p.alto)+'</td><td><span class="nw-connection-status '+c.cls+'" title="'+escapeHtml(c.detail)+'">'+escapeHtml(c.label)+'</span></td>'+
+          '<td>'+((model.playerRows||[]).some(x=>x.pantalla_id===p.id&&x.tipo==='novastar_taurus')?'<button type="button" class="secondary small-btn" data-diagnose-taurus="'+escapeHtml(p.id)+'">Diagnóstico</button>':'—')+'</td>'+
           (admin?'<td><button type="button" class="secondary small-btn" data-edit-screen="'+escapeHtml(p.id)+'">Editar</button></td>':'')+'</tr>';
       }))
       :empty('Todavía no hay pantallas registradas a nombre de Arcuva.');
     if(admin)$('screenTable').querySelectorAll('[data-edit-screen]').forEach(btn=>
       btn.addEventListener('click',()=>window.ArcuvaScreenManage?.edit(btn.dataset.editScreen)));
+    $('screenTable').querySelectorAll('[data-diagnose-taurus]').forEach(btn=>
+      btn.addEventListener('click',()=>window.ArcuvaTaurusDiagnostic?.open(btn.dataset.diagnoseTaurus)));
   }
   function render(){
     renderScreens();
