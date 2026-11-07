@@ -279,10 +279,11 @@
     }catch(err){fail(err.message||'No se pudo guardar el cliente.');}
     finally{saving(false);}
   }
-  function screenCheckboxes(selectedId=''){
+  function screenCheckboxes(selectedIds=[]){
     const list=getActiveScreens().filter(p=>groupForScreen(p.id)===validGroup);
     if(!list.length)return '<div class="empty">No hay pantallas autorizadas para Arcuva.</div>';
-    return list.map(p=>'<label class="screen-checkbox"><input type="checkbox" class="campaign-screen" value="'+esc(p.id)+'" '+(selectedId===p.id?'checked':'')+'><span>'+esc(p.nombre)+'</span></label>').join('');
+    const selected=new Set(Array.isArray(selectedIds)?selectedIds:[selectedIds].filter(Boolean));
+    return list.map(p=>'<label class="screen-checkbox"><input type="checkbox" class="campaign-screen" value="'+esc(p.id)+'" '+(selected.has(p.id)?'checked':'')+'><span>'+esc(p.nombre)+'</span><small>'+esc(p.ancho)+' × '+esc(p.alto)+' px</small></label>').join('');
   }
   function clientOptions(selected=''){
     const own=clients.filter(c=>c.grupo_id===validGroup);
@@ -323,9 +324,7 @@
     });
   }
   function targetVideoScreens(id,selectedScreenIds){
-    const ids=id
-      ?(base.getModel().campaigns.find(c=>c.id===id)?.pantallaIds||[])
-      :selectedScreenIds;
+    const ids=selectedScreenIds;
     const authorized=new Set(getActiveScreens().filter(p=>groupForScreen(p.id)===validGroup).map(p=>p.id));
     return getActiveScreens().filter(p=>ids.includes(p.id)&&authorized.has(p.id));
   }
@@ -366,12 +365,13 @@
     const start=item?.fecha_desde||localDay(new Date());
     const ending=item?.fecha_hasta||localDay(new Date(Date.now()+30*86400000));
     const kind=item?.tipo_contenido||'video';
+    const previousScreens=id?(base.getModel().campaigns.find(c=>c.id===id)?.pantallaIds||[]):[];
     const info=id
-      ?'<div class="message note-role">La asignación a pantallas existente se conserva. Cambiar el contenido, el porcentaje o las fechas puede afectar SMA 01 cuando se publique una nueva programación.</div>'
+      ?'<div class="message note-role">Podés agregar o quitar pantallas sin duplicar la campaña ni volver a cargar el contenido. Los cambios se guardan en NextWork y pueden reflejarse en los Taurus cuando el servidor procese una nueva programación.</div>'
       :'<div class="message notice"><strong>Seguridad:</strong> la campaña nueva se creará <b>pausada</b>. Después podrás activarla conscientemente desde el listado.</div>';
-    const extra=id
-      ?'<div class="admin-field full"><label>Pantallas vinculadas</label><div class="frozen-screens">'+esc((base.getModel().campaigns.find(c=>c.id===id)?.pantallas||[]).join(', '))+'</div></div>'
-      :'<div class="admin-field full"><label>Pantallas de destino *</label><div class="screens-list">'+screenCheckboxes(getActiveScreens()[0]?.id)+'</div></div>';
+    const extra='<div class="admin-field full"><label>Pantallas de destino *</label><div class="screens-list">'+
+      screenCheckboxes(id?previousScreens:[getActiveScreens().find(p=>groupForScreen(p.id)===validGroup)?.id])+
+      '</div><small>Marcá las pantallas donde debe reproducirse la campaña. Debe quedar al menos una.</small></div>';
     modal(id?'Editar campaña':'Nueva campaña',info+'<div class="admin-grid">'
       +'<div class="admin-field full"><label for="campaignName">Nombre de campaña *</label><input id="campaignName" required maxlength="150" value="'+esc(item?.nombre||'')+'"></div>'
       +'<div class="admin-field"><label for="campaignClient">Cliente *</label><select id="campaignClient" required>'+clientOptions(item?.cliente_id)+'</select></div>'
@@ -435,10 +435,9 @@
     if(!nombre||nombre.length>150)return fail('Ingresá un nombre válido.');
     if(!desde||!hasta||hasta<desde)return fail('Revisá el rango de fechas de la campaña.');
     if(!allowedPercentages.has(percent))return fail('La participación debe ser 25%, 50%, 75%, 100% o 150%.');
-    const selectedScreenIds=id
-      ?[]:[...document.querySelectorAll('.campaign-screen:checked')].map(x=>x.value);
+    const selectedScreenIds=[...document.querySelectorAll('.campaign-screen:checked')].map(x=>x.value);
     const permittedIds=getActiveScreens().filter(s=>groupForScreen(s.id)===validGroup).map(s=>s.id);
-    if(!id&&(!selectedScreenIds.length||selectedScreenIds.some(s=>!permittedIds.includes(s))))return fail('Elegí una pantalla válida de Arcuva.');
+    if(!selectedScreenIds.length||selectedScreenIds.some(s=>!permittedIds.includes(s)))return fail('Seleccioná al menos una pantalla autorizada de Arcuva.');
     const file=$('campaignFile')?.files?.[0];
     let archivo='',duracion=Number($('campaignDuration').value);
     if(type==='web'){
@@ -460,9 +459,16 @@
       if(!file)duracion=Number(existing?.tipo_contenido==='video'?existing.duracion_seg:0);
       if(!Number.isFinite(duracion)||duracion<=0||duracion>86400)return fail('No se pudo determinar la duración del video.');
     }else if(![5,10,15,20].includes(duracion))return fail('La duración admitida es 5, 10, 15 o 20 segundos.');
+    const originalIds=id?(base.getModel().campaigns.find(c=>c.id===id)?.pantallaIds||[]):[];
+    const added=selectedScreenIds.filter(screenId=>!originalIds.includes(screenId));
+    const removed=originalIds.filter(screenId=>!selectedScreenIds.includes(screenId));
+    const screenNames=new Map(getActiveScreens().map(p=>[p.id,p.nombre]));
+    const changes=[added.length?'Agregar: '+added.map(x=>screenNames.get(x)||x).join(', '):'',
+      removed.length?'Quitar: '+removed.map(x=>screenNames.get(x)||x).join(', '):''].filter(Boolean);
     const ok=window.confirm(id
-      ?'Estás por modificar una campaña de Arcuva en la base real. Esto podría afectar SMA 01 cuando se publique. ¿Continuar?'
-      :'Se creará una campaña PAUSADA de Arcuva en la base real. No se activará ni sincronizará automáticamente. ¿Continuar?');
+      ?'Se guardarán los cambios de la campaña en Arcuva.'+(changes.length?'\\n\\nPantallas:\\n'+changes.join('\\n'):'\\n\\nSin cambios en las pantallas asignadas.')+
+        '\\n\\nEsto puede modificar la programación publicitaria cuando los reproductores se sincronicen. ¿Continuar?'
+      :'Se creará una campaña PAUSADA de Arcuva. No se activará automáticamente. ¿Continuar?');
     if(!ok)return;
     saving(true);
     try{
@@ -475,6 +481,13 @@
         const {data,error}=await db.from('campanias').update(payload).eq('id',id).eq('grupo_id',validGroup).select('id');
         if(error)throw error;
         if(data?.length!==1)throw Error('No se pudo confirmar la edición de campaña.');
+        if(added.length||removed.length){
+          const {data:count,error:linkError}=await db.rpc('arcuva_actualizar_pantallas_campania',{
+            p_campania_id:id,p_pantalla_ids:selectedScreenIds
+          });
+          if(linkError)throw Error('Se guardaron los datos de campaña, pero no las pantallas asignadas: '+linkError.message);
+          if(count!==selectedScreenIds.length)throw Error('No se pudo verificar la cantidad de pantallas asignadas.');
+        }
       }else{
         const {data,error}=await db.from('campanias').insert({...payload,grupo_id:validGroup,pausada:true}).select('id');
         if(error)throw error;
