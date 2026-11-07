@@ -19,7 +19,7 @@
   +'<div class="field"><label>Licencia inicial</label><select id="multiPantLicencia"><option value="prueba">Prueba</option><option value="activa">Activa</option><option value="suspendida">Suspendida</option></select></div>'
   +'<div class="field"><label>Válida hasta</label><input id="multiPantHasta" type="date"></div>'
   +'<div class="field full"><label>Tipo de reproductor</label><select id="multiPantPlayerTipo" onchange="stagePantPlayerChange()"><option value="">Sin vincular (configurar más tarde)</option><option value="novastar_taurus">NovaStar Taurus / VNNOX</option><option value="windows">PC Windows</option><option value="raspberry">Raspberry Pi</option></select></div>'
-  +'<div id="multiPantTaurusFields" class="field full" style="display:none"><div class="form-grid"><div class="field"><label>ID del reproductor en VNNOX</label><input id="multiPantVnnoxId" placeholder="ID de VNNOX"></div><div class="field"><label>Número de serie Taurus (SN)</label><input id="multiPantVnnoxSn" placeholder="Opcional"></div></div><div class="small">El ID de VNNOX permite identificar el Taurus. No se publicarán campañas automáticamente al crear esta pantalla.</div></div>'
+  +'<div id="multiPantTaurusFields" class="field full" style="display:none"><div class="form-grid"><div class="field"><label>ID del reproductor en VNNOX</label><input id="multiPantVnnoxId" placeholder="ID de VNNOX"></div><div class="field"><label>Número de serie Taurus (SN)</label><input id="multiPantVnnoxSn" placeholder="Opcional"></div></div><div class="small">Podés dejar el ID de VNNOX pendiente y completarlo después desde Editar configuración. Sin ID no podrá publicarse mediante VNNOX.</div></div>'
   +'</div><div class="actions"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button id="multiPantGuardar" class="btn btn-primary" onclick="stageSaveNewScreen()">Guardar pantalla</button></div></div></div>';
   const end=new Date();end.setDate(end.getDate()+30);$('multiPantHasta').value=end.toISOString().slice(0,10);
   stagePantCompanyChange();stagePantPlayerChange();
@@ -44,8 +44,8 @@
   const tipo=$('multiPantPlayerTipo')?.value||'';
   const vnnoxId=$('multiPantVnnoxId')?.value.trim()||'';
   const vnnoxSn=$('multiPantVnnoxSn')?.value.trim()||'';
-  if(tipo==='novastar_taurus'&&(!vnnoxId||vnnoxId.length>128)){
-    alert('Para vincular un Taurus, ingresá su ID de reproductor en VNNOX (máximo 128 caracteres).');return;
+  if(tipo==='novastar_taurus'&&(vnnoxId.length>128||vnnoxSn.length>128)){
+    alert('El identificador VNNOX o número de serie es demasiado largo.');return;
   }
   const btn=$('multiPantGuardar');btn.disabled=true;
   const {data:screenId,error}=await sb.rpc('admin_crear_pantalla_con_empresa',{
@@ -56,7 +56,7 @@
   if(tipo){
     const payload={pantalla_id:screenId,tipo,estado:'offline'};
     if(tipo==='novastar_taurus'){
-      Object.assign(payload,{proveedor:'vnnox',vnnox_player_id:vnnoxId,vnnox_sn:vnnoxSn||null});
+      Object.assign(payload,{proveedor:'vnnox',vnnox_player_id:vnnoxId||null,vnnox_sn:vnnoxSn||null});
     }
     const {error:playerError}=await sb.from('players').insert(payload);
     if(playerError){
@@ -66,7 +66,7 @@
     }
   }
   closeModal();await Promise.all([loadPantallas(),loadGrupos()]);await loadDashboard();
-  alert(tipo==='novastar_taurus'?'Pantalla y Taurus VNNOX vinculados. La publicación automática no se activó.':tipo?'Pantalla y reproductor vinculados correctamente.':'Pantalla creada. Podés vincular un reproductor desde Editar configuración.');
+  alert(tipo==='novastar_taurus'?(vnnoxId?'Pantalla y Taurus VNNOX registrados. La publicación automática no se activó.':'Pantalla registrada con reproductor Taurus. Falta completar su ID de VNNOX para permitir publicaciones.'):tipo?'Pantalla y reproductor vinculados correctamente.':'Pantalla creada. Podés vincular un reproductor desde Editar configuración.');
  }
  window.stageOpenNewScreen=open;window.stagePantCompanyChange=companyChange;window.stagePantPlayerChange=playerChange;window.stageSaveNewScreen=save;
 })();
