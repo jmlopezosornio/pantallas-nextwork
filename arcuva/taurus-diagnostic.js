@@ -42,7 +42,7 @@ function section(label,part,fields=[]){
    if(val!==null)html+=row(title,val);
   }
  }
- if(!ok)html+='<p class="nw-diag-warning">VNNOX no entregó esta consulta. No implica necesariamente que el Taurus esté apagado.</p>';
+ if(!ok)html+='<p class="nw-diag-warning">'+esc(part.unavailableReason||'VNNOX no entregó esta consulta. No implica necesariamente que el Taurus esté apagado.')+'</p>';
  return html+'</div>';
 }
 function close(){
@@ -89,13 +89,19 @@ async function open(screenId){
   try{result=await response.json();}catch{throw Error('VNNOX devolvió un formato no válido.');}
   if(current!==serial)return;
   if(!response.ok||!result.ok)throw Error(result.error||'No se pudo obtener el diagnóstico (HTTP '+response.status+').');
+  if(result.player?.identifierMismatch){
+   html+='<div class="nw-diag-area"><strong class="nw-diag-warning">Identificador VNNOX incorrecto en NextWork</strong>'+
+    row('Player ID verificado por SN',result.player.verifiedPlayerId||'No informado')+
+    row('Nombre en VNNOX',result.player.verifiedPlayerName||'No informado')+
+    '<p class="nw-diag-warning">El diagnóstico utiliza el ID correcto solo para consultar. Para futuras publicaciones, entrá en Editar → Verificar en VNNOX y guardá el vínculo corregido. No se ha publicado ninguna tanda.</p></div>';
+  }
   const status=getValue(result.online,['onlineStatus']);
   html+=section('Conectividad de VNNOX',result.online,[['Estado informado',['onlineStatus']],['Última conexión',['lastOnlineTime']]]);
   html+=section('Estado operativo',result.running,[
     ['Reproducción',['playingStatus','playStatus']],['Firmware',['version','firmwareVersion']],['Memoria disponible',['availableMemory']]
   ]);
   html+=section('Monitoreo de pantalla',result.screenMonitor,[
-    ['Estado de pantalla',['screenStatus','status']],['Brillo',['brightness']],['Temperatura',['temperature']]
+    ['Estado de pantalla',['screenStatus','status']],['Brillo (−1 = valor no disponible)',['brightness']],['Temperatura',['temperature']]
   ]);
   html+=section('Parámetros del equipo',result.basics,[
     ['Almacenamiento disponible',['availableStorage']],['Volumen',['volume']],['IP',['ip']]
