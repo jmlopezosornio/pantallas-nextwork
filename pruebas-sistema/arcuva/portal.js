@@ -10,6 +10,7 @@
   const empty=message=>'<div class="empty">'+escapeHtml(message)+'</div>';
   const dates=value=>{if(!value)return '—';const x=String(value).slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(x)?x.slice(8)+'/'+x.slice(5,7)+'/'+x.slice(0,4):escapeHtml(x);};
   let profile=null,epoch=0,model={screens:[],campaigns:[],clients:[]};
+  let taurusSyncBusy=false,lastTaurusSyncAt=0;
   function applyBrand(logo){$('loginLogo').src=logo;$('sidebarLogo').src=logo;}
   applyBrand(LOGO);
   function error(message){$('loginError').textContent=message;$('loginError').classList.remove('hidden');}
@@ -103,7 +104,7 @@
     let playerRows=[],playerQueryFailed=false;
     if(allowedScreens.length){
       const {data:rows,error:playerError}=await db.from('players')
-        .select('pantalla_id,tipo,estado,ultima_conexion,vnnox_online_status')
+        .select('pantalla_id,tipo,estado,ultima_conexion,actualizado_en,vnnox_online_status,vnnox_player_id')
         .in('pantalla_id',allowedScreens.map(p=>p.id));
       if(current!==epoch||!profile)return;
       if(playerError){
@@ -115,12 +116,54 @@
     render();window.dispatchEvent(new Event('arcuva-data-loaded'));
 
     if(window.ArcuvaAdminRefresh)await window.ArcuvaAdminRefresh();
+    // Se consulta el estado real en VNNOX sin alterar la publicación del Taurus.
+    void refreshTaurusStatus();
+  }
+  async function refreshTaurusStatus(){
+    if(!profile||taurusSyncBusy||Date.now()-lastTaurusSyncAt<110000)return;
+    const relevant=(model.playerRows||[]).some(x=>x.tipo==='novastar_taurus'&&x.vnnox_player_id);
+    if(!relevant)return;
+    taurusSyncBusy=true;
+    lastTaurusSyncAt=Date.now();
+    const sessionEpoch=epoch;
+    try{
+      const {data,error}=await db.functions.invoke('vnnox-connectivity',{body:{}});
+      if(error||!data?.ok)throw Error(data?.error||error?.message||'Consulta VNNOX fallida.');
+      if(!profile||sessionEpoch!==epoch)return;
+      const updates=new Map((data.players||[]).filter(x=>x.verified).map(x=>[x.pantalla_id,x]));
+      if(!updates.size)return;
+      model.playerRows=(model.playerRows||[]).map(x=>{
+        if(x.tipo!=='novastar_taurus')return x;
+        const received=updates.get(x.pantalla_id);
+        if(!received)return x;
+        return {...x,estado:received.estado,vnnox_online_status:received.estado==='online'?1:0,
+          ultima_conexion:received.estado==='online'?received.checkedAt:x.ultima_conexion,
+          actualizado_en:received.checkedAt};
+      });
+      renderScreens();
+      window.dispatchEvent(new Event('arcuva-data-loaded'));
+    }catch(err){
+      // Ante fallas de consulta no se inventa un estado offline.
+      console.warn('No se pudo actualizar el estado de los Taurus con VNNOX:',err.message||err);
+    }finally{
+      taurusSyncBusy=false;
+    }
   }
   function screenConnection(p){
     if(model.playerQueryFailed)return {label:'Sin información',cls:'nw-connection-unknown',detail:'No se pudo consultar el estado del reproductor.'};
     const linked=(model.playerRows||[]).filter(x=>x.pantalla_id===p.id);
     if(!linked.length)return {label:'Sin monitoreo',cls:'nw-connection-unknown',detail:'Esta pantalla todavía no tiene un reproductor vinculado.'};
     const now=Date.now();
+    const taurus=linked.find(x=>x.tipo==='novastar_taurus');
+    if(taurus){
+      if(!taurus.vnnox_player_id)return {label:'Sin configurar',cls:'nw-connection-unknown',detail:'Falta vincular el identificador del Taurus en VNNOX.'};
+      const checked=Date.parse(taurus.actualizado_en||'');
+      const fresh=Number.isFinite(checked)&&checked<=now&&now-checked<=5*60*1000;
+      if(!fresh)return {label:'Sin información',cls:'nw-connection-unknown',detail:'El estado de VNNOX no tiene una verificación reciente. Se intentará actualizar automáticamente.'};
+      if(taurus.vnnox_online_status===1)return {label:'En línea',cls:'nw-connection-online',detail:'VNNOX confirmó el Taurus en línea. Verificado: '+new Date(checked).toLocaleString('es-AR')};
+      if(taurus.vnnox_online_status===0)return {label:'Fuera de línea',cls:'nw-connection-offline',detail:'VNNOX confirmó el Taurus fuera de línea. Verificado: '+new Date(checked).toLocaleString('es-AR')};
+      return {label:'Sin información',cls:'nw-connection-unknown',detail:'No se pudo interpretar la respuesta de VNNOX.'};
+    }
     const fresh=linked.some(x=>{
       const last=Date.parse(x.ultima_conexion||'');
       return Number.isFinite(last)&&last<=now&&now-last<=10*60*1000&&String(x.estado||'').toLowerCase()==='online';
