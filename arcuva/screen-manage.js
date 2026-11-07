@@ -16,8 +16,8 @@ function field(label,id,type='text',value='',extra=''){
 function select(label,id,opts,val){
  return '<div class="admin-field"><label for="'+id+'">'+esc(label)+'</label><select id="'+id+'">'+opts.map(([v,l])=>'<option value="'+esc(v)+'" '+(v===val?'selected':'')+'>'+esc(l)+'</option>').join('')+'</select></div>';
 }
-function close(){
- if(busy)return;
+function close(force=false){
+ if(busy&&!force)return;
  const root=$('screenManageModal');
  if(root)root.replaceChildren();
 }
@@ -28,7 +28,7 @@ function modal(title,html,save){
   '<div class="dialog-actions"><button type="button" class="secondary" data-screen-cancel>Cancelar</button><button class="primary" type="submit" id="screenManageSave">Guardar cambios</button></div></form></div></div>';
  root.querySelectorAll('[data-screen-cancel]').forEach(b=>b.addEventListener('click',close));
  $('screenManageForm').addEventListener('submit',async e=>{e.preventDefault();if(busy)return;busy=true;$('screenManageSave').disabled=true;
- try{await save();close();await base.reload();}
+ try{await save();close(true);await base.reload();}
  catch(err){const m=$('screenManageMessage');if(m){m.textContent=err?.message||'No se pudo guardar.';m.classList.remove('hidden');}}
  finally{busy=false;const b=$('screenManageSave');if(b)b.disabled=false;}
  });
@@ -97,7 +97,7 @@ async function edit(id){
   if(!allowed())throw Error('No tenés permiso de administración.');
   const {screen:patch,player:info}=readData();
   if(player&&!info.tipo)throw Error('El reproductor existente no se puede eliminar desde este formulario.');
-  if(player&&info.tipo!==player.tipo&&!confirm('Vas a cambiar el tipo de un reproductor existente. ¿Confirmás que no hay publicaciones en curso?'))return;
+  if(player&&info.tipo!==player.tipo&&!confirm('Vas a cambiar el tipo de un reproductor existente. ¿Confirmás que no hay publicaciones en curso?'))throw Error('Cambio de reproductor cancelado.');
   const {data,error:updateError}=await db.from('pantallas').update(patch).eq('id',id).eq('empresa_id',COMPANY).select('id');
   if(updateError)throw updateError;
   if(data?.length!==1)throw Error('No se confirmó la edición de pantalla.');
