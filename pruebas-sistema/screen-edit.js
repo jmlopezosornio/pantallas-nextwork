@@ -37,10 +37,18 @@
     };
   }
 
-  window.openScreenEdit = function(screenId){
+  window.openScreenEdit = async function(screenId){
     if(!(isAdmin() || isSuperAdmin())) return;
     const p = cachePantallas.find(x => x.id === screenId);
     if(!p) return;
+    const {data:linkedPlayer,error:readError}=await sb.from('players')
+      .select('id,tipo,proveedor,vnnox_player_id,vnnox_sn')
+      .eq('pantalla_id',screenId).maybeSingle();
+    if(readError){alert('No se pudo consultar el reproductor: '+readError.message);return;}
+    const tipo=linkedPlayer?.tipo||'';
+    const playerOptions=[['','Sin vincular'],['novastar_taurus','NovaStar Taurus / VNNOX'],
+      ['windows','PC Windows'],['raspberry','Raspberry Pi']]
+      .map(([value,label])=>'<option value="'+value+'" '+(value===tipo?'selected':'')+'>'+label+'</option>').join('');
     $('modalRoot').innerHTML = `
       <div class="modal-backdrop" onclick="if(event.target===this) closeModal()">
         <div class="modal" style="max-width:680px">
@@ -52,11 +60,24 @@
             <div class="field"><label>Alto de pantalla (px)</label><input id="screenEditAlto" type="number" min="1" value="${Number(p.alto || 0)}"></div>
             <div class="field"><label>Hora de encendido</label><input id="screenEditHoraInicio" type="time" value="${p.hora_inicio?.slice(0,5) || '06:00'}"></div>
             <div class="field"><label>Hora de apagado</label><input id="screenEditHoraFin" type="time" value="${p.hora_fin?.slice(0,5) || '01:00'}"></div>
+            <div class="field full"><label>Tipo de reproductor</label><select id="screenEditPlayerTipo" onchange="screenEditPlayerChange()">${playerOptions}</select></div>
+            <div class="field full" id="screenEditTaurusFields" style="display:${tipo==='novastar_taurus'?'block':'none'}">
+              <div class="form-grid">
+                <div class="field"><label>ID de reproductor en VNNOX</label><input id="screenEditVnnoxId" value="${escapeHtml(linkedPlayer?.vnnox_player_id||'')}" placeholder="ID de VNNOX"></div>
+                <div class="field"><label>Número de serie del Taurus (SN)</label><input id="screenEditVnnoxSn" value="${escapeHtml(linkedPlayer?.vnnox_sn||'')}" placeholder="Opcional"></div>
+              </div>
+              <div class="small">El vínculo no inicia automáticamente la publicación de campañas.</div>
+            </div>
           </div>
           <div class="content-box" style="margin-top:8px"><strong>Importante</strong><div class="small" style="margin-top:6px">La resolución configurada en NextWork se usa para administrar y validar contenido. No modifica automáticamente el mapeo físico de la controladora LED.</div></div>
           <div class="actions"><button class="btn btn-ghost" onclick="openScreenDetail('${p.id}')">Cancelar</button><button class="btn btn-primary" onclick="saveScreenEdit('${p.id}')">Guardar cambios</button></div>
         </div>
       </div>`;
+    window.__nextworkEditingPlayer={screenId,playerId:linkedPlayer?.id||null,originalTipo:tipo};
+  };
+  window.screenEditPlayerChange=function(){
+    const box=$('screenEditTaurusFields');
+    if(box)box.style.display=$('screenEditPlayerTipo')?.value==='novastar_taurus'?'block':'none';
   };
 
   window.saveScreenEdit = async function(screenId){
@@ -70,8 +91,31 @@
     if(!nombre){ alert('Debés ingresar un nombre para la pantalla.'); return; }
     if(!Number.isInteger(ancho) || ancho <= 0){ alert('El ancho de pantalla no es válido.'); return; }
     if(!Number.isInteger(alto) || alto <= 0){ alert('El alto de pantalla no es válido.'); return; }
+    const tipo=$('screenEditPlayerTipo')?.value||'';
+    const vnnoxId=$('screenEditVnnoxId')?.value.trim()||'';
+    const vnnoxSn=$('screenEditVnnoxSn')?.value.trim()||'';
+    const linked=window.__nextworkEditingPlayer;
+    if(!linked||linked.screenId!==screenId){alert('Volvé a abrir el formulario de configuración.');return;}
+    if(!tipo&&linked.playerId){alert('Esta pantalla ya tiene un reproductor. Para desvincularlo se necesita una operación separada.');return;}
+    if(tipo==='novastar_taurus'&&(!vnnoxId||vnnoxId.length>128)){
+      alert('Ingresá el ID de reproductor en VNNOX para vincular este Taurus.');return;
+    }
+    if(linked.playerId&&linked.originalTipo!==tipo&&
+       !confirm('Vas a cambiar el tipo de un reproductor ya vinculado. Confirmá que no esté siendo utilizado para publicar campañas. ¿Continuar?'))return;
     const { error } = await sb.from('pantallas').update({ nombre, ubicacion, ancho, alto, hora_inicio, hora_fin }).eq('id', screenId);
     if(error){ console.error(error); alert('No se pudo actualizar la pantalla:\n' + error.message); return; }
+    if(tipo){
+      const payload={tipo,proveedor:tipo==='novastar_taurus'?'vnnox':null,
+        vnnox_player_id:tipo==='novastar_taurus'?vnnoxId:null,
+        vnnox_sn:tipo==='novastar_taurus'?(vnnoxSn||null):null};
+      const result=linked.playerId
+        ?await sb.from('players').update(payload).eq('id',linked.playerId).eq('pantalla_id',screenId)
+        :await sb.from('players').insert({pantalla_id:screenId,estado:'offline',...payload});
+      if(result.error){
+        alert('La pantalla se actualizó, pero NO se pudo vincular el reproductor: '+result.error.message);
+        await loadPantallas();return;
+      }
+    }
     await loadPantallas();
     await loadDashboard();
     window.openScreenDetail(screenId);
