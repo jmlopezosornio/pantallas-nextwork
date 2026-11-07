@@ -39,13 +39,40 @@ function playerInputs(player){
  '<div class="admin-field full" id="screenVnnoxFields"><div class="admin-grid">'+
  field('ID del reproductor VNNOX','screenVnnoxId','text',player?.vnnox_player_id||'','maxlength="128"')+
  field('Número de serie del Taurus (SN)','screenVnnoxSn','text',player?.vnnox_sn||'','maxlength="128"')+
- '</div><small>Podés completar estos datos más adelante. El vínculo no publica campañas ni modifica el Taurus.</small></div>';
+ '</div><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px">'+
+ '<button type="button" class="secondary" id="screenVerifyVnnox">Verificar en VNNOX</button>'+
+ '<span id="screenVnnoxResult" class="tiny" role="status">Identificación pendiente de verificar.</span></div>'+
+ '<small>La verificación consulta VNNOX sin modificar el Taurus ni enviar publicidad. Guardá los cambios después de confirmar su identidad.</small></div>';
 }
 function bindPlayerVisibility(){
  const s=$('screenPlayerType'),group=$('screenVnnoxFields');
  if(!s||!group)return;
  const update=()=>group.style.display=s.value==='novastar_taurus'?'block':'none';
  s.addEventListener('change',update);update();
+}
+function bindVnnoxVerify(screenId){
+ const btn=$('screenVerifyVnnox');
+ if(!btn)return;
+ btn.addEventListener('click',async()=>{
+  if(!screenId){$('screenVnnoxResult').textContent='Primero creá la pantalla y después verificá su Taurus desde Editar.';return;}
+  const serial=$('screenVnnoxSn')?.value.trim();
+  if(!serial){$('screenVnnoxResult').textContent='Ingresá el número de serie (SN) del equipo.';return;}
+  btn.disabled=true;
+  const note=$('screenVnnoxResult');note.textContent='Buscando el número de serie en VNNOX…';
+  try{
+    const {data,error}=await db.functions.invoke('vnnox-lookup-screen',{body:{screenId,serial}});
+    if(error||!data?.ok)throw Error(data?.error||error?.message||'VNNOX no confirmó el equipo.');
+    if(String(data.sn||'').toUpperCase()!==serial.toUpperCase())throw Error('El número de serie no coincide.');
+    const current=$('screenVnnoxId')?.value.trim()||'';
+    if(current&&current!==data.playerId){
+      const accepted=window.confirm('El identificador que ingresaste no coincide con el ID interno de VNNOX.\\n\\nActual: '+current+'\\nVNNOX: '+data.playerId+'\\n\\n¿Reemplazarlo por el ID verificado?');
+      if(!accepted){note.textContent='No se cambió el identificador. Revisá la vinculación antes de publicar.';return;}
+    }
+    $('screenVnnoxId').value=data.playerId;
+    note.textContent='VNNOX confirmado: '+(data.name||serial)+' · '+(data.onlineStatus===1?'En línea':data.onlineStatus===0?'Fuera de línea':'Estado no informado')+'. Guardá los cambios para registrar el ID.';
+  }catch(err){note.textContent='No se pudo verificar: '+(err.message||err);}
+  finally{btn.disabled=false;}
+ });
 }
 function screenInputs(screen){
  return '<div class="admin-field full">'+field('Nombre de pantalla *','screenName','text',screen?.nombre||'','required maxlength="150"')+'</div>'+
@@ -104,6 +131,7 @@ async function edit(id){
   await linkPlayer(id,player,info);
  });
  bindPlayerVisibility();
+ bindVnnoxVerify(id);
 }
 async function add(){
  if(!allowed())return;
@@ -128,6 +156,7 @@ async function add(){
   await linkPlayer(id,null,player);
  });
  bindPlayerVisibility();
+ bindVnnoxVerify(null);
 }
 $('addArcuvaScreen')?.addEventListener('click',add);
 window.ArcuvaScreenManage=Object.freeze({edit,add});
