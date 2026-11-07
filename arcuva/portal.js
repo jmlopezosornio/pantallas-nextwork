@@ -19,8 +19,9 @@
     $('loginError').classList.add('hidden');$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');
     $('userName').textContent=profile.nombre||profile.email||'Usuario';
     const superadmin=profile.es_superadmin===true;
+    const screenManager=superadmin||(profile.empresa_id===COMPANY_ID&&profile.rol==='administrador');
     $('superadminUsersNav')?.classList.toggle('hidden',!superadmin);
-    $('superadminScreenTools')?.classList.toggle('hidden',!superadmin);
+    $('superadminScreenTools')?.classList.toggle('hidden',!screenManager);
     showPage('resumen');
   }
   function showPage(page){
@@ -58,7 +59,7 @@
     if(!profile)return;
     const current=++epoch;
     const {data:screens,error:err}=await db.from('pantallas')
-      .select('id,nombre,ubicacion,ancho,alto,empresa_id,activo')
+      .select('id,nombre,ubicacion,ancho,alto,hora_inicio,hora_fin,licencia_estado,licencia_hasta,empresa_id,activo')
       .eq('empresa_id',COMPANY_ID).eq('activo',true).order('nombre');
     if(current!==epoch||!profile)return;
     if(err){for(const id of ['dashScreenList','screenTable','campaignTable','clientTable','reportTable']) { const el=$(id); if(el) el.innerHTML=empty('No se pudieron leer las pantallas: '+err.message); } return;}
@@ -173,12 +174,17 @@
     return {label:'Fuera de línea',cls:'nw-connection-offline',detail:last?'Última comunicación registrada: '+new Date(last).toLocaleString('es-AR')+'.':'No hay comunicaciones registradas del reproductor.'};
   }
   function renderScreens(){
+    const admin=profile&&(profile.es_superadmin===true||(profile.empresa_id===COMPANY_ID&&profile.rol==='administrador'));
+    const cols=['Pantalla','Ubicación','Resolución','Conexión',...(admin?['Administrar']:[])];
     $('screenTable').innerHTML=model.screens.length
-      ?renderTable(['Pantalla','Ubicación','Resolución','Conexión'],model.screens.map(p=>{
+      ?renderTable(cols,model.screens.map(p=>{
         const c=screenConnection(p);
-        return '<tr><td><strong>'+escapeHtml(p.nombre)+'</strong></td><td>'+escapeHtml(p.ubicacion||'—')+'</td><td>'+escapeHtml(p.ancho)+' × '+escapeHtml(p.alto)+'</td><td><span class="nw-connection-status '+c.cls+'" title="'+escapeHtml(c.detail)+'">'+escapeHtml(c.label)+'</span></td></tr>';
+        return '<tr><td><strong>'+escapeHtml(p.nombre)+'</strong></td><td>'+escapeHtml(p.ubicacion||'—')+'</td><td>'+escapeHtml(p.ancho)+' × '+escapeHtml(p.alto)+'</td><td><span class="nw-connection-status '+c.cls+'" title="'+escapeHtml(c.detail)+'">'+escapeHtml(c.label)+'</span></td>'+
+          (admin?'<td><button type="button" class="secondary small-btn" data-edit-screen="'+escapeHtml(p.id)+'">Editar</button></td>':'')+'</tr>';
       }))
       :empty('Todavía no hay pantallas registradas a nombre de Arcuva.');
+    if(admin)$('screenTable').querySelectorAll('[data-edit-screen]').forEach(btn=>
+      btn.addEventListener('click',()=>window.ArcuvaScreenManage?.edit(btn.dataset.editScreen)));
   }
   function render(){
     renderScreens();
