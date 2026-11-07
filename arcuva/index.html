@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,follow">
+  <title>Arcuva | NextWork — Gestión de Pantallas</title>
+  <link rel="stylesheet" href="./portal.css?v=15">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="./portal.js?v=11"></script>
+  <script defer src="./portal-admin.js?v=7"></script>
+  <script defer src="./dashboard-operativo.js?v=4"></script>
+  <script defer src="./reports-empresa.js?v=5"></script>
+  <script defer src="./superadmin-usuarios.js?v=1"></script>
+  <link rel="stylesheet" href="./portal-admin.css?v=4">
+</head>
+<body>
+  <section id="loginView" class="login">
+    <div class="login-art">
+      <div class="nw-logo"><span class="nw-logo-tile"><img src="https://qkstdmskuiclbcrncfun.supabase.co/storage/v1/object/public/company-branding/495cbc84-dbe3-44a3-9acc-b7df8fca6d94/logo-1793714055639.png" alt="NextWork"></span><span class="nw-logo-label">PLATAFORMA DE PANTALLAS</span></div>
+      <div>
+        <h1>Tu publicidad.<br>Tu espacio.</h1>
+        <p>Un acceso independiente para administrar las pantallas, campañas y clientes de Arcuva.</p>
+      </div>
+      <small>Portal corporativo · Arcuva</small>
+    </div>
+    <div class="login-area">
+      <form class="login-form" id="loginForm">
+        <img class="company-logo" id="loginLogo" alt="Arcuva">
+        <h2>Bienvenido a Arcuva</h2>
+        <p class="lead">Ingresá con una cuenta activa de Arcuva.</p>
+        <div class="field">
+          <label for="loginEmail">Correo electrónico</label>
+          <input id="loginEmail" type="email" required autocomplete="username" placeholder="usuario@empresa.com.ar">
+        </div>
+        <div class="field">
+          <label for="loginPassword">Contraseña</label>
+          <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Tu contraseña">
+        </div>
+        <div id="loginError" role="alert" class="message error hidden"></div>
+        <button class="primary login-button" type="submit" id="loginBtn">Ingresar</button>
+        
+      </form>
+    </div>
+  </section>
+
+  <section id="appView" class="shell hidden">
+    <aside class="sidebar">
+      <div class="brand-card"><img id="sidebarLogo" alt="Arcuva"></div>
+      <div class="powered-card" aria-label="Desarrollado por NextWork">
+        <span class="powered-label">Powered<br>by</span>
+        <span class="powered-divider" aria-hidden="true"></span>
+        <img class="powered-logo" src="https://qkstdmskuiclbcrncfun.supabase.co/storage/v1/object/public/company-branding/495cbc84-dbe3-44a3-9acc-b7df8fca6d94/logo-1793714055639.png" alt="NextWork">
+      </div>
+      <nav aria-label="Menú principal">
+        <div class="nav-title">Menú principal</div>
+        <button type="button" class="nav active" data-page="resumen">Dashboard</button>
+        <button type="button" class="nav" data-page="pantallas">Pantallas</button>
+        <button type="button" class="nav" data-page="campanias">Campañas</button>
+        <button type="button" class="nav" data-page="clientes">Clientes</button>
+        <button type="button" class="nav" data-page="reportes">Reportes</button>
+        <button type="button" class="nav hidden" id="superadminUsersNav" data-page="usuarios">Usuarios</button>
+      </nav>
+      
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div><strong id="pageTitle">Dashboard</strong><div class="subtitle">Arcuva · Plataforma de pantallas LED</div></div>
+        <div class="userarea">
+          
+          <span id="userName" class="user-name"></span>
+          <button id="logoutBtn" class="secondary" type="button">Salir</button>
+        </div>
+      </header>
+      <main class="workspace">
+        <section id="page-resumen" class="nw-dashboard">
+          <div class="nw-dash-heading">
+            <div><span class="kicker">Centro de control</span><h2>Dashboard · Arcuva</h2><p class="lead">Resumen operativo de pantallas, campañas y reproducciones registradas.</p></div>
+            <div class="nw-period-box"><label for="nwDashFrom">Período</label><input type="date" id="nwDashFrom" aria-label="Fecha desde"><span>al</span><input type="date" id="nwDashTo" aria-label="Fecha hasta"></div>
+          </div>
+          <div class="nw-dash-filters">
+            <label>Ciudad<select id="nwDashCity"><option value="">Todas las ciudades</option></select></label>
+            <label>Cliente<select id="nwDashClient"><option value="">Todos</option></select></label>
+            <label>Campaña<select id="nwDashCampaign"><option value="">Todas</option></select></label>
+            <button class="secondary" type="button" id="nwDashRefresh">Actualizar</button>
+          </div>
+          <div class="nw-metric-layout">
+            <div class="nw-metrics">
+              <div class="nw-kpi"><span class="nw-kpi-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></svg></span><strong id="nwKpiScreens">—</strong><span>Elementos</span></div>
+              <div class="nw-kpi"><span class="nw-kpi-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4z"/></svg></span><strong id="nwKpiCampaigns">—</strong><span>Campañas</span></div>
+              <div class="nw-kpi nw-kpi-green"><span class="nw-kpi-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 5 11 7-11 7z"/></svg></span><strong id="nwKpiActive">—</strong><span>Activas</span></div>
+              <div class="nw-kpi"><span class="nw-kpi-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><strong id="nwKpiClients">—</strong><span>Clientes</span></div>
+              <div class="nw-kpi nw-kpi-purple"><span class="nw-kpi-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4m-4 6h4m10-6h4m-4 6h4"/><path d="m10 9 4 3-4 3z"/></svg></span><strong id="nwKpiPlays">—</strong><span>Salidas registradas</span></div>
+            </div>
+            <div class="nw-connectivity">
+              <div class="nw-online"><span class="nw-connection-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/><path d="m9 10 2 2 4-4"/></svg></span><strong id="nwKpiOnline">—</strong><span>En línea</span></div>
+              <div class="nw-offline"><span class="nw-connection-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/><path d="m9 9 6 6m0-6-6 6"/></svg></span><strong id="nwKpiOffline">—</strong><span>Sin conexión reciente</span></div>
+            </div>
+          </div>
+          <p id="nwDashNotice" class="nw-dash-notice" aria-live="polite">Consultando los datos de Arcuva…</p>
+          <div class="nw-charts">
+            <div class="panel nw-analytics-panel"><h3>Campañas por estado</h3><div id="nwStatusChart" class="nw-chart-slot">Consultando campañas…</div></div>
+            <div class="panel nw-analytics-panel"><h3>Salidas por elemento</h3><div id="nwScreenChart" class="nw-chart-slot">Consultando reproducciones…</div></div>
+            <div class="panel nw-analytics-panel"><h3>Salidas diarias del período</h3><div id="nwDailyChart" class="nw-chart-slot">Consultando reproducciones…</div></div>
+          </div>
+          <div class="nw-bottom-charts">
+            <div class="panel nw-analytics-panel">
+              <h3>Elementos por ciudad</h3>
+              <p class="tiny">Campañas activas asignadas y promedio diario de salidas en días con reproducciones registradas.</p>
+              <div id="nwElementsTable" class="nw-table-holder">Consultando elementos…</div>
+              <div id="nwElementsPager" class="nw-table-pager"></div>
+            </div>
+            <div class="panel nw-analytics-panel">
+              <h3>Elementos por salidas · de mayor a menor</h3>
+              <p class="tiny">Ranking según reproducciones registradas en el período seleccionado.</p>
+              <div id="nwRankingChart" class="nw-chart-slot">Consultando ranking…</div>
+            </div>
+          </div>
+          <p class="nw-dash-method">Las salidas corresponden únicamente a reproducciones registradas por los equipos. Una campaña asignada no equivale a una reproducción confirmada. El estado de conexión se basa en comunicaciones recientes del reproductor.</p>
+        </section>
+
+        <section id="page-pantallas" class="hidden">
+          <div class="page-top">
+            <div><span class="kicker">Inventario</span><h2>Pantallas</h2><p class="lead">Pantallas cuyo propietario es Arcuva.</p></div>
+            <button type="button" id="refreshBtn" class="secondary">Actualizar</button>
+          </div>
+          <div id="superadminScreenTools" class="panel hidden superadmin-tools"><strong>Administración avanzada de pantallas</strong><p class="lead">Para agregar, editar, asignar o dar de baja pantallas, utilizá el panel central de NextWork. Este portal muestra solamente las pantallas de Arcuva.</p><a class="primary superadmin-link" href="https://pantallas.nextwork.com.ar/pruebas-sistema/" target="_blank" rel="noopener noreferrer">Administrar pantallas en NextWork</a></div>
+          <div class="panel" id="screenTable"><div class="empty">Cargando pantallas…</div></div>
+        </section>
+
+        <section id="page-campanias" class="hidden">
+          <div class="campaign-shell">
+            <div class="campaign-header">
+              <div><h2>Campañas</h2><p>Vista compacta por vigencia, estado y pantallas asignadas.</p></div>
+              <button type="button" class="primary hidden" id="addCampaignBtn">+ Nueva campaña</button>
+            </div>
+            <div class="campaign-filter-row">
+              <input class="search" type="search" id="campaignSearch" placeholder="Buscar campaña, cliente o pantalla" aria-label="Buscar campañas">
+              <select id="campaignTypeFilter" aria-label="Filtrar tipo de contenido"><option value="">Todos los contenidos</option><option value="video">Video</option><option value="imagen">Imagen</option><option value="web">Web</option></select>
+              <select id="campaignScreenFilter" aria-label="Filtrar pantalla"><option value="">Todas las pantallas</option></select>
+            </div>
+            <div class="campaign-status-tabs" id="campaignTabs" role="group" aria-label="Estado de campaña">
+              <button type="button" class="campaign-tab" data-campaign-tab="todas">Todas <span class="tab-count">0</span></button>
+              <button type="button" class="campaign-tab active" data-campaign-tab="vigentes">Vigentes <span class="tab-count">0</span></button>
+              <button type="button" class="campaign-tab" data-campaign-tab="futuras">Futuras <span class="tab-count">0</span></button>
+              <button type="button" class="campaign-tab" data-campaign-tab="pasadas">Pasadas <span class="tab-count">0</span></button>
+              <button type="button" class="campaign-tab" data-campaign-tab="pausadas">Pausadas <span class="tab-count">0</span></button>
+            </div>
+            <div class="campaign-list-info"><span id="campaignListCount"></span><span>Las campañas eliminadas se conservan en el historial, pero no se muestran aquí.</span></div>
+            <div id="campaignTable"><div class="empty">Cargando campañas…</div></div>
+          </div>
+        </section>
+
+        <section id="page-clientes" class="hidden">
+          <div class="page-top"><div><span class="kicker">Cartera</span><h2>Clientes</h2><p class="lead">Clientes registrados de Arcuva.</p></div><button type="button" class="primary hidden" id="addClientBtn">+ Nuevo cliente</button></div>
+          <div id="clientTable" class="panel"><div class="empty">Cargando clientes…</div></div>
+        </section>
+
+        <section id="page-usuarios" class="hidden">
+          <div class="page-top"><div><span class="kicker">Acceso Superadmin</span><h2>Usuarios</h2><p class="lead">Administración general de cuentas, roles, empresas y accesos a pantallas.</p></div></div>
+          <div class="panel superadmin-tools">
+            <div class="page-top"><div><h3>Usuarios y asignaciones</h3><p class="lead">Vista directa de las cuentas, empresas, roles y grupos asignados.</p></div><button type="button" class="secondary" id="refreshSuperUsers">Actualizar</button></div>
+            <div id="superUsersInfo" class="tiny">Cargando usuarios…</div>
+            <div id="superUsersTable" class="scroll"><div class="empty">Esperando sesión Superadmin…</div></div>
+          </div>
+        </section>
+        <section id="page-reportes" class="hidden">
+          <div class="rpt-shell">
+            <div class="rpt-head">
+              <div><h2>Reporte de Clientes y Campañas</h2>
+                <p>Listado de campañas y reproducciones registradas por cliente, período y pantalla.</p>
+              </div>
+              <div class="rpt-actions">
+                <button class="secondary" type="button" id="rptReset">Limpiar filtros</button>
+                <button class="primary" type="button" id="rptPrint">Imprimir / PDF</button>
+              </div>
+            </div>
+            <div class="rpt-filterbox">
+              <div class="rpt-period">
+                <strong>Período:</strong>
+                <button type="button" data-rpt-mode="general" class="rpt-mode active">General</button>
+                <button type="button" data-rpt-mode="fechas" class="rpt-mode">Entre fechas</button>
+                <div class="rpt-date" data-rpt-date hidden><label for="rptDesde">Desde</label><input id="rptDesde" type="date"></div>
+                <div class="rpt-date" data-rpt-date hidden><label for="rptHasta">Hasta</label><input id="rptHasta" type="date"></div>
+              </div>
+              <div class="rpt-filters">
+                <div><label for="rptCliente">Cliente</label><select id="rptCliente"><option value="">Todos</option></select></div>
+                <div><label for="rptCampania">Campaña</label><select id="rptCampania"><option value="">Todas</option></select></div>
+                <div><label for="rptPantalla">Pantalla</label><select id="rptPantalla"><option value="">Todas</option></select></div>
+                <div><label for="rptEstado">Estado</label><select id="rptEstado"><option value="vigentes">Activas y pausadas</option><option value="todas">Todas</option><option value="activa">Activas</option><option value="finalizada">Finalizadas</option><option value="pausada">Pausadas</option><option value="eliminada">Eliminadas</option></select></div>
+              </div>
+            </div>
+            <div class="rpt-summary"><span id="rptSummary">Preparando reporte…</span><strong id="rptCount"></strong></div><div class="rpt-plays-info" id="rptPlaysInfo" aria-live="polite">Seleccioná «Entre fechas» para consultar salidas registradas.</div>
+            <div class="rpt-scroll"><table class="rpt-table"><thead><tr><th>Cliente</th><th>Campaña</th><th>Vigencia</th><th>Pantallas</th><th>% Salidas</th><th>Salidas registradas</th></tr></thead><tbody id="rptBody"><tr><td colspan="6" class="rpt-empty">Preparando reporte…</td></tr></tbody></table></div>
+          </div>
+          <div id="reportTable" class="hidden" aria-hidden="true"></div>
+          <button id="printBtn" class="hidden" type="button" aria-hidden="true" tabindex="-1"></button>
+        </section>
+        <div class="message note-role" id="roleInfo" aria-live="polite">Verificando permisos de edición de Arcuva…</div>
+        <div class="footer">Arcuva · Desarrollado por NextWork</div>
+      </main>
+    </div>
+  </section>
+  <div id="adminModalRoot"></div>
+</body>
+</html>

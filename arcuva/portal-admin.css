@@ -1,0 +1,113 @@
+/* Administración de Arcuva: conserva intactos login, logos y colores existentes. */
+.admin-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.admin-toolbar .search{min-width:210px}
+.admin-toolbar .primary{font-size:12px;white-space:nowrap;min-height:41px}
+.small-btn{font-size:11px!important;padding:7px 10px!important}
+.action-group{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.note-role{background:#f7f9fd;border:1px solid #dce5f4;color:#5f7290}
+.role-writer{background:#edf7f2;border:1px solid #c8e6d4;color:#276745}
+#roleInfo{margin-top:17px;margin-bottom:14px}
+.admin-backdrop{position:fixed;inset:0;background:rgba(8,17,35,.72);z-index:1000;overflow:auto;padding:20px;display:flex;align-items:flex-start;justify-content:center;backdrop-filter:blur(4px)}
+.admin-dialog{background:#fff;border-radius:21px;width:min(780px,100%);max-height:calc(100vh - 40px);overflow:auto;box-shadow:0 30px 90px rgba(3,17,37,.3);padding:25px;margin:auto 0}
+.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:15px}
+.dialog-head h3{margin:0;font-size:22px;letter-spacing:-.03em;color:var(--navy)}
+.dialog-head .secondary{font-size:22px;line-height:1}
+.admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:17px}
+.admin-field{min-width:0}
+.admin-field.full{grid-column:1/-1}
+.admin-field label{display:block;font-size:12px;color:#4a5d76;font-weight:850;margin-bottom:7px}
+.admin-field input,.admin-field select{background:#fff;color:#21344f;border:1px solid #d1dceb;border-radius:11px;padding:10px 13px;min-height:44px;width:100%;max-width:100%;font:inherit;font-size:13px}
+.admin-field input:focus,.admin-field select:focus{outline:0;border-color:#7ba1c7;box-shadow:0 0 0 3px rgba(41,102,167,.11)}
+.admin-field input[type=file]{padding:11px;min-height:57px}
+.admin-field small{display:block;margin-top:8px;color:#7388a3;line-height:1.6}
+.admin-grid .tiny{line-height:1.6}
+.screen-checkbox{display:flex;gap:10px;align-items:flex-start;border:1px solid #dfe7f3;background:#f8fafd;padding:13px;border-radius:11px;margin:6px 0;font-size:12px;font-weight:750;color:#375277}
+.screen-checkbox input{width:18px!important;min-height:18px!important;height:18px;padding:0;margin:0;accent-color:var(--navy)}
+.screens-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+.frozen-screens{border-radius:11px;background:#f1f5fb;padding:12px;color:#516681;font-size:12px}
+.dialog-actions{display:flex;justify-content:flex-end;align-items:center;gap:10px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid #e8edf5}
+.dialog-error{margin-top:15px;padding:12px 14px;background:#fff0f1;color:#9b293b;border:1px solid #efbac4;border-radius:11px;font-size:12px;line-height:1.6}
+#campaignTable th,#campaignTable td{white-space:normal}
+#campaignTable td:first-child{min-width:140px}
+#campaignTable td:last-child{min-width:150px}
+@media(max-width:650px){.admin-grid{grid-template-columns:1fr}.admin-field.full{grid-column:auto}.admin-backdrop{padding:8px}.admin-dialog{max-height:calc(100vh - 16px);padding:18px}.dialog-head h3{font-size:19px}.admin-toolbar{width:100%}.admin-toolbar .search{flex:1;min-width:160px}.admin-toolbar .primary{flex:1}}
+
+/* Campañas: vista compacta heredada del sistema base. */
+.campaign-shell{background:#fff;border:1px solid #e3eaf3;border-radius:22px;padding:26px 28px;box-shadow:0 12px 36px rgba(15,35,60,.06)}
+.campaign-header{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:18px}
+.campaign-header h2{font-size:27px;color:#0b2b59;margin:0 0 5px}
+.campaign-header p{color:#6a7d96;margin:0;font-size:13px}
+.campaign-filter-row{display:grid;grid-template-columns:1.35fr .9fr 1.1fr;gap:12px;margin:17px 0}
+.campaign-filter-row input,.campaign-filter-row select{width:100%;min-width:0;border:1px solid #d8e1ed;border-radius:13px;min-height:48px;padding:10px 14px;background:#fff;color:#17243b;font:inherit;font-size:13px}
+.campaign-status-tabs{display:flex;align-items:stretch;gap:2px;flex-wrap:wrap;border-top:1px solid #e7edf6;border-bottom:1px solid #e7edf6;margin-top:15px}
+.campaign-tab{display:inline-flex;align-items:center;gap:9px;padding:16px 13px;background:#fff;border:0;border-bottom:3px solid transparent;color:#5b6f88;font-size:12px;font-weight:800;cursor:pointer}
+.campaign-tab.active{color:#5245e9;border-bottom-color:#6155ef;background:#f9f8ff}
+.campaign-tab .tab-count{min-width:23px;height:23px;padding:4px 7px;border-radius:99px;background:#e4e9f0;color:#3e526b;text-align:center;font-size:11px}
+.campaign-tab.active .tab-count{background:#6759ef;color:#fff}
+.campaign-list-info{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#72839b;font-size:12px;padding:14px 3px}
+.campaign-table-scroll{overflow-x:auto;overflow-y:visible}
+.campaign-list-table{width:100%;border-collapse:collapse;min-width:1080px;font-size:12px}
+.campaign-list-table th{background:#f6f8fb;color:#62758e;padding:14px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.03em}
+.campaign-list-table td{padding:14px 12px;border-bottom:1px solid #e8eef6;vertical-align:middle;white-space:normal;color:#17304c}
+.campaign-list-table td:nth-child(2){min-width:155px}
+.campaign-list-table tbody tr:hover{background:#f8faff}
+.campaign-list-table .campaign-date{white-space:nowrap}
+.campaign-action-cell{min-width:75px;position:relative}
+.campaign-menu-wrap{position:relative;display:inline-flex}
+.campaign-more{display:grid;place-items:center;width:40px;height:40px;background:white;color:#415c7c;border:1px solid #d8e2ef;border-radius:11px;font-size:23px;line-height:1;cursor:pointer}
+.campaign-menu{position:absolute;z-index:50;top:41px;left:0;width:146px;background:#fff;box-shadow:0 12px 32px rgba(9,27,53,.23);border:1px solid #dce5f2;border-radius:10px;padding:5px}
+.campaign-menu.hidden{display:none}
+.campaign-menu button{display:block;width:100%;text-align:left;border:0;background:white;color:#24415f;padding:9px 10px;border-radius:7px;font-weight:700;cursor:pointer;font-size:12px}
+.campaign-menu button:hover{background:#eff4fb}
+.campaign-menu button.menu-danger{color:#ab2a3e}
+.campaign-screen-chip{display:inline-block;padding:6px 9px;border-radius:99px;background:#eef1ff;color:#443ac7;font-weight:800}
+.campaign-state{display:inline-block;padding:8px 11px;border-radius:99px;font-weight:800}
+.campaign-state.state-pausadas{background:#fff2be;color:#a04607}
+.campaign-state.state-vigentes{background:#e2f7ea;color:#20744b}
+.campaign-state.state-futuras{background:#e8f1ff;color:#285fae}
+.campaign-state.state-pasadas{background:#e7ebf0;color:#57677a}
+.campaign-content{min-width:132px}
+.campaign-type-chip{display:block;background:#f0f3f7;color:#3f5673;border-radius:99px;font-size:11px;font-weight:800;padding:6px 9px;width:max-content;margin-bottom:5px}
+.campaign-media-btn{display:block;width:max-content;cursor:pointer;border:1px solid #dce3f4;border-radius:9px;background:#fff;color:#5545e8;font-size:11px;font-weight:800;text-decoration:none;padding:6px 9px;margin:4px 0}
+.campaign-preview-dialog{width:min(920px,100%)}
+.campaign-preview-box{display:grid;place-items:center;min-height:200px;background:#101e34;border-radius:12px;overflow:hidden;padding:10px}
+.campaign-preview-box video,.campaign-preview-box img{display:block;max-width:100%;max-height:70vh;object-fit:contain}
+.campaign-preview-box iframe{display:block;width:100%;min-height:60vh;border:0;background:white}
+@media(max-width:850px){.campaign-filter-row{grid-template-columns:1fr}.campaign-shell{padding:16px}.campaign-header{flex-wrap:wrap}}
+
+/* Ajuste de ancho: las nueve columnas caben sin barra horizontal. */
+#page-campanias .campaign-shell{min-width:0;padding:22px 18px}
+#page-campanias .campaign-table-scroll{width:100%;overflow:visible}
+#page-campanias .campaign-list-table{width:100%;min-width:0;max-width:100%;table-layout:fixed;font-size:11.5px}
+#page-campanias .campaign-list-table th{padding:11px 6px;font-size:9px;white-space:normal;overflow-wrap:anywhere}
+#page-campanias .campaign-list-table td{padding:11px 6px;overflow-wrap:anywhere;word-break:normal}
+#page-campanias .campaign-list-table th:nth-child(1){width:6%}
+#page-campanias .campaign-list-table th:nth-child(2){width:17%}
+#page-campanias .campaign-list-table th:nth-child(3){width:13%}
+#page-campanias .campaign-list-table th:nth-child(4){width:15%}
+#page-campanias .campaign-list-table th:nth-child(5){width:10%}
+#page-campanias .campaign-list-table th:nth-child(6){width:10%}
+#page-campanias .campaign-list-table th:nth-child(7){width:8%}
+#page-campanias .campaign-list-table th:nth-child(8){width:10%}
+#page-campanias .campaign-list-table th:nth-child(9){width:11%}
+#page-campanias .campaign-list-table td:nth-child(2){min-width:0;font-weight:800}
+#page-campanias .campaign-action-cell{min-width:0}
+#page-campanias .campaign-more{width:32px;height:34px;font-size:20px}
+#page-campanias .campaign-date{white-space:normal;font-variant-numeric:tabular-nums}
+#page-campanias .campaign-screen-chip{max-width:100%;white-space:normal;overflow-wrap:normal;border-radius:12px;padding:5px 7px;font-size:10.5px}
+#page-campanias .campaign-state{padding:6px 7px;font-size:10.5px}
+#page-campanias .campaign-content{min-width:0}
+#page-campanias .campaign-type-chip{max-width:100%;width:fit-content;border-radius:10px;padding:5px 7px;white-space:normal;overflow-wrap:anywhere;font-size:10px}
+#page-campanias .campaign-media-btn{max-width:100%;width:fit-content;padding:5px 6px;white-space:normal;font-size:10px}
+#page-campanias .campaign-menu{left:0}
+@media(max-width:1150px){
+ #page-campanias .campaign-shell{padding:16px 10px}
+ #page-campanias .campaign-list-table{font-size:10.5px}
+ #page-campanias .campaign-list-table td{padding:9px 4px}
+ #page-campanias .campaign-list-table th{padding:10px 4px;font-size:8.5px}
+}
+
+/* Separación entre casilla de selección y nombre de pantalla. */
+.screens-list .screen-checkbox{align-items:center;gap:18px}
+.screens-list .screen-checkbox input.campaign-screen{flex:0 0 18px;width:18px!important;min-width:18px!important;margin:0!important}
+.screens-list .screen-checkbox>span{display:block;flex:1;min-width:0;line-height:1.45}
