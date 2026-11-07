@@ -66,7 +66,7 @@
                 <div class="field"><label>ID de reproductor en VNNOX</label><input id="screenEditVnnoxId" value="${escapeHtml(linkedPlayer?.vnnox_player_id||'')}" placeholder="ID de VNNOX"></div>
                 <div class="field"><label>Número de serie del Taurus (SN)</label><input id="screenEditVnnoxSn" value="${escapeHtml(linkedPlayer?.vnnox_sn||'')}" placeholder="Opcional"></div>
               </div>
-              <div class="small">El vínculo no inicia automáticamente la publicación de campañas.</div>
+              <div class="small">Podés dejar el ID VNNOX pendiente y completarlo después. Sin el ID no se pueden publicar campañas por VNNOX.</div>
             </div>
           </div>
           <div class="content-box" style="margin-top:8px"><strong>Importante</strong><div class="small" style="margin-top:6px">La resolución configurada en NextWork se usa para administrar y validar contenido. No modifica automáticamente el mapeo físico de la controladora LED.</div></div>
@@ -97,8 +97,8 @@
     const linked=window.__nextworkEditingPlayer;
     if(!linked||linked.screenId!==screenId){alert('Volvé a abrir el formulario de configuración.');return;}
     if(!tipo&&linked.playerId){alert('Esta pantalla ya tiene un reproductor. Para desvincularlo se necesita una operación separada.');return;}
-    if(tipo==='novastar_taurus'&&(!vnnoxId||vnnoxId.length>128)){
-      alert('Ingresá el ID de reproductor en VNNOX para vincular este Taurus.');return;
+    if(tipo==='novastar_taurus'&&(vnnoxId.length>128||vnnoxSn.length>128)){
+      alert('El identificador VNNOX o número de serie es demasiado largo.');return;
     }
     if(linked.playerId&&linked.originalTipo!==tipo&&
        !confirm('Vas a cambiar el tipo de un reproductor ya vinculado. Confirmá que no esté siendo utilizado para publicar campañas. ¿Continuar?'))return;
@@ -106,7 +106,7 @@
     if(error){ console.error(error); alert('No se pudo actualizar la pantalla:\n' + error.message); return; }
     if(tipo){
       const payload={tipo,proveedor:tipo==='novastar_taurus'?'vnnox':null,
-        vnnox_player_id:tipo==='novastar_taurus'?vnnoxId:null,
+        vnnox_player_id:tipo==='novastar_taurus'?(vnnoxId||null):null,
         vnnox_sn:tipo==='novastar_taurus'?(vnnoxSn||null):null};
       const result=linked.playerId
         ?await sb.from('players').update(payload).eq('id',linked.playerId).eq('pantalla_id',screenId)
