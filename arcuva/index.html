@@ -7,8 +7,9 @@
   <title>Arcuva | NextWork — Gestión de Pantallas</title>
   <link rel="stylesheet" href="./portal.css?v=15">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script defer src="./portal.js?v=12"></script>
+  <script defer src="./portal.js?v=13"></script>
   <script defer src="./portal-admin.js?v=8"></script>
+  <script defer src="./screen-manage.js?v=1"></script>
   <script defer src="./dashboard-operativo.js?v=4"></script>
   <script defer src="./reports-empresa.js?v=5"></script>
   <script defer src="./superadmin-usuarios.js?v=1"></script>
@@ -125,7 +126,7 @@
             <div><span class="kicker">Inventario</span><h2>Pantallas</h2><p class="lead">Pantallas cuyo propietario es Arcuva.</p></div>
             <button type="button" id="refreshBtn" class="secondary">Actualizar</button>
           </div>
-          <div id="superadminScreenTools" class="panel hidden superadmin-tools"><strong>Administración avanzada de pantallas</strong><p class="lead">Para agregar, editar, asignar o dar de baja pantallas, utilizá el panel central de NextWork. Este portal muestra solamente las pantallas de Arcuva.</p><a class="primary superadmin-link" href="https://pantallas.nextwork.com.ar/pruebas-sistema/" target="_blank" rel="noopener noreferrer">Administrar pantallas en NextWork</a></div>
+          <div id="superadminScreenTools" class="panel hidden superadmin-tools"><div class="row" style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap"><div><strong>Administración de pantallas de Arcuva</strong><p class="lead">Agregá pantallas, editá la resolución y los horarios, o vinculá reproductores Taurus, Windows o Raspberry.</p></div><button type="button" id="addArcuvaScreen" class="primary">+ Nueva pantalla</button></div></div>
           <div class="panel" id="screenTable"><div class="empty">Cargando pantallas…</div></div>
         </section>
 
@@ -203,5 +204,6 @@
     </div>
   </section>
   <div id="adminModalRoot"></div>
+  <div id="screenManageModal"></div>
 </body>
 </html>
