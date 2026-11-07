@@ -138,7 +138,7 @@
         if(!received)return x;
         return {...x,estado:received.estado,vnnox_online_status:received.estado==='online'?1:0,
           ultima_conexion:received.estado==='online'?received.checkedAt:x.ultima_conexion,
-          actualizado_en:received.checkedAt};
+          actualizado_en:received.checkedAt,vnnox_needs_link:received.needsLink===true};
       });
       renderScreens();
       window.dispatchEvent(new Event('arcuva-data-loaded'));
@@ -160,7 +160,7 @@
       const checked=Date.parse(taurus.actualizado_en||'');
       const fresh=Number.isFinite(checked)&&checked<=now&&now-checked<=5*60*1000;
       if(!fresh)return {label:'Sin información',cls:'nw-connection-unknown',detail:'El estado de VNNOX no tiene una verificación reciente. Se intentará actualizar automáticamente.'};
-      if(taurus.vnnox_online_status===1)return {label:'En línea',cls:'nw-connection-online',detail:'VNNOX confirmó el Taurus en línea. Verificado: '+new Date(checked).toLocaleString('es-AR')};
+      if(taurus.vnnox_online_status===1)return {label:'En línea',cls:'nw-connection-online',detail:'VNNOX confirmó el Taurus en línea. Verificado: '+new Date(checked).toLocaleString('es-AR')+(taurus.vnnox_needs_link?' · IMPORTANTE: el ID VNNOX guardado no coincide con el Player ID interno. Verificalo antes de publicar.':'')};
       if(taurus.vnnox_online_status===0)return {label:'Fuera de línea',cls:'nw-connection-offline',detail:'VNNOX confirmó el Taurus fuera de línea. Verificado: '+new Date(checked).toLocaleString('es-AR')};
       return {label:'Sin información',cls:'nw-connection-unknown',detail:'No se pudo interpretar la respuesta de VNNOX.'};
     }
