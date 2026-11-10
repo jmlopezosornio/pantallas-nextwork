@@ -13,7 +13,7 @@
   <script>
     (() => {
       const stamp = Date.now().toString(36);
-      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"link","path":"./portal-admin.css"}];
+      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"link","path":"./portal-admin.css"}];
       for (const file of files) {
         const local = file.path.startsWith('./');
         const source = local ? file.path + '?nw=' + stamp : file.path;
@@ -248,6 +248,5 @@
     </div>
   </section>
   <div id="adminModalRoot"></div>
-  <script defer src="./ordenes-trabajo.js?initial=1"></script>
 </body>
 </html>
