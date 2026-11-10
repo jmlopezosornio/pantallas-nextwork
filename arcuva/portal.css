@@ -317,3 +317,33 @@ tbody tr:hover{background:#fbfcff}
 /* Reproducciones verificadas en reportes */
 .rpt-plays-info{font-size:12px;color:#345a82;background:#eff6ff;border:1px solid #d7e7f9;border-radius:9px;padding:10px 13px;margin:9px 0 13px;line-height:1.45}
 .rpt-table th:last-child,.rpt-table td:last-child{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* Inventario de pantallas Arcuva, diseño visual consistente con NextWork. */
+#page-pantallas .ar-screen-top{align-items:flex-start;margin-bottom:10px}
+#page-pantallas .ar-screen-top h2{font-size:26px;letter-spacing:-.035em;margin:0 0 6px}
+#page-pantallas .ar-screen-top .lead{margin:0;color:#7085a1;font-size:13px}
+.ar-screen-summary{margin:15px 0 0;color:#607a9b;font-size:13px;font-variant-numeric:tabular-nums}
+.ar-screen-top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+#page-pantallas .ar-screen-top-actions .primary{background:#7441ec;color:#fff;border-color:#7441ec;border-radius:13px;box-shadow:0 13px 24px rgba(100,66,206,.17);min-height:43px;font-weight:800}
+#page-pantallas .ar-screen-inventory{background:#fff;border:1px solid #e6ecf5;border-radius:15px;padding:16px 20px 22px;box-shadow:0 8px 30px rgba(14,43,79,.035)}
+.ar-screen-group{display:flex;align-items:center;gap:10px;color:#244567;font-weight:900;font-size:14px;letter-spacing:.025em;margin:3px 0 15px}
+.ar-screen-group-dot{height:12px;width:12px;border-radius:50%;background:#7448ed;box-shadow:0 0 0 6px #f0eaff;flex:none}
+.ar-screen-scroll{width:100%;overflow-x:auto}
+.ar-screen-table{width:100%;min-width:900px;border-collapse:collapse;table-layout:auto;color:#1b3555;font-size:12px}
+.ar-screen-table thead th{padding:13px 12px;color:#586f8c;background:#f3f6fa;font-size:10px;letter-spacing:.065em;text-transform:uppercase;font-weight:900;text-align:left;white-space:nowrap}
+.ar-screen-table tbody td{padding:15px 12px;border-bottom:1px solid #e7edf5;vertical-align:middle;line-height:1.35}
+.ar-screen-table tbody tr:last-child td{border-bottom:0}
+.ar-screen-name-cell{display:flex;align-items:center;gap:13px;min-width:215px}
+.ar-screen-name-cell>span:last-child{min-width:0}
+.ar-screen-name-cell strong{font-size:13px;font-weight:900;color:#0e2a4b;display:block}
+.ar-screen-name-cell small{font-size:11px;color:#6781a2;display:block;margin-top:5px}
+.ar-screen-icon{width:41px;height:41px;border-radius:12px;background:#f0ebff;color:#7549ef;display:grid;place-items:center;flex:0 0 41px}
+.ar-screen-icon svg{width:21px;height:21px}
+.ar-screen-player{display:block;color:#17365b;font-size:12px;font-weight:850}
+.ar-screen-muted{display:block;color:#8295af;font-size:11px;margin-top:5px}
+.ar-screen-res{white-space:nowrap}
+.ar-screen-last{color:#385476;white-space:nowrap;font-size:11px;font-variant-numeric:tabular-nums}
+.ar-screen-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ar-screen-actions .small-btn{border:1px solid #d7e3f3!important;background:#fff!important;color:#2b4a70!important;border-radius:9px!important;padding:7px 9px!important;min-width:0;font-size:10px!important}
+#page-pantallas .nw-connection-status{font-size:11px;padding:7px 11px}
+@media(max-width:850px){#page-pantallas .ar-screen-top{flex-direction:column;gap:14px}#page-pantallas .ar-screen-inventory{padding:14px 10px}.ar-screen-top-actions{justify-content:flex-start}}
