@@ -49,8 +49,7 @@
   setRecipientContact();
  }
  function setRecipientContact(){
-  const recipient=users.find(x=>x.id===$('otRecipient')?.value);
-  $('otEmail').value=recipient?.email||'';
+  // El destinatario se elige de usuarios; el envío se realiza solo por WhatsApp.
  }
  function detail(o){
   return [
