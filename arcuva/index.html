@@ -5,16 +5,26 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,follow">
   <title>Arcuva | NextWork — Gestión de Pantallas</title>
-  <link rel="stylesheet" href="./portal.css?v=15">
-  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script defer src="./portal.js?v=15"></script>
-  <script defer src="./portal-admin.js?v=9"></script>
-  <script defer src="./screen-manage.js?v=2"></script>
-  <script defer src="./taurus-diagnostic.js?v=2"></script>
-  <script defer src="./dashboard-operativo.js?v=4"></script>
-  <script defer src="./reports-empresa.js?v=5"></script>
-  <script defer src="./superadmin-usuarios.js?v=1"></script>
-  <link rel="stylesheet" href="./portal-admin.css?v=5">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <!-- Cargar scripts y estilos de cada apertura sin caché de versiones anteriores.
+       GitHub Pages no permite controlar directamente los headers HTTP del HTML. -->
+  <script>
+    (() => {
+      const stamp = Date.now().toString(36);
+      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./screen-manage.js"},{"tag":"script","path":"./taurus-diagnostic.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"link","path":"./portal-admin.css"}];
+      for (const file of files) {
+        const local = file.path.startsWith('./');
+        const source = local ? file.path + '?nw=' + stamp : file.path;
+        if (file.tag === 'link') {
+          document.write('<link rel="stylesheet" href="' + source + '">');
+        } else {
+          document.write('<scr' + 'ipt defer src="' + source + '"></scr' + 'ipt>');
+        }
+      }
+    })();
+  </script>
 </head>
 <body>
   <section id="loginView" class="login">
