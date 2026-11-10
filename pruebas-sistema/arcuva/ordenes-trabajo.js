@@ -125,7 +125,7 @@
     db.from('ordenes_trabajo')
      .select('id,empresa_id,pantalla_id,pantalla_ids,creada_en,fecha_solicitud,fecha_alta,fecha_baja,tipo_solicitud,porcentaje_reproduccion,destinatario_usuario_id,titulo,descripcion,ubicacion,tecnico,destinatario,email_destino,telefono_destino,estado,observaciones')
      .eq('empresa_id',company).order('creada_en',{ascending:false}).limit(200),
-    db.from('usuarios').select('id,nombre,email,empresa_id,activo').eq('empresa_id',company).eq('activo',true).order('nombre')
+    db.rpc('arcuva_destinatarios_ordenes_trabajo')
    ]);
    if(error)throw error;
    if(userError)throw new Error('No se pudieron consultar los usuarios de Arcuva: '+userError.message);
