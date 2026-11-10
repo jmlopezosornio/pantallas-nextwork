@@ -71,6 +71,7 @@
         <button type="button" class="nav" data-page="campanias">Campañas</button>
         <button type="button" class="nav" data-page="clientes">Clientes</button>
         <button type="button" class="nav" data-page="reportes">Reportes</button>
+        <button type="button" class="nav" data-page="ordenes">Órdenes de trabajo</button>
         <button type="button" class="nav hidden" id="superadminUsersNav" data-page="usuarios">Usuarios</button>
       </nav>
       
@@ -177,6 +178,38 @@
             <div id="superUsersTable" class="scroll"><div class="empty">Esperando sesión Superadmin…</div></div>
           </div>
         </section>
+        <section id="page-ordenes" class="hidden">
+          <div class="ot-heading">
+            <div><span class="kicker">Mantenimiento y servicio</span><h2>Órdenes de trabajo</h2><p class="lead">Prepará, registrá y compartí solicitudes técnicas de las pantallas de Arcuva.</p></div>
+            <button type="button" id="otRefresh" class="secondary">Actualizar órdenes</button>
+          </div>
+          <div class="ot-panel">
+            <div class="ot-panel-title"><h3>Nueva orden de trabajo</h3><span>Los campos con * son obligatorios</span></div>
+            <form id="otForm">
+              <div class="ot-fields">
+                <label>Pantalla<select id="otScreen"><option value="">Sin pantalla específica</option></select></label>
+                <label>Prioridad<select id="otPriority"><option value="normal">Normal</option><option value="baja">Baja</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select></label>
+                <label class="ot-wide">Trabajo solicitado *<input id="otTitle" required maxlength="160" placeholder="Ej.: Revisión de módulos LED"></label>
+                <label class="ot-wide">Descripción de la tarea *<textarea id="otDescription" required rows="4" maxlength="5000" placeholder="Describí las tareas a realizar, los síntomas, materiales y comprobaciones necesarias"></textarea></label>
+                <label>Ubicación de la intervención<input id="otPlace" maxlength="240" placeholder="Dirección o localidad"></label>
+                <label>Fecha programada<input id="otDate" type="date"></label>
+                <label>Técnico / responsable<input id="otTechnician" maxlength="150" placeholder="Nombre del técnico o empresa"></label>
+                <label>Destinatario<input id="otRecipient" maxlength="150" placeholder="Persona a quien se dirige"></label>
+                <label>Correo de destino<input id="otEmail" type="email" maxlength="254" placeholder="tecnico@empresa.com.ar"></label>
+                <label>WhatsApp con código internacional<input id="otPhone" type="tel" maxlength="25" placeholder="+54 9 299 ..."></label>
+                <label class="ot-wide">Observaciones<textarea id="otNotes" rows="2" maxlength="3000" placeholder="Indicaciones adicionales, horarios de acceso, contacto del lugar..."></textarea></label>
+              </div>
+              <p class="ot-help">Las órdenes se guardan primero en NextWork. Los botones Correo y WhatsApp abren el mensaje listo para enviarlo desde tu aplicación; no se envía automáticamente.</p>
+              <div id="otMessage" class="ot-message" role="status" aria-live="polite"></div>
+              <div class="ot-form-actions"><button type="button" id="otReset" class="secondary">Limpiar</button><button type="submit" id="otSave" class="primary">Guardar orden</button></div>
+            </form>
+          </div>
+          <div class="ot-panel">
+            <div class="ot-panel-title"><h3>Órdenes registradas</h3><span>Historial de Arcuva</span></div>
+            <div id="otList"><div class="ot-empty">Cargando órdenes…</div></div>
+          </div>
+          <div id="otPreview"></div>
+        </section>
         <section id="page-reportes" class="hidden">
           <div class="rpt-shell">
             <div class="rpt-head">
@@ -215,5 +248,6 @@
     </div>
   </section>
   <div id="adminModalRoot"></div>
+  <script defer src="./ordenes-trabajo.js?initial=1"></script>
 </body>
 </html>
