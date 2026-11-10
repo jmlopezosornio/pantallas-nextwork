@@ -137,44 +137,63 @@
   finally{loading=false;}
  }
  async function save(ev){
-  ev.preventDefault();
-  if(!canWrite())return message('Tu usuario no tiene permisos para crear órdenes.',true);
-  const ids=selectedScreens(),description=$('otDescription').value.trim();
-  const tipo=document.querySelector('input[name="otType"]:checked')?.value||'alta';
-  const porcentaje=Number($('otPercent').value);
-  const destinatarioId=$('otRecipient').value;
-  const recipient=users.find(x=>x.id===destinatarioId);
-  const alta=$('otFrom').value||null,baja=$('otTo').value||null;
-  if(!ids.length)return message('Seleccioná al menos una pantalla.',true);
-  if(description.length<5)return message('Describí la tarea solicitada.',true);
-  if(!['alta','actualizacion','baja'].includes(tipo))return message('Seleccioná un tipo de solicitud válido.',true);
-  if(![25,50,75,100,150].includes(porcentaje))return message('Seleccioná un porcentaje de reproducción válido.',true);
-  if(!recipient)return message('Seleccioná un destinatario activo de Arcuva.',true);
-  if(alta&&baja&&baja<alta)return message('La fecha de baja no puede ser anterior a la de alta.',true);
-  const phone=$('otPhone').value.trim();
-  if(phone&&phone.replace(/\D/g,'').length<10)return message('Ingresá WhatsApp con código de país y área.',true);
-  const payload={
-   empresa_id:company,pantalla_ids:ids,pantalla_id:ids[0],
-   tipo_solicitud:tipo,porcentaje_reproduccion:porcentaje,
-   fecha_alta:alta,fecha_baja:baja,
-   titulo:({alta:'Alta de campaña',actualizacion:'Actualización de campaña',baja:'Baja de campaña'})[tipo],
-   descripcion,prioridad:'normal',
-   tecnico:chosen?.tecnico||getRequester(),
-   destinatario_usuario_id:destinatarioId,
-   destinatario:recipient.nombre||recipient.email,
-   email_destino:recipient.email||null,telefono_destino:phone||null,
-   observaciones:$('otNotes').value.trim()||null
+  ev?.preventDefault();
+  const button=$('otSave');
+  if(button?.disabled)return;
+  const invalid=(reason,field)=>{
+    message(reason,true);
+    if(field)$(field)?.focus();
+    return false;
   };
-  const button=$('otSave');button.disabled=true;
+  if(!canWrite())return invalid('Tu usuario no tiene permisos para crear órdenes. Verificá tu acceso a Arcuva.');
+  if(!base.getProfile())return invalid('No hay una sesión activa. Volvé a ingresar al sistema.');
   try{
-   const result=chosen
-    ?await db.from('ordenes_trabajo').update(payload).eq('id',chosen.id).eq('empresa_id',company).select('id').single()
-    :await db.from('ordenes_trabajo').insert({...payload,fecha_solicitud:localToday()}).select('id').single();
-   if(result.error)throw result.error;
-   resetForm();await load();
-   message('Orden guardada. Elegí Correo o WhatsApp en la lista para compartirla.');
-  }catch(e){message('No se pudo guardar la orden: '+e.message,true);}
-  finally{button.disabled=false;}
+    const ids=selectedScreens();
+    const description=$('otDescription')?.value.trim()||'';
+    const tipo=document.querySelector('input[name="otType"]:checked')?.value||'';
+    const porcentaje=Number($('otPercent')?.value);
+    const destinatarioId=$('otRecipient')?.value||'';
+    const recipient=users.find(x=>x.id===destinatarioId);
+    const alta=$('otFrom')?.value||null,baja=$('otTo')?.value||null;
+    const phone=$('otPhone')?.value.trim()||'';
+    if(!ids.length)return invalid('Seleccioná una o varias pantallas antes de guardar.','otSelectAll');
+    if(!['alta','actualizacion','baja'].includes(tipo))return invalid('Elegí Alta, Actualización o Baja.');
+    if(![25,50,75,100,150].includes(porcentaje))return invalid('Elegí un porcentaje de reproducción válido.','otPercent');
+    if(!description||description.length<5)return invalid('Ingresá una descripción de la tarea de al menos 5 caracteres.','otDescription');
+    if(!recipient)return invalid('Seleccioná un destinatario del listado de usuarios de Arcuva o el superadministrador.','otRecipient');
+    if(alta&&baja&&baja<alta)return invalid('La fecha de baja no puede ser anterior a la fecha de alta.','otTo');
+    if(phone&&phone.replace(/\D/g,'').length<10)return invalid('El WhatsApp debe incluir código de país y área, o quedar vacío.','otPhone');
+    const payload={
+      empresa_id:company,pantalla_ids:ids,pantalla_id:ids[0],
+      tipo_solicitud:tipo,porcentaje_reproduccion:porcentaje,
+      fecha_alta:alta,fecha_baja:baja,
+      titulo:({alta:'Alta de campaña',actualizacion:'Actualización de campaña',baja:'Baja de campaña'})[tipo],
+      descripcion,prioridad:'normal',
+      tecnico:chosen?.tecnico||getRequester(),
+      destinatario_usuario_id:destinatarioId,
+      destinatario:recipient.nombre||recipient.email,
+      email_destino:recipient.email||null,telefono_destino:phone||null,
+      observaciones:$('otNotes')?.value.trim()||null
+    };
+    button.disabled=true;
+    button.textContent='Guardando…';
+    message('Guardando orden de trabajo en NextWork…');
+    const result=chosen
+      ?await db.from('ordenes_trabajo').update(payload).eq('id',chosen.id).eq('empresa_id',company).select('id').single()
+      :await db.from('ordenes_trabajo').insert({...payload,fecha_solicitud:localToday()}).select('id').single();
+    if(result.error)throw result.error;
+    if(!result.data?.id)throw Error('El servidor no confirmó el guardado de la orden.');
+    const number='OT-'+result.data.id.slice(0,8).toUpperCase();
+    resetForm();
+    await load();
+    message(number+' guardada correctamente. Podés consultarla, descargarla o compartirla desde el historial.');
+  }catch(error){
+    console.error('Error al guardar orden de trabajo:',error);
+    const detail=error?.message||String(error);
+    message('No se pudo guardar la orden: '+detail,true);
+  }finally{
+    if(button){button.disabled=false;button.textContent=chosen?'Guardar modificaciones':'Guardar orden';}
+  }
  }
  async function markSent(o){
   if(!canWrite())return;
