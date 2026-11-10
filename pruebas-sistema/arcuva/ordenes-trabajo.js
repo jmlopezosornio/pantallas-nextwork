@@ -168,7 +168,7 @@
       tipo_solicitud:tipo,porcentaje_reproduccion:porcentaje,
       fecha_alta:alta,fecha_baja:baja,
       titulo:({alta:'Alta de campaña',actualizacion:'Actualización de campaña',baja:'Baja de campaña'})[tipo],
-      descripcion,prioridad:'normal',
+      descripcion:description,prioridad:'normal',
       tecnico:chosen?.tecnico||getRequester(),
       destinatario_usuario_id:destinatarioId,
       destinatario:recipient.nombre||recipient.email,
