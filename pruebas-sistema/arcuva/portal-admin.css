@@ -147,3 +147,24 @@
 .ot-preview-heading h3{margin:0;color:#163a68}
 .ot-preview-card pre{white-space:pre-wrap;overflow-wrap:anywhere;font-family:inherit;line-height:1.7;color:#293f5e;background:#f5f8fc;border:1px solid #e1eaf5;border-radius:12px;padding:18px}
 @media(max-width:760px){.ot-fields{grid-template-columns:1fr}.ot-panel{padding:17px 13px}.ot-panel-title{align-items:flex-start;flex-direction:column}.ot-preview-card{padding:18px}}
+
+/* Solicitudes publicitarias: selección múltiple, tipo y porcentajes. */
+#page-ordenes .ot-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#3f5a7c;font-weight:800;font-size:12px;margin-bottom:10px;flex-wrap:wrap}
+#page-ordenes .ot-section-title>div{display:flex;gap:8px;flex-wrap:wrap}
+#page-ordenes .ot-section-title button{font-size:11px;padding:7px 10px;border:1px solid #d9e3f2;color:#315482;background:white;border-radius:8px}
+#page-ordenes .ot-screen-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;max-height:250px;overflow-y:auto;padding:14px;border:1px solid #dce6f4;border-radius:13px;background:#f6f9fe}
+#page-ordenes .ot-fields .ot-screen-checkbox{display:flex;flex-direction:row;align-items:center;gap:10px;padding:11px;background:white;border:1px solid #e1e8f4;border-radius:9px;color:#193a67;font-weight:750;font-size:12px;cursor:pointer;line-height:1.3;min-width:0}
+#page-ordenes .ot-fields .ot-screen-checkbox input{width:17px;height:17px;min-width:17px;margin:0;accent-color:#6d40e4}
+#page-ordenes .ot-screen-checkbox span{overflow-wrap:anywhere}
+#page-ordenes .ot-type-fieldset{border:0;padding:0;margin:0;min-width:0}
+#page-ordenes .ot-type-fieldset legend{font-size:12px;font-weight:800;color:#3f5a7c;margin-bottom:10px}
+#page-ordenes .ot-type-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#page-ordenes .ot-type-options label{display:block;cursor:pointer;position:relative}
+#page-ordenes .ot-type-options input{position:absolute;opacity:0;width:1px;height:1px}
+#page-ordenes .ot-type-options span{display:block;text-align:center;padding:12px;border-radius:11px;border:1px solid #d8e3f3;background:#f8faff;color:#35577b;font-size:13px;font-weight:850;transition:background .15s,color .15s}
+#page-ordenes .ot-type-options input:checked+span{background:#215cbb;color:white;border-color:#215cbb;box-shadow:0 4px 12px #215cbb20}
+#page-ordenes .ot-type-options input:focus-visible+span{outline:2px solid #583eda;outline-offset:2px}
+#page-ordenes input[readonly]{background:#f0f4fa;color:#48607c;cursor:default}
+#page-ordenes .ot-muted{font-size:12px;color:#7b8aa2}
+@media(max-width:960px){#page-ordenes .ot-screen-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){#page-ordenes .ot-screen-grid{grid-template-columns:1fr}#page-ordenes .ot-type-options{gap:5px}#page-ordenes .ot-type-options span{padding:10px 6px;font-size:11px}}
