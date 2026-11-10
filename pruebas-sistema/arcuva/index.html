@@ -211,8 +211,15 @@
                 <label>Correo del destinatario<input id="otEmail" type="email" readonly placeholder="Se completa con el usuario elegido"></label>
                 <label>WhatsApp del destinatario<input id="otPhone" type="tel" maxlength="25" placeholder="+54 9 299 ... (opcional)"></label>
                 <label class="ot-wide">Observaciones adicionales<textarea id="otNotes" rows="2" maxlength="3000" placeholder="Indicaciones o aclaraciones adicionales"></textarea></label>
+                <div class="ot-wide ot-attachments">
+                  <label for="otFiles">Adjuntar archivos a la orden</label>
+                  <input id="otFiles" type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,video/quicktime,.doc,.docx,.xls,.xlsx">
+                  <p class="ot-help">Hasta 5 archivos por orden, máximo 20 MB cada uno. Fotos, videos MP4/MOV, PDF, Word y Excel. Primero se guarda la orden y luego se cargan los archivos.</p>
+                  <div id="otFileSummary" class="ot-file-summary"></div>
+                  <div id="otExistingFiles"></div>
+                </div>
               </div>
-              <p class="ot-help">Las órdenes se guardan primero en NextWork. Los botones Correo y WhatsApp abren el mensaje listo para enviarlo desde tu aplicación; no se envía automáticamente.</p>
+              <p class="ot-help">Las órdenes se guardan primero en NextWork. El botón WhatsApp prepara el mensaje con enlaces temporales a los adjuntos (vigencia: 7 días). El envío se completa desde WhatsApp; no se envía automáticamente.</p>
               <div id="otMessage" class="ot-message" role="status" aria-live="polite"></div>
               <div class="ot-form-actions"><button type="button" id="otReset" class="secondary">Limpiar</button><button type="submit" id="otSave" class="primary">Guardar orden</button></div>
             </form>
