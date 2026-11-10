@@ -133,12 +133,14 @@
         </section>
 
         <section id="page-pantallas" class="hidden">
-          <div class="page-top">
-            <div><span class="kicker">Inventario</span><h2>Pantallas</h2><p class="lead">Pantallas cuyo propietario es Arcuva.</p></div>
-            <button type="button" id="refreshBtn" class="secondary">Actualizar</button>
+          <div class="page-top ar-screen-top">
+            <div><h2>Pantallas</h2><p class="lead">Estado, configuración y tipo de reproductor de cada dispositivo.</p><p class="ar-screen-summary" id="screenInventorySummary">Cargando pantallas…</p></div>
+            <div class="ar-screen-top-actions">
+              <button type="button" id="refreshBtn" class="secondary">Actualizar</button>
+              <div id="superadminScreenTools" class="hidden"><button type="button" id="addArcuvaScreen" class="primary">+ Nueva pantalla</button></div>
+            </div>
           </div>
-          <div id="superadminScreenTools" class="panel hidden superadmin-tools"><div class="row" style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap"><div><strong>Administración de pantallas de Arcuva</strong><p class="lead">Agregá pantallas, editá la resolución y los horarios, o vinculá reproductores Taurus, Windows o Raspberry.</p></div><button type="button" id="addArcuvaScreen" class="primary">+ Nueva pantalla</button></div></div>
-          <div class="panel" id="screenTable"><div class="empty">Cargando pantallas…</div></div>
+          <div class="ar-screen-inventory" id="screenTable"><div class="empty">Cargando pantallas…</div></div>
         </section>
 
         <section id="page-campanias" class="hidden">
