@@ -72,10 +72,29 @@
     if(c.fecha_hasta<today())return 'pasadas';
     return 'vigentes';
   }
-  function campaignMediaUrl(c){
-    const path=snapshotCampaigns.find(x=>x.id===c.id)?.archivo_url||c.archivo_url||'';
-    if(!path)return '';
-    try{const u=new URL(path);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}
+  function campaignMediaRef(c){
+    const raw=String(snapshotCampaigns.find(x=>x.id===c.id)?.archivo_url||c.archivo_url||'').trim();
+    if(!raw)return null;
+    try{
+      const u=new URL(raw);
+      return ['https:','http:'].includes(u.protocol)&&u.hostname?{kind:'url',value:u.href}:null;
+    }catch{
+      // Las campañas usan rutas de Storage, no URLs públicas.
+      // El bucket publicidades es PRIVADO: se debe firmar el acceso con la sesión.
+      const key=raw.replace(/^\/+/, '');
+      if(!key.startsWith('campanias/')||key.includes('..')||key.includes('?')||key.includes('#'))return null;
+      return {kind:'storage',value:key};
+    }
+  }
+  async function campaignMediaUrl(c,download=false){
+    const ref=campaignMediaRef(c);
+    if(!ref)throw Error('Esta campaña no tiene un archivo o enlace válido.');
+    if(ref.kind==='url')return ref.value;
+    const filename=ref.value.split('/').pop()||'publicidad';
+    const opts=download?{download:filename}:undefined;
+    const {data,error}=await db.storage.from('publicidades').createSignedUrl(ref.value,120,opts);
+    if(error||!data?.signedUrl)throw Error('No se pudo acceder al archivo de Storage: '+(error?.message||'sin URL firmada'));
+    return data.signedUrl;
   }
   function renderCampaignTable(){
     if(!base.getProfile())return;
@@ -112,10 +131,11 @@
         (authorized?'<button type="button" data-edit-campaign="'+esc(c.id)+'">Editar</button><button type="button" data-pause-campaign="'+esc(c.id)+'">'+(raw.pausada?'Reactivar':'Pausar')+'</button>':'')+
         (superadmin?'<button type="button" class="menu-danger" data-delete-campaign="'+esc(c.id)+'">Eliminar</button>':'')+
         '</div></div>':'<span class="tiny">—</span>';
-      const media=campaignMediaUrl(c),kind=c.tipo_contenido||'video';
+      const media=campaignMediaRef(c),kind=c.tipo_contenido||'video';
       const typeLabel=kind==='imagen'?'Imagen':kind==='web'?'Web':'Video';
       const content='<span class="campaign-type-chip">'+esc(typeLabel)+(kind==='video'&&Number(c.duracion_seg)>0?' · '+esc(Number(c.duracion_seg))+'s':'')+'</span>'+
-        (media?'<button type="button" class="campaign-media-btn" data-preview-campaign="'+esc(c.id)+'">Vista previa</button><a class="campaign-media-btn" href="'+esc(media)+'" target="_blank" rel="noopener noreferrer" download>Descargar</a>':'<span class="tiny">Sin archivo</span>');
+        (media?'<button type="button" class="campaign-media-btn" data-preview-campaign="'+esc(c.id)+'">Vista previa</button>'+
+        (kind!=='web'?'<button type="button" class="campaign-media-btn" data-download-campaign="'+esc(c.id)+'">Descargar</button>':'<span class="tiny">Enlace web</span>'):'<span class="tiny">Sin archivo</span>');
       return '<tr><td class="campaign-action-cell">'+menu+'</td><td><strong>'+esc(c.campania)+'</strong></td><td>'+esc(c.cliente||'—')+'</td><td><span class="campaign-screen-chip">'+esc((c.pantallas||[]).join(', ')||'Sin pantalla')+'</span></td><td class="campaign-date">'+dates(c.fecha_desde)+'</td><td class="campaign-date">'+dates(c.fecha_hasta)+'</td><td><strong>'+esc(c.porcentaje)+'%</strong></td><td><span class="campaign-state state-'+esc(status)+'">'+esc(label)+'</span></td><td class="campaign-content">'+content+'</td></tr>';
     });
     panel.innerHTML='<div class="campaign-table-scroll"><table class="campaign-list-table"><thead><tr>'+['Acciones','Campaña','Cliente','Pantalla / Grupo','Desde','Hasta','Frecuencia','Estado','Contenido'].map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
@@ -129,12 +149,30 @@
     panel.querySelectorAll('[data-pause-campaign]').forEach(btn=>btn.addEventListener('click',()=>toggleCampaignPause(btn.dataset.pauseCampaign)));
     panel.querySelectorAll('[data-delete-campaign]').forEach(btn=>btn.addEventListener('click',()=>deleteCampaign(btn.dataset.deleteCampaign)));
     panel.querySelectorAll('[data-preview-campaign]').forEach(btn=>btn.addEventListener('click',()=>previewCampaign(btn.dataset.previewCampaign)));
+    panel.querySelectorAll('[data-download-campaign]').forEach(btn=>btn.addEventListener('click',()=>downloadCampaign(btn.dataset.downloadCampaign,btn)));
   }
-  function previewCampaign(id){
+  async function downloadCampaign(id,btn){
     const c=base.getModel().campaigns.find(x=>x.id===id&&x.eliminada!==true);
     if(!c)return;
-    const url=campaignMediaUrl(c);
-    if(!url)return alert('El contenido no tiene una URL válida para vista previa.');
+    const ref=campaignMediaRef(c);
+    if(!ref)return alert('No hay archivo asociado a esta campaña.');
+    if(ref.kind==='url')return alert('Este contenido es un enlace externo. Utilizá Vista previa para abrirlo.');
+    const oldText=btn.textContent;btn.disabled=true;btn.textContent='Preparando…';
+    try{
+      const url=await campaignMediaUrl(c,true);
+      // La URL firmada usa content-disposition=attachment desde Storage.
+      const a=document.createElement('a');
+      a.href=url;a.download=ref.value.split('/').pop()||'publicidad';a.rel='noopener noreferrer';
+      document.body.appendChild(a);a.click();a.remove();
+    }catch(err){alert(err.message||'No se pudo descargar el archivo.');}
+    finally{btn.disabled=false;btn.textContent=oldText;}
+  }
+  async function previewCampaign(id){
+    const c=base.getModel().campaigns.find(x=>x.id===id&&x.eliminada!==true);
+    if(!c)return;
+    let url;
+    try{url=await campaignMediaUrl(c);}catch(err){alert(err.message||'No se pudo abrir el contenido.');return;}
+    if(!base.getProfile())return;
     const kind=c.tipo_contenido;
     let media='';
     if(kind==='video')media='<video controls autoplay playsinline preload="metadata" src="'+esc(url)+'"></video>';
