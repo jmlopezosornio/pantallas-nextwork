@@ -111,3 +111,39 @@
 .screens-list .screen-checkbox{align-items:center;gap:18px}
 .screens-list .screen-checkbox input.campaign-screen{flex:0 0 18px;width:18px!important;min-width:18px!important;margin:0!important}
 .screens-list .screen-checkbox>span{display:block;flex:1;min-width:0;line-height:1.45}
+
+/* Órdenes de trabajo - Arcuva entorno de pruebas */
+.ot-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.ot-heading h2{margin:5px 0 6px;color:#142e53;letter-spacing:-.025em}
+.ot-heading .lead{margin:0}
+.ot-panel{background:#fff;border:1px solid #e1e9f5;border-radius:19px;box-shadow:0 8px 30px rgba(27,65,110,.05);padding:23px 24px;margin-bottom:19px}
+.ot-panel-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:19px}
+.ot-panel-title h3{margin:0;font-size:19px;color:#17365a}
+.ot-panel-title span{font-size:12px;color:#71839b}
+.ot-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.ot-fields label{display:flex;flex-direction:column;gap:8px;color:#3f5a7c;font-size:12px;font-weight:800}
+.ot-fields .ot-wide{grid-column:1/-1}
+.ot-fields input,.ot-fields select,.ot-fields textarea{width:100%;min-width:0;border:1px solid #d6e2f1;background:#fff;color:#1d3557;padding:12px 13px;border-radius:11px;font-size:14px;font-weight:400;line-height:1.4;outline-offset:2px}
+.ot-fields textarea{resize:vertical;min-height:82px;font-family:inherit}
+.ot-fields input:focus,.ot-fields select:focus,.ot-fields textarea:focus{border-color:#5c85db}
+.ot-help{color:#697e99;font-size:12px;line-height:1.6;margin:17px 0}
+.ot-message{min-height:18px;font-size:12px;line-height:1.5}
+.ot-error{color:#b62735}.ot-success{color:#217245}
+.ot-form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
+.ot-list-table-wrap{overflow-x:auto}
+.ot-list-table{border-collapse:collapse;width:100%;min-width:850px;font-size:12px}
+.ot-list-table th{text-align:left;background:#eff4fa;color:#547195;padding:12px 10px;text-transform:uppercase;font-size:10px;letter-spacing:.045em}
+.ot-list-table td{border-bottom:1px solid #e8eef6;padding:12px 10px;vertical-align:top;color:#18365c}
+.ot-list-table td strong{font-weight:850}
+.ot-list-table tr:last-child td{border-bottom:0}
+.ot-status{display:inline-flex;border-radius:999px;background:#eaf1fd;color:#255ba3;padding:5px 8px;font-weight:800;text-transform:capitalize}
+.ot-actions{display:flex;gap:6px;flex-wrap:wrap;min-width:230px}
+.ot-actions button{font-size:11px;font-weight:800;border:1px solid #d7e3f1;background:#fff;color:#285285;border-radius:9px;padding:7px 8px}
+.ot-actions button:hover{background:#eff5ff}
+.ot-empty{color:#74859c;text-align:center;padding:26px;font-size:13px}
+.ot-preview-overlay{position:fixed;inset:0;z-index:1200;background:rgba(12,31,58,.65);display:flex;align-items:center;justify-content:center;padding:22px}
+.ot-preview-card{width:min(780px,100%);max-height:90vh;overflow:auto;background:white;border-radius:19px;padding:26px;box-shadow:0 24px 80px rgba(0,0,0,.22)}
+.ot-preview-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.ot-preview-heading h3{margin:0;color:#163a68}
+.ot-preview-card pre{white-space:pre-wrap;overflow-wrap:anywhere;font-family:inherit;line-height:1.7;color:#293f5e;background:#f5f8fc;border:1px solid #e1eaf5;border-radius:12px;padding:18px}
+@media(max-width:760px){.ot-fields{grid-template-columns:1fr}.ot-panel{padding:17px 13px}.ot-panel-title{align-items:flex-start;flex-direction:column}.ot-preview-card{padding:18px}}
