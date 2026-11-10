@@ -187,17 +187,30 @@
             <div class="ot-panel-title"><h3>Nueva orden de trabajo</h3><span>Los campos con * son obligatorios</span></div>
             <form id="otForm">
               <div class="ot-fields">
-                <label>Pantalla<select id="otScreen"><option value="">Sin pantalla específica</option></select></label>
-                <label>Prioridad<select id="otPriority"><option value="normal">Normal</option><option value="baja">Baja</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select></label>
-                <label class="ot-wide">Trabajo solicitado *<input id="otTitle" required maxlength="160" placeholder="Ej.: Revisión de módulos LED"></label>
-                <label class="ot-wide">Descripción de la tarea *<textarea id="otDescription" required rows="4" maxlength="5000" placeholder="Describí las tareas a realizar, los síntomas, materiales y comprobaciones necesarias"></textarea></label>
-                <label>Ubicación de la intervención<input id="otPlace" maxlength="240" placeholder="Dirección o localidad"></label>
-                <label>Fecha programada<input id="otDate" type="date"></label>
-                <label>Técnico / responsable<input id="otTechnician" maxlength="150" placeholder="Nombre del técnico o empresa"></label>
-                <label>Destinatario<input id="otRecipient" maxlength="150" placeholder="Persona a quien se dirige"></label>
-                <label>Correo de destino<input id="otEmail" type="email" maxlength="254" placeholder="tecnico@empresa.com.ar"></label>
-                <label>WhatsApp con código internacional<input id="otPhone" type="tel" maxlength="25" placeholder="+54 9 299 ..."></label>
-                <label class="ot-wide">Observaciones<textarea id="otNotes" rows="2" maxlength="3000" placeholder="Indicaciones adicionales, horarios de acceso, contacto del lugar..."></textarea></label>
+                <div class="ot-wide ot-screen-picker">
+                  <div class="ot-section-title"><span>Pantallas de destino *</span><div><button type="button" id="otSelectAll" class="secondary">Seleccionar todas</button><button type="button" id="otSelectNone" class="secondary">Quitar selección</button></div></div>
+                  <div id="otScreens" class="ot-screen-grid" role="group" aria-label="Seleccionar pantallas"><span class="ot-muted">Cargando pantallas…</span></div>
+                </div>
+                <fieldset class="ot-wide ot-type-fieldset"><legend>Trabajo solicitado *</legend>
+                  <div class="ot-type-options">
+                    <label><input type="radio" name="otType" value="alta" checked><span>Alta</span></label>
+                    <label><input type="radio" name="otType" value="actualizacion"><span>Actualización</span></label>
+                    <label><input type="radio" name="otType" value="baja"><span>Baja</span></label>
+                  </div>
+                </fieldset>
+                <label>Porcentaje de reproducción<select id="otPercent">
+                  <option value="25">25%</option><option value="50">50%</option><option value="75">75%</option>
+                  <option value="100" selected>100%</option><option value="150">150%</option>
+                </select></label>
+                <label>Fecha de solicitud<input id="otRequestDate" type="date" readonly></label>
+                <label>Fecha de alta<input id="otFrom" type="date"></label>
+                <label>Fecha de baja<input id="otTo" type="date"></label>
+                <label class="ot-wide">Descripción de la tarea *<textarea id="otDescription" required rows="4" maxlength="5000" placeholder="Describí libremente la publicidad, contenido, indicaciones y acciones solicitadas"></textarea></label>
+                <label>Usuario solicitante / responsable<input id="otTechnician" type="text" readonly></label>
+                <label>Destinatario · usuarios de Arcuva *<select id="otRecipient" required><option value="">Seleccionar usuario...</option></select></label>
+                <label>Correo del destinatario<input id="otEmail" type="email" readonly placeholder="Se completa con el usuario elegido"></label>
+                <label>WhatsApp del destinatario<input id="otPhone" type="tel" maxlength="25" placeholder="+54 9 299 ... (opcional)"></label>
+                <label class="ot-wide">Observaciones adicionales<textarea id="otNotes" rows="2" maxlength="3000" placeholder="Indicaciones o aclaraciones adicionales"></textarea></label>
               </div>
               <p class="ot-help">Las órdenes se guardan primero en NextWork. Los botones Correo y WhatsApp abren el mensaje listo para enviarlo desde tu aplicación; no se envía automáticamente.</p>
               <div id="otMessage" class="ot-message" role="status" aria-live="polite"></div>
