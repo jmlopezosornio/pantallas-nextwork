@@ -6,40 +6,58 @@
  const db=base.db,company='b59ddc55-40f0-48d0-842a-2bee9ea26a41';
  const $=id=>document.getElementById(id);
  const esc=base.escapeHtml;
- let orders=[],loading=false,chosen=null;
+ let orders=[],loading=false,chosen=null,users=[];
  const allowed=()=>{const p=base.getProfile();return p&&(p.es_superadmin===true||(p.empresa_id===company&&p.activo!==false));};
- const canWrite=()=>{const p=base.getProfile();return p&&(p.es_superadmin===true||(p.empresa_id===company&&['administrador','operador'].includes(p.rol)));};
+ const canWrite=()=>{const p=base.getProfile();return p&&(p.es_superadmin===true||(p.empresa_id===company&&['administrador','administrativo','operador'].includes(p.rol)));};
  const dateText=v=>v?base.dates(v):'A coordinar';
  const stamp=v=>v?new Date(v).toLocaleString('es-AR'):'—';
- const screenName=id=>base.getModel().screens.find(x=>x.id===id)?.nombre||'Sin pantalla asignada';
+ const screenName=id=>base.getModel().screens.find(x=>x.id===id)?.nombre||'Pantalla no disponible';
+ const screensOf=o=>(o.pantalla_ids?.length?o.pantalla_ids:(o.pantalla_id?[o.pantalla_id]:[]));
+ const screenNames=o=>screensOf(o).map(screenName).join(', ')||'Sin pantallas';
+ const localToday=()=>new Date().toLocaleDateString('sv-SE',{timeZone:'America/Argentina/Buenos_Aires'});
+ const getRequester=()=>base.getProfile()?.nombre||base.getProfile()?.email||'Usuario';
+ const requestType=o=>({alta:'Alta',actualizacion:'Actualización',baja:'Baja'})[o.tipo_solicitud]||o.titulo||'Solicitud';
+ const selectedScreens=()=>[...document.querySelectorAll('#otScreens input[type="checkbox"]:checked')].map(e=>e.value);
  const idText=o=>'OT-'+o.id.slice(0,8).toUpperCase();
  function message(text,err=false){const el=$('otMessage');if(el){el.textContent=text;el.className='ot-message '+(err?'ot-error':'ot-success');}}
  function resetForm(){
   $('otForm')?.reset();
-  if($('otDate'))$('otDate').value='';
-  if($('otScreen'))$('otScreen').value='';
+  if($('otRequestDate'))$('otRequestDate').value=localToday();
+  if($('otTechnician'))$('otTechnician').value=getRequester();
+  document.querySelectorAll('#otScreens input[type="checkbox"]').forEach(x=>x.checked=false);
   chosen=null;
   const save=$('otSave');if(save)save.textContent='Guardar orden';
+  const mail=$('otEmail');if(mail)mail.value='';
  }
  function updateScreens(){
-  const select=$('otScreen');if(!select)return;
-  const prior=select.value;
-  select.innerHTML='<option value="">Sin pantalla específica</option>'+base.getModel().screens
-   .filter(p=>p.empresa_id===company).map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nombre)+'</option>').join('');
-  if([...select.options].some(x=>x.value===prior))select.value=prior;
+  const container=$('otScreens');if(!container)return;
+  const previous=new Set(selectedScreens());
+  container.innerHTML=base.getModel().screens.filter(p=>p.empresa_id===company&&p.activo!==false)
+    .map(p=>'<label class="ot-screen-checkbox"><input type="checkbox" value="'+esc(p.id)+'" '+(previous.has(p.id)?'checked':'')+'><span>'+esc(p.nombre)+'</span></label>').join('')||
+    '<span class="ot-muted">No hay pantallas disponibles de Arcuva.</span>';
+ }
+ function updateUsers(){
+  const select=$('otRecipient');if(!select)return;
+  const previous=select.value;
+  select.innerHTML='<option value="">Seleccionar usuario...</option>'+users.map(u=>'<option value="'+esc(u.id)+'">'+esc(u.nombre||u.email)+' · '+esc(u.email||'')+'</option>').join('');
+  if(users.some(u=>u.id===previous))select.value=previous;
+  setRecipientContact();
+ }
+ function setRecipientContact(){
+  const recipient=users.find(x=>x.id===$('otRecipient')?.value);
+  $('otEmail').value=recipient?.email||'';
  }
  function detail(o){
   return [
    'ORDEN DE TRABAJO · ARCUVA / NEXTWORK',
    'N.º '+idText(o),
-   'Fecha de emisión: '+stamp(o.creada_en),
-   'Pantalla: '+screenName(o.pantalla_id),
-   'Ubicación: '+(o.ubicacion||'No indicada'),
-   'Trabajo: '+o.titulo,
-   'Prioridad: '+(o.prioridad||'normal').toUpperCase(),
-   'Fecha programada: '+dateText(o.fecha_programada),
-   'Responsable / técnico: '+(o.tecnico||'A designar'),
-   'Destinatario: '+(o.destinatario||'A designar'),
+   'Fecha de solicitud: '+dateText(o.fecha_solicitud),
+   'Pantallas: '+screenNames(o),
+   'Trabajo solicitado: '+requestType(o),
+   'Porcentaje de reproducción: '+(o.porcentaje_reproduccion||100)+'%',
+   'Período: '+dateText(o.fecha_alta)+' al '+dateText(o.fecha_baja),
+   'Solicitante: '+(o.tecnico||'No informado'),
+   'Destinatario: '+(o.destinatario||'No informado'),
    '',
    'DESCRIPCIÓN DE LA TAREA',
    o.descripcion,
@@ -52,15 +70,18 @@
  }
  function setSelected(o){
   chosen=o;
-  $('otScreen').value=o.pantalla_id||'';
-  $('otTitle').value=o.titulo||'';
+  const wanted=new Set(screensOf(o));
+  document.querySelectorAll('#otScreens input[type="checkbox"]').forEach(input=>input.checked=wanted.has(input.value));
+  const radio=document.querySelector('input[name="otType"][value="'+(o.tipo_solicitud||'alta')+'"]');
+  if(radio)radio.checked=true;
+  $('otPercent').value=String(o.porcentaje_reproduccion||100);
+  $('otRequestDate').value=o.fecha_solicitud||localToday();
+  $('otFrom').value=o.fecha_alta||'';
+  $('otTo').value=o.fecha_baja||'';
   $('otDescription').value=o.descripcion||'';
-  $('otPriority').value=o.prioridad||'normal';
-  $('otPlace').value=o.ubicacion||'';
-  $('otDate').value=o.fecha_programada||'';
-  $('otTechnician').value=o.tecnico||'';
-  $('otRecipient').value=o.destinatario||'';
-  $('otEmail').value=o.email_destino||'';
+  $('otTechnician').value=o.tecnico||getRequester();
+  $('otRecipient').value=o.destinatario_usuario_id||'';
+  setRecipientContact();
   $('otPhone').value=o.telefono_destino||'';
   $('otNotes').value=o.observaciones||'';
   $('otSave').textContent='Guardar modificaciones';
@@ -71,13 +92,13 @@
   const box=$('otList');if(!box)return;
   if(!allowed()){box.innerHTML='<p>Acceso no autorizado.</p>';return;}
   box.innerHTML=orders.length?'<div class="ot-list-table-wrap"><table class="ot-list-table"><thead><tr>'+
-   '<th>Orden</th><th>Fecha</th><th>Pantalla</th><th>Trabajo</th><th>Prioridad</th><th>Estado</th><th>Acciones</th>'+
+   '<th>Orden</th><th>Solicitud</th><th>Pantallas</th><th>Trabajo</th><th>Reproducción</th><th>Estado</th><th>Acciones</th>'+
    '</tr></thead><tbody>'+orders.map(o=>'<tr>'+
    '<td><strong>'+esc(idText(o))+'</strong></td>'+
-   '<td>'+esc(base.dates(o.creada_en))+'</td>'+
-   '<td>'+esc(screenName(o.pantalla_id))+'</td>'+
-   '<td><strong>'+esc(o.titulo)+'</strong></td>'+
-   '<td>'+esc(o.prioridad)+'</td>'+
+   '<td>'+esc(base.dates(o.fecha_solicitud||o.creada_en))+'</td>'+
+   '<td>'+esc(screenNames(o))+'</td>'+
+   '<td><strong>'+esc(requestType(o))+'</strong></td>'+
+   '<td>'+esc(o.porcentaje_reproduccion||100)+'%</td>'+
    '<td><span class="ot-status">'+esc(o.estado)+'</span></td>'+
    '<td><div class="ot-actions"><button type="button" data-ot="preview" data-id="'+esc(o.id)+'">Ver</button>'+
    (canWrite()?'<button type="button" data-ot="edit" data-id="'+esc(o.id)+'">Editar</button>':'')+
@@ -100,38 +121,55 @@
   if(!allowed()||loading)return;
   loading=true;
   try{
-   const {data,error}=await db.from('ordenes_trabajo')
-    .select('id,empresa_id,pantalla_id,creada_en,titulo,descripcion,ubicacion,prioridad,tecnico,destinatario,email_destino,telefono_destino,fecha_programada,estado,observaciones')
-    .eq('empresa_id',company).order('creada_en',{ascending:false}).limit(200);
+   const [{data,error},{data:usersData,error:userError}]=await Promise.all([
+    db.from('ordenes_trabajo')
+     .select('id,empresa_id,pantalla_id,pantalla_ids,creada_en,fecha_solicitud,fecha_alta,fecha_baja,tipo_solicitud,porcentaje_reproduccion,destinatario_usuario_id,titulo,descripcion,ubicacion,tecnico,destinatario,email_destino,telefono_destino,estado,observaciones')
+     .eq('empresa_id',company).order('creada_en',{ascending:false}).limit(200),
+    db.from('usuarios').select('id,nombre,email,empresa_id,activo').eq('empresa_id',company).eq('activo',true).order('nombre')
+   ]);
    if(error)throw error;
-   orders=data||[];updateScreens();render();
+   if(userError)throw new Error('No se pudieron consultar los usuarios de Arcuva: '+userError.message);
+   orders=data||[];users=usersData||[];
+   updateScreens();updateUsers();
+   if(!chosen){$('otTechnician').value=getRequester();$('otRequestDate').value=localToday();}
+   render();
   }catch(e){message('No se pudieron cargar las órdenes: '+e.message,true);}
   finally{loading=false;}
  }
  async function save(ev){
   ev.preventDefault();
   if(!canWrite())return message('Tu usuario no tiene permisos para crear órdenes.',true);
-  const title=$('otTitle').value.trim(),description=$('otDescription').value.trim();
-  if(title.length<3||description.length<5)return message('Indicá un título y una descripción de la tarea.',true);
-  const email=$('otEmail').value.trim(),phone=$('otPhone').value.trim();
-  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return message('Revisá el correo de destino.',true);
-  if(phone&&phone.replace(/\D/g,'').length<10)return message('Para WhatsApp, ingresá el teléfono con código de país y área.',true);
+  const ids=selectedScreens(),description=$('otDescription').value.trim();
+  const tipo=document.querySelector('input[name="otType"]:checked')?.value||'alta';
+  const porcentaje=Number($('otPercent').value);
+  const destinatarioId=$('otRecipient').value;
+  const recipient=users.find(x=>x.id===destinatarioId);
+  const alta=$('otFrom').value||null,baja=$('otTo').value||null;
+  if(!ids.length)return message('Seleccioná al menos una pantalla.',true);
+  if(description.length<5)return message('Describí la tarea solicitada.',true);
+  if(!['alta','actualizacion','baja'].includes(tipo))return message('Seleccioná un tipo de solicitud válido.',true);
+  if(![25,50,75,100,150].includes(porcentaje))return message('Seleccioná un porcentaje de reproducción válido.',true);
+  if(!recipient)return message('Seleccioná un destinatario activo de Arcuva.',true);
+  if(alta&&baja&&baja<alta)return message('La fecha de baja no puede ser anterior a la de alta.',true);
+  const phone=$('otPhone').value.trim();
+  if(phone&&phone.replace(/\D/g,'').length<10)return message('Ingresá WhatsApp con código de país y área.',true);
   const payload={
-   empresa_id:company,pantalla_id:$('otScreen').value||null,
-   titulo:title,descripcion,ubicacion:$('otPlace').value.trim()||null,
-   prioridad:$('otPriority').value,
-   fecha_programada:$('otDate').value||null,tecnico:$('otTechnician').value.trim()||null,
-   destinatario:$('otRecipient').value.trim()||null,email_destino:email||null,
-   telefono_destino:phone||null,observaciones:$('otNotes').value.trim()||null
+   empresa_id:company,pantalla_ids:ids,pantalla_id:ids[0],
+   tipo_solicitud:tipo,porcentaje_reproduccion:porcentaje,
+   fecha_alta:alta,fecha_baja:baja,
+   titulo:({alta:'Alta de campaña',actualizacion:'Actualización de campaña',baja:'Baja de campaña'})[tipo],
+   descripcion,prioridad:'normal',
+   tecnico:chosen?.tecnico||getRequester(),
+   destinatario_usuario_id:destinatarioId,
+   destinatario:recipient.nombre||recipient.email,
+   email_destino:recipient.email||null,telefono_destino:phone||null,
+   observaciones:$('otNotes').value.trim()||null
   };
   const button=$('otSave');button.disabled=true;
   try{
-   let result;
-   if(chosen){
-    result=await db.from('ordenes_trabajo').update(payload).eq('id',chosen.id).eq('empresa_id',company).select('id').single();
-   }else{
-    result=await db.from('ordenes_trabajo').insert(payload).select('id').single();
-   }
+   const result=chosen
+    ?await db.from('ordenes_trabajo').update(payload).eq('id',chosen.id).eq('empresa_id',company).select('id').single()
+    :await db.from('ordenes_trabajo').insert({...payload,fecha_solicitud:localToday()}).select('id').single();
    if(result.error)throw result.error;
    resetForm();await load();
    message('Orden guardada. Elegí Correo o WhatsApp en la lista para compartirla.');
@@ -146,7 +184,7 @@
   await load();message('Orden marcada como enviada según tu confirmación.');
  }
  function share(o,channel){
-  const body=detail(o),title='Orden de trabajo '+idText(o)+' · '+o.titulo;
+  const body=detail(o),title='Orden de trabajo '+idText(o)+' · '+requestType(o);
   if(channel==='mail'){
    if(!o.email_destino)return message('Esta orden no tiene correo de destino. Editala para agregarlo.',true);
    window.location.href='mailto:'+encodeURIComponent(o.email_destino)+'?subject='+encodeURIComponent(title)+'&body='+encodeURIComponent(body);
@@ -180,10 +218,9 @@
  $('otForm')?.addEventListener('submit',save);
  $('otReset')?.addEventListener('click',()=>{resetForm();message('Formulario limpio.');});
  $('otRefresh')?.addEventListener('click',load);
- $('otScreen')?.addEventListener('change',e=>{
-  const p=base.getModel().screens.find(x=>x.id===e.target.value);
-  if(p&&!$('otPlace').value.trim())$('otPlace').value=p.ubicacion||'';
- });
+ $('otRecipient')?.addEventListener('change',setRecipientContact);
+ $('otSelectAll')?.addEventListener('click',()=>document.querySelectorAll('#otScreens input[type="checkbox"]').forEach(x=>x.checked=true));
+ $('otSelectNone')?.addEventListener('click',()=>document.querySelectorAll('#otScreens input[type="checkbox"]').forEach(x=>x.checked=false));
  window.addEventListener('arcuva-page-ordenes',load);
  window.addEventListener('arcuva-data-loaded',()=>{
   if(!$('page-ordenes')?.classList.contains('hidden'))updateScreens();
