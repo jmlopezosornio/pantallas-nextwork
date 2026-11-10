@@ -105,7 +105,7 @@
     let playerRows=[],playerQueryFailed=false;
     if(allowedScreens.length){
       const {data:rows,error:playerError}=await db.from('players')
-        .select('pantalla_id,tipo,estado,ultima_conexion,actualizado_en,vnnox_online_status,vnnox_player_id')
+        .select('pantalla_id,tipo,estado,ultima_conexion,actualizado_en,vnnox_online_status,vnnox_player_id,vnnox_version,version_player,proveedor')
         .in('pantalla_id',allowedScreens.map(p=>p.id));
       if(current!==epoch||!profile)return;
       if(playerError){
@@ -174,19 +174,42 @@
     return {label:'Fuera de línea',cls:'nw-connection-offline',detail:last?'Última comunicación registrada: '+new Date(last).toLocaleString('es-AR')+'.':'No hay comunicaciones registradas del reproductor.'};
   }
   function renderScreens(){
-    const admin=profile&&(profile.es_superadmin===true||(profile.empresa_id===COMPANY_ID&&profile.rol==='administrador'));
-    const cols=['Pantalla','Ubicación','Resolución','Conexión','Diagnóstico',...(admin?['Administrar']:[])];
-    $('screenTable').innerHTML=model.screens.length
-      ?renderTable(cols,model.screens.map(p=>{
-        const c=screenConnection(p);
-        return '<tr><td><strong>'+escapeHtml(p.nombre)+'</strong></td><td>'+escapeHtml(p.ubicacion||'—')+'</td><td>'+escapeHtml(p.ancho)+' × '+escapeHtml(p.alto)+'</td><td><span class="nw-connection-status '+c.cls+'" title="'+escapeHtml(c.detail)+'">'+escapeHtml(c.label)+'</span></td>'+
-          '<td>'+((model.playerRows||[]).some(x=>x.pantalla_id===p.id&&x.tipo==='novastar_taurus')?'<button type="button" class="secondary small-btn" data-diagnose-taurus="'+escapeHtml(p.id)+'">Diagnóstico</button>':'—')+'</td>'+
-          (admin?'<td><button type="button" class="secondary small-btn" data-edit-screen="'+escapeHtml(p.id)+'">Editar</button></td>':'')+'</tr>';
-      }))
-      :empty('Todavía no hay pantallas registradas a nombre de Arcuva.');
-    if(admin)$('screenTable').querySelectorAll('[data-edit-screen]').forEach(btn=>
+    const admin=!!profile&&(profile.es_superadmin===true||(profile.empresa_id===COMPANY_ID&&profile.rol==='administrador'));
+    const screenRows=model.screens||[];
+    const players=model.playerRows||[];
+    const byScreen=new Map(players.map(player=>[player.pantalla_id,player]));
+    const screens=screenRows.map(p=>({screen:p,player:byScreen.get(p.id)||null,connection:screenConnection(p)}));
+    const onlineCount=screens.filter(row=>row.connection.cls==='nw-connection-online').length;
+    const stats=$('screenInventorySummary');
+    if(stats)stats.textContent=screenRows.length+' '+(screenRows.length===1?'pantalla':'pantallas')+' · '+onlineCount+' en línea';
+    const root=$('screenTable');
+    if(!root)return;
+    const header='<div class="ar-screen-group"><span class="ar-screen-group-dot" aria-hidden="true"></span><span>ARCUVA</span></div>';
+    const table='<div class="ar-screen-scroll"><table class="ar-screen-table"><thead><tr>'+
+      '<th>Pantalla</th><th>Estado</th><th>Reproductor</th><th>Resolución</th><th>Última conexión</th><th>Acciones</th>'+
+      '</tr></thead><tbody>'+screens.map(({screen:p,player,connection:c})=>{
+        const taurus=player?.tipo==='novastar_taurus';
+        const type=taurus?'NovaStar Taurus':player?.tipo==='windows'?'PC Windows':player?.tipo==='raspberry'?'Raspberry Pi':player?.tipo?'Reproductor':'Player';
+        const provider=taurus?'VNNOX':player?.tipo?'NextWork':'Sin vincular';
+        const version=player?.vnnox_version||player?.version_player||'Sin versión';
+        const validTime=Date.parse(player?.ultima_conexion||'');
+        const last=Number.isFinite(validTime)?new Date(validTime).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}):'Sin registro';
+        const monitor='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M9 21h6M12 18v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+        const diagnosis=taurus?'<button type="button" class="secondary small-btn" data-diagnose-taurus="'+escapeHtml(p.id)+'">Diagnóstico</button>':'';
+        const edit=admin?'<button type="button" class="secondary small-btn" data-edit-screen="'+escapeHtml(p.id)+'">Editar</button>':'';
+        return '<tr>'+
+          '<td><div class="ar-screen-name-cell"><span class="ar-screen-icon">'+monitor+'</span><span><strong>'+escapeHtml(p.nombre)+'</strong><small>'+escapeHtml(p.ubicacion||'Sin ubicación')+'</small></span></div></td>'+
+          '<td><span class="nw-connection-status '+escapeHtml(c.cls)+'" title="'+escapeHtml(c.detail)+'">'+escapeHtml(c.label)+'</span></td>'+
+          '<td><strong class="ar-screen-player">'+escapeHtml(type)+'</strong><span class="ar-screen-muted">'+escapeHtml(provider)+' · '+escapeHtml(version)+'</span></td>'+
+          '<td class="ar-screen-res"><strong>'+escapeHtml(p.ancho)+' × '+escapeHtml(p.alto)+' px</strong></td>'+
+          '<td class="ar-screen-last" title="Última comunicación registrada por NextWork; no equivale a una verificación visual.">'+escapeHtml(last)+'</td>'+
+          '<td><div class="ar-screen-actions">'+diagnosis+edit+(diagnosis||edit?'':'—')+'</div></td>'+
+          '</tr>';
+      }).join('')+'</tbody></table></div>';
+    root.innerHTML=screenRows.length?header+table:header+empty('Todavía no hay pantallas registradas a nombre de Arcuva.');
+    if(admin)root.querySelectorAll('[data-edit-screen]').forEach(btn=>
       btn.addEventListener('click',()=>window.ArcuvaScreenManage?.edit(btn.dataset.editScreen)));
-    $('screenTable').querySelectorAll('[data-diagnose-taurus]').forEach(btn=>
+    root.querySelectorAll('[data-diagnose-taurus]').forEach(btn=>
       btn.addEventListener('click',()=>window.ArcuvaTaurusDiagnostic?.open(btn.dataset.diagnoseTaurus)));
   }
   function render(){
