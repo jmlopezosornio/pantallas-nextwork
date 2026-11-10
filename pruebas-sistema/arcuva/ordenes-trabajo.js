@@ -1,0 +1,192 @@
+/* Órdenes de trabajo: piloto Arcuva. Guardado con RLS; envíos iniciados por el usuario. */
+(()=>{
+ 'use strict';
+ const base=window.ArcuvaPortalBase;
+ if(!base)return;
+ const db=base.db,company='b59ddc55-40f0-48d0-842a-2bee9ea26a41';
+ const $=id=>document.getElementById(id);
+ const esc=base.escapeHtml;
+ let orders=[],loading=false,chosen=null;
+ const allowed=()=>{const p=base.getProfile();return p&&(p.es_superadmin===true||(p.empresa_id===company&&p.activo!==false));};
+ const canWrite=()=>{const p=base.getProfile();return p&&(p.es_superadmin===true||(p.empresa_id===company&&['administrador','operador'].includes(p.rol)));};
+ const dateText=v=>v?base.dates(v):'A coordinar';
+ const stamp=v=>v?new Date(v).toLocaleString('es-AR'):'—';
+ const screenName=id=>base.getModel().screens.find(x=>x.id===id)?.nombre||'Sin pantalla asignada';
+ const idText=o=>'OT-'+o.id.slice(0,8).toUpperCase();
+ function message(text,err=false){const el=$('otMessage');if(el){el.textContent=text;el.className='ot-message '+(err?'ot-error':'ot-success');}}
+ function resetForm(){
+  $('otForm')?.reset();
+  if($('otDate'))$('otDate').value='';
+  if($('otScreen'))$('otScreen').value='';
+  chosen=null;
+  const save=$('otSave');if(save)save.textContent='Guardar orden';
+ }
+ function updateScreens(){
+  const select=$('otScreen');if(!select)return;
+  const prior=select.value;
+  select.innerHTML='<option value="">Sin pantalla específica</option>'+base.getModel().screens
+   .filter(p=>p.empresa_id===company).map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nombre)+'</option>').join('');
+  if([...select.options].some(x=>x.value===prior))select.value=prior;
+ }
+ function detail(o){
+  return [
+   'ORDEN DE TRABAJO · ARCUVA / NEXTWORK',
+   'N.º '+idText(o),
+   'Fecha de emisión: '+stamp(o.creada_en),
+   'Pantalla: '+screenName(o.pantalla_id),
+   'Ubicación: '+(o.ubicacion||'No indicada'),
+   'Trabajo: '+o.titulo,
+   'Prioridad: '+(o.prioridad||'normal').toUpperCase(),
+   'Fecha programada: '+dateText(o.fecha_programada),
+   'Responsable / técnico: '+(o.tecnico||'A designar'),
+   'Destinatario: '+(o.destinatario||'A designar'),
+   '',
+   'DESCRIPCIÓN DE LA TAREA',
+   o.descripcion,
+   '',
+   'OBSERVACIONES',
+   o.observaciones||'Sin observaciones',
+   '',
+   'Solicitamos confirmar recepción y coordinar la ejecución del trabajo.'
+  ].join('\n');
+ }
+ function setSelected(o){
+  chosen=o;
+  $('otScreen').value=o.pantalla_id||'';
+  $('otTitle').value=o.titulo||'';
+  $('otDescription').value=o.descripcion||'';
+  $('otPriority').value=o.prioridad||'normal';
+  $('otPlace').value=o.ubicacion||'';
+  $('otDate').value=o.fecha_programada||'';
+  $('otTechnician').value=o.tecnico||'';
+  $('otRecipient').value=o.destinatario||'';
+  $('otEmail').value=o.email_destino||'';
+  $('otPhone').value=o.telefono_destino||'';
+  $('otNotes').value=o.observaciones||'';
+  $('otSave').textContent='Guardar modificaciones';
+  message('Editando '+idText(o)+'. Los cambios se guardan antes de compartir.');
+  document.getElementById('otForm')?.scrollIntoView({block:'start',behavior:'smooth'});
+ }
+ function render(){
+  const box=$('otList');if(!box)return;
+  if(!allowed()){box.innerHTML='<p>Acceso no autorizado.</p>';return;}
+  box.innerHTML=orders.length?'<div class="ot-list-table-wrap"><table class="ot-list-table"><thead><tr>'+
+   '<th>Orden</th><th>Fecha</th><th>Pantalla</th><th>Trabajo</th><th>Prioridad</th><th>Estado</th><th>Acciones</th>'+
+   '</tr></thead><tbody>'+orders.map(o=>'<tr>'+
+   '<td><strong>'+esc(idText(o))+'</strong></td>'+
+   '<td>'+esc(base.dates(o.creada_en))+'</td>'+
+   '<td>'+esc(screenName(o.pantalla_id))+'</td>'+
+   '<td><strong>'+esc(o.titulo)+'</strong></td>'+
+   '<td>'+esc(o.prioridad)+'</td>'+
+   '<td><span class="ot-status">'+esc(o.estado)+'</span></td>'+
+   '<td><div class="ot-actions"><button type="button" data-ot="preview" data-id="'+esc(o.id)+'">Ver</button>'+
+   (canWrite()?'<button type="button" data-ot="edit" data-id="'+esc(o.id)+'">Editar</button>':'')+
+   '<button type="button" data-ot="mail" data-id="'+esc(o.id)+'">Correo</button>'+
+   '<button type="button" data-ot="whatsapp" data-id="'+esc(o.id)+'">WhatsApp</button>'+
+   (canWrite()&&o.estado==='borrador'?'<button type="button" data-ot="sent" data-id="'+esc(o.id)+'">Marcar enviada</button>':'')+
+   '</div></td></tr>').join('')+'</tbody></table></div>':
+   '<div class="ot-empty">Todavía no hay órdenes de trabajo registradas. Completá el formulario para crear la primera.</div>';
+  box.querySelectorAll('[data-ot]').forEach(b=>b.addEventListener('click',()=>{
+   const o=orders.find(x=>x.id===b.dataset.id);if(!o)return;
+   const action=b.dataset.ot;
+   if(action==='preview')preview(o);
+   else if(action==='edit')setSelected(o);
+   else if(action==='mail')share(o,'mail');
+   else if(action==='whatsapp')share(o,'whatsapp');
+   else if(action==='sent')markSent(o);
+  }));
+ }
+ async function load(){
+  if(!allowed()||loading)return;
+  loading=true;
+  try{
+   const {data,error}=await db.from('ordenes_trabajo')
+    .select('id,empresa_id,pantalla_id,creada_en,titulo,descripcion,ubicacion,prioridad,tecnico,destinatario,email_destino,telefono_destino,fecha_programada,estado,observaciones')
+    .eq('empresa_id',company).order('creada_en',{ascending:false}).limit(200);
+   if(error)throw error;
+   orders=data||[];updateScreens();render();
+  }catch(e){message('No se pudieron cargar las órdenes: '+e.message,true);}
+  finally{loading=false;}
+ }
+ async function save(ev){
+  ev.preventDefault();
+  if(!canWrite())return message('Tu usuario no tiene permisos para crear órdenes.',true);
+  const title=$('otTitle').value.trim(),description=$('otDescription').value.trim();
+  if(title.length<3||description.length<5)return message('Indicá un título y una descripción de la tarea.',true);
+  const email=$('otEmail').value.trim(),phone=$('otPhone').value.trim();
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return message('Revisá el correo de destino.',true);
+  if(phone&&phone.replace(/\D/g,'').length<10)return message('Para WhatsApp, ingresá el teléfono con código de país y área.',true);
+  const payload={
+   empresa_id:company,pantalla_id:$('otScreen').value||null,
+   titulo:title,descripcion,ubicacion:$('otPlace').value.trim()||null,
+   prioridad:$('otPriority').value,
+   fecha_programada:$('otDate').value||null,tecnico:$('otTechnician').value.trim()||null,
+   destinatario:$('otRecipient').value.trim()||null,email_destino:email||null,
+   telefono_destino:phone||null,observaciones:$('otNotes').value.trim()||null
+  };
+  const button=$('otSave');button.disabled=true;
+  try{
+   let result;
+   if(chosen){
+    result=await db.from('ordenes_trabajo').update(payload).eq('id',chosen.id).eq('empresa_id',company).select('id').single();
+   }else{
+    result=await db.from('ordenes_trabajo').insert(payload).select('id').single();
+   }
+   if(result.error)throw result.error;
+   resetForm();await load();
+   message('Orden guardada. Elegí Correo o WhatsApp en la lista para compartirla.');
+  }catch(e){message('No se pudo guardar la orden: '+e.message,true);}
+  finally{button.disabled=false;}
+ }
+ async function markSent(o){
+  if(!canWrite())return;
+  if(!confirm('¿Confirmás que efectivamente enviaste '+idText(o)+' por correo o WhatsApp?'))return;
+  const {error}=await db.from('ordenes_trabajo').update({estado:'enviada'}).eq('id',o.id).eq('empresa_id',company);
+  if(error)return message('No se pudo actualizar el estado: '+error.message,true);
+  await load();message('Orden marcada como enviada según tu confirmación.');
+ }
+ function share(o,channel){
+  const body=detail(o),title='Orden de trabajo '+idText(o)+' · '+o.titulo;
+  if(channel==='mail'){
+   if(!o.email_destino)return message('Esta orden no tiene correo de destino. Editala para agregarlo.',true);
+   window.location.href='mailto:'+encodeURIComponent(o.email_destino)+'?subject='+encodeURIComponent(title)+'&body='+encodeURIComponent(body);
+  }else{
+   const number=(o.telefono_destino||'').replace(/\D/g,'');
+   if(number.length<10||number.length>15)return message('Cargá un WhatsApp con código internacional (por ejemplo, 549299...).',true);
+   window.open('https://wa.me/'+number+'?text='+encodeURIComponent(body),'_blank','noopener,noreferrer');
+  }
+  message('Se abrió '+(channel==='mail'?'tu correo':'WhatsApp')+' con el mensaje preparado. El envío se completa allí; luego podés marcar la orden como enviada.');
+ }
+ function preview(o){
+  const container=$('otPreview');if(!container)return;
+  container.innerHTML='<div class="ot-preview-overlay"><div class="ot-preview-card">'+
+   '<div class="ot-preview-heading"><h3>Orden '+esc(idText(o))+'</h3><button type="button" id="otPreviewClose" class="secondary">Cerrar</button></div>'+
+   '<pre>'+esc(detail(o))+'</pre>'+
+   '<div class="ot-actions"><button type="button" id="otPrint" class="primary">Imprimir / PDF</button>'+
+   '<button type="button" id="otPreviewMail" class="secondary">Correo</button><button type="button" id="otPreviewWa" class="secondary">WhatsApp</button></div>'+
+   '</div></div>';
+  $('otPreviewClose').addEventListener('click',()=>container.replaceChildren());
+  $('otPreviewMail').addEventListener('click',()=>share(o,'mail'));
+  $('otPreviewWa').addEventListener('click',()=>share(o,'whatsapp'));
+  $('otPrint').addEventListener('click',()=>printOrder(o));
+ }
+ function printOrder(o){
+  const win=window.open('','_blank','width=840,height=700');
+  if(!win){message('Habilitá ventanas emergentes para imprimir o guardar como PDF.',true);return;}
+  const content=esc(detail(o));
+  win.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+esc(idText(o))+'</title><style>body{font:15px/1.65 Arial,sans-serif;padding:38px;color:#17365b}pre{white-space:pre-wrap;font:inherit}h1{border-bottom:3px solid #17365b;padding-bottom:14px}</style></head><body><h1>ARCUVA · NEXTWORK</h1><pre>'+content+'</pre></body></html>');
+  win.document.close();win.focus();win.print();
+ }
+ $('otForm')?.addEventListener('submit',save);
+ $('otReset')?.addEventListener('click',()=>{resetForm();message('Formulario limpio.');});
+ $('otRefresh')?.addEventListener('click',load);
+ $('otScreen')?.addEventListener('change',e=>{
+  const p=base.getModel().screens.find(x=>x.id===e.target.value);
+  if(p&&!$('otPlace').value.trim())$('otPlace').value=p.ubicacion||'';
+ });
+ window.addEventListener('arcuva-page-ordenes',load);
+ window.addEventListener('arcuva-data-loaded',()=>{
+  if(!$('page-ordenes')?.classList.contains('hidden'))updateScreens();
+ });
+ window.ArcuvaOrders=Object.freeze({load});
+})();
