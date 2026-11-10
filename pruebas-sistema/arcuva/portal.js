@@ -24,7 +24,7 @@
     showPage('resumen');
   }
   function showPage(page){
-    const titles={resumen:'Dashboard',pantallas:'Pantallas',campanias:'Campañas',clientes:'Clientes',reportes:'Reportes',usuarios:'Usuarios'};
+    const titles={resumen:'Dashboard',pantallas:'Pantallas',campanias:'Campañas',clientes:'Clientes',reportes:'Reportes',ordenes:'Órdenes de trabajo',usuarios:'Usuarios'};
     if(!profile||!titles[page]||(page==='usuarios'&&profile.es_superadmin!==true))return;
     Object.keys(titles).forEach(key=>$('page-'+key).classList.toggle('hidden',key!==page));
     document.querySelectorAll('.nav[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
@@ -32,6 +32,7 @@
     if(page==='resumen')window.dispatchEvent(new Event('arcuva-page-resumen'));
     if(page==='campanias')window.dispatchEvent(new Event('arcuva-page-campanias'));
     if(page==='reportes')window.dispatchEvent(new Event('arcuva-page-reportes'));
+    if(page==='ordenes')window.dispatchEvent(new Event('arcuva-page-ordenes'));
     if(page==='usuarios')window.dispatchEvent(new Event('arcuva-page-usuarios'));
   }
   async function verifyUser(authUser){
