@@ -8,7 +8,7 @@
   if(!base)return;
   const {db,escapeHtml:esc,dates,empty}=base;
   const $=id=>document.getElementById(id);
-  let groups=[],clients=[],memberships=[],groupScreens=[],scopeIds=new Set(),canEdit=false,validGroup='',pending=false,currentDialog='',revision=0;
+  let groups=[],clients=[],memberships=[],groupScreens=[],scopeIds=new Set(),canEdit=false,canEditClients=false,validGroup='',pending=false,currentDialog='',revision=0;
   let snapshotCampaigns=[];
   const allowedPercentages=new Set([25,50,75,100,150]);
   function localDay(date){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');}
@@ -30,6 +30,14 @@
     if(user.rol==='administrador')return true;
     return memberships.some(m=>m.grupo_id===groupId&&['operador','administrador'].includes(m.rol_grupo));
   }
+  function clientWritable(groupId){
+    const user=base.getProfile();
+    if(groupWritable(groupId))return true;
+    if(!user||user.es_superadmin!==true&&user.empresa_id!==COMPANY_ID)return false;
+    if(user.rol!=='administrativo')return false;
+    return groups.some(g=>g.id===groupId&&g.empresa_id===COMPANY_ID&&g.activo)
+      &&memberships.some(m=>m.grupo_id===groupId&&m.usuario_id===user.id&&m.rol_grupo==='administrativo');
+  }
   function banner(message,ok=false){
     const box=$('roleInfo');
     if(!box)return;
@@ -39,12 +47,14 @@
   function renderActions(){
     const current=base.getProfile();
     canEdit=!!current&&!!validGroup&&groupWritable(validGroup);
+    canEditClients=!!current&&!!validGroup&&clientWritable(validGroup);
     const btnC=$('addCampaignBtn'),btnClient=$('addClientBtn');
     if(btnC)btnC.classList.toggle('hidden',!canEdit||!getActiveScreens().length);
-    if(btnClient)btnClient.classList.toggle('hidden',!canEdit);
+    if(btnClient)btnClient.classList.toggle('hidden',!canEditClients);
     if(!current)banner('Iniciá sesión para consultar los datos de Arcuva.');
     else if(!validGroup)banner('Arcuva no tiene un grupo técnico accesible para este usuario. No es posible modificar campañas.');
     else if(canEdit)banner('Edición habilitada para Arcuva. Atención: esta versión utiliza la base real; las campañas nuevas quedan pausadas y los cambios no se sincronizan automáticamente con Taurus.',true);
+    else if(canEditClients)banner('Administración de Arcuva: podés agregar y editar clientes. Las campañas mantienen sus permisos actuales.',true);
     else banner('Acceso de consulta. Para editar campañas y clientes, el superadministrador debe asignar el rol Operador o Administrador en Arcuva.');
   }
   function renderClientTable(){
@@ -54,7 +64,7 @@
     if(!sorted.length){panel.innerHTML=empty('Todavía no hay clientes visibles de Arcuva.');return;}
     const rows=sorted.map(c=>{
       const count=snapshotCampaigns.filter(x=>x.cliente_id===c.id).length;
-      const action=canEdit&&groupWritable(c.grupo_id)
+      const action=canEditClients&&clientWritable(c.grupo_id)
         ?'<button type="button" class="secondary small-btn" data-edit-client="'+esc(c.id)+'">Editar</button>'
         :'<span class="tiny">Solo consulta</span>';
       return '<tr><td><strong>'+esc(c.nombre)+'</strong></td><td>'+esc(c.email||'—')+'</td><td>'+esc(c.telefono||'—')+'</td><td>'+count+'</td><td>'+action+'</td></tr>';
@@ -265,23 +275,23 @@
     pending=value;
     const btn=$('adminSaveBtn');if(btn){btn.disabled=value;btn.textContent=value?'Guardando…':'Guardar';}
   }
-  async function permission(groupId){
+  async function permission(groupId,clientOnly=false){
     const user=base.getProfile();
-    if(!groupWritable(groupId)||!user)throw Error('Tu usuario no tiene permiso para editar en Arcuva.');
+    if(!(clientOnly?clientWritable(groupId):groupWritable(groupId))||!user)throw Error('Tu usuario no tiene permiso para editar en Arcuva.');
     // Revalidación antes de la escritura. RLS de Supabase es la autoridad definitiva.
     const {data:auth,error:authError}=await db.auth.getUser();
     if(authError||auth?.user?.id!==user.id)throw Error('La sesión ha vencido.');
     if(user.es_superadmin===true)return;
     const {data:roleRow,error:err}=await db.from('usuarios_grupos').select('rol_grupo').eq('usuario_id',user.id).eq('grupo_id',groupId).maybeSingle();
-    if(user.rol==='administrador')return;
+    if(user.rol==='administrador'||(clientOnly&&user.rol==='administrativo'&&memberships.some(m=>m.usuario_id===user.id&&m.grupo_id===groupId&&m.rol_grupo==='administrativo')))return;
     if(err||!['operador','administrador'].includes(roleRow?.rol_grupo))throw Error('Tu permiso de edición ya no está activo.');
   }
   function openClient(id=''){
-    if(!canEdit)return;
+    if(!canEditClients)return;
     const item=id?clients.find(c=>c.id===id):null;
     if(id&&!item)return;
     const groupId=item?.grupo_id||validGroup;
-    if(!groupWritable(groupId))return alert('No tenés permiso de edición en este grupo.');
+    if(!clientWritable(groupId))return alert('No tenés permiso de edición de clientes en este grupo.');
     currentDialog='client';
     modal(id?'Editar cliente':'Nuevo cliente','<div class="admin-grid">'
       +'<div class="admin-field full"><label for="clientName">Nombre comercial *</label><input id="clientName" name="clientName" maxlength="120" required value="'+htmlAttr(item?.nombre||'')+'"></div>'
@@ -301,7 +311,7 @@
       email:$('clientEmail').value.trim()||null,telefono:$('clientPhone').value.trim()||null,direccion:$('clientAddress').value.trim()||null};
     saving(true);
     try{
-      await permission(groupId);
+      await permission(groupId,true);
       if(id){
         const current=clients.find(c=>c.id===id&&c.grupo_id===groupId);
         if(!current)throw Error('El cliente ya no está dentro de Arcuva.');
