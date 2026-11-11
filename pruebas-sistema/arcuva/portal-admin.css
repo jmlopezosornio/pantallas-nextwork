@@ -168,15 +168,3 @@
 #page-ordenes .ot-muted{font-size:12px;color:#7b8aa2}
 @media(max-width:960px){#page-ordenes .ot-screen-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){#page-ordenes .ot-screen-grid{grid-template-columns:1fr}#page-ordenes .ot-type-options{gap:5px}#page-ordenes .ot-type-options span{padding:10px 6px;font-size:11px}}
-
-/* Adjuntos de órdenes de trabajo (portal de pruebas). */
-#page-ordenes .ot-attachments{border:1px solid #dce6f4;border-radius:13px;background:#f6f9fe;padding:15px;min-width:0}
-#page-ordenes .ot-attachments>label{display:block;font-weight:850;color:#294b73;font-size:13px;margin-bottom:11px}
-#page-ordenes .ot-attachments input[type=file]{width:100%;background:#fff;padding:13px;border:1px dashed #b9cce6;border-radius:11px;cursor:pointer}
-#page-ordenes .ot-attachments .ot-help{margin:9px 0;color:#6d809b}
-#page-ordenes .ot-file-summary{font-size:11px;color:#345b82;line-height:1.5;overflow-wrap:anywhere}
-#page-ordenes .ot-file-list{display:grid;gap:8px;margin:13px 0}
-#page-ordenes .ot-file-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #dce6f2;background:#fff;border-radius:10px;padding:10px 13px;font-size:12px;color:#294768}
-#page-ordenes .ot-file-row span{overflow-wrap:anywhere;min-width:0}
-#page-ordenes .ot-file-row button{background:#f0f5ff;border:1px solid #d6e3f6;border-radius:8px;color:#205390;padding:8px 11px;white-space:nowrap;font-size:11px;font-weight:800}
-@media(max-width:620px){#page-ordenes .ot-file-row{align-items:flex-start;flex-direction:column}}
