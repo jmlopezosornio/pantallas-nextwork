@@ -36,7 +36,7 @@
     if(!user||user.es_superadmin!==true&&user.empresa_id!==COMPANY_ID)return false;
     if(user.rol!=='administrativo')return false;
     return groups.some(g=>g.id===groupId&&g.empresa_id===COMPANY_ID&&g.activo)
-      &&memberships.some(m=>m.grupo_id===groupId&&m.usuario_id===user.id&&m.rol_grupo==='administrativo');
+      &&memberships.some(m=>m.grupo_id===groupId&&m.rol_grupo==='administrativo');
   }
   function banner(message,ok=false){
     const box=$('roleInfo');
@@ -283,7 +283,7 @@
     if(authError||auth?.user?.id!==user.id)throw Error('La sesión ha vencido.');
     if(user.es_superadmin===true)return;
     const {data:roleRow,error:err}=await db.from('usuarios_grupos').select('rol_grupo').eq('usuario_id',user.id).eq('grupo_id',groupId).maybeSingle();
-    if(user.rol==='administrador'||(clientOnly&&user.rol==='administrativo'&&memberships.some(m=>m.usuario_id===user.id&&m.grupo_id===groupId&&m.rol_grupo==='administrativo')))return;
+    if(user.rol==='administrador'||(clientOnly&&user.rol==='administrativo'&&memberships.some(m=>m.grupo_id===groupId&&m.rol_grupo==='administrativo')))return;
     if(err||!['operador','administrador'].includes(roleRow?.rol_grupo))throw Error('Tu permiso de edición ya no está activo.');
   }
   function openClient(id=''){
