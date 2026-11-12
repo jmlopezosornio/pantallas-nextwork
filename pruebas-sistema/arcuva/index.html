@@ -13,7 +13,7 @@
   <script>
     (() => {
       const stamp = Date.now().toString(36);
-      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"link","path":"./portal-admin.css"}];
+      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"script","path":"./vnnox-playlogs-pilot.js"},{"tag":"link","path":"./portal-admin.css"}];
       for (const file of files) {
         const local = file.path.startsWith('./');
         const source = local ? file.path + '?nw=' + stamp : file.path;
@@ -249,6 +249,21 @@
                 <div><label for="rptEstado">Estado</label><select id="rptEstado"><option value="vigentes">Activas y pausadas</option><option value="todas">Todas</option><option value="activa" selected>Activas</option><option value="finalizada">Finalizadas</option><option value="pausada">Pausadas</option><option value="eliminada">Eliminadas</option></select></div>
               </div>
             </div>
+            <section class="vnnox-pilot" aria-label="Diagnóstico de salidas reales Prueba SMA">
+              <div class="vnnox-pilot-head">
+                <div><strong>Registros de reproducción · Prueba - SMA</strong>
+                  <p>Solicitá a VNNOX el detalle real de salidas. El resultado llega como un reporte Excel y se analiza antes de contabilizarlo.</p></div>
+                <button type="button" id="vnPilotRefresh" class="secondary">Consultar estado</button>
+              </div>
+              <div class="vnnox-pilot-form">
+                <label>Desde<input type="date" id="vnPilotFrom"></label>
+                <label>Hasta<input type="date" id="vnPilotTo"></label>
+                <button type="button" id="vnPilotRequest" class="primary">Solicitar registros a VNNOX</button>
+              </div>
+              <p id="vnPilotMessage" class="vnnox-pilot-message" role="status" aria-live="polite">Todavía no se han solicitado registros desde este panel.</p>
+              <div id="vnPilotHistory" class="vnnox-pilot-history"></div>
+              <p class="vnnox-pilot-small">Diagnóstico solamente: solicitar el reporte no modifica la tanda ni agrega salidas a Supabase hasta verificar los datos de VNNOX.</p>
+            </section>
             <div class="rpt-summary"><span id="rptSummary">Preparando reporte…</span><strong id="rptCount"></strong></div><div class="rpt-plays-info" id="rptPlaysInfo" aria-live="polite">Seleccioná «Entre fechas» para consultar salidas registradas.</div>
             <div class="rpt-scroll"><table class="rpt-table"><thead><tr><th>Cliente</th><th>Campaña</th><th>Vigencia</th><th>Pantallas</th><th>% Salidas</th><th>Salidas registradas</th></tr></thead><tbody id="rptBody"><tr><td colspan="6" class="rpt-empty">Preparando reporte…</td></tr></tbody></table></div>
           </div>
