@@ -57,6 +57,8 @@
    'Período: '+dateText(o.fecha_alta)+' al '+dateText(o.fecha_baja),
    'Solicitante: '+(o.tecnico||'No informado'),
    'Destinatario: '+(o.destinatario||'No informado'),
+   'Estado: '+(o.estado==='finalizada'?'Cumplida':o.estado),
+   ...(o.cumplida_en?['Cumplida el: '+stamp(o.cumplida_en),'Operación: '+requestType(o),'Campaña vinculada: '+(o.campania_cumplida_id||'No informada')]:[]),
    '',
    'DESCRIPCIÓN DE LA TAREA',
    o.descripcion,
@@ -98,7 +100,7 @@
    '<td>'+esc(screenNames(o))+'</td>'+
    '<td><strong>'+esc(requestType(o))+'</strong></td>'+
    '<td>'+esc(o.porcentaje_reproduccion||100)+'%</td>'+
-   '<td><span class="ot-status">'+esc(o.estado)+'</span></td>'+
+   '<td><span class="ot-status">'+esc(o.estado==='finalizada'?'Cumplida':o.estado)+'</span>'+(o.cumplida_en?'<small class="ot-completed">'+esc(stamp(o.cumplida_en))+'</small>':'')+'</td>'+
    '<td><div class="ot-actions"><button type="button" data-ot="preview" data-id="'+esc(o.id)+'">Ver</button>'+
    (canWrite()?'<button type="button" data-ot="edit" data-id="'+esc(o.id)+'">Editar</button>':'')+
 
@@ -121,7 +123,7 @@
   try{
    const [{data,error},{data:usersData,error:userError}]=await Promise.all([
     db.from('ordenes_trabajo')
-     .select('id,empresa_id,pantalla_id,pantalla_ids,creada_en,fecha_solicitud,fecha_alta,fecha_baja,tipo_solicitud,porcentaje_reproduccion,destinatario_usuario_id,titulo,descripcion,ubicacion,tecnico,destinatario,email_destino,telefono_destino,estado,observaciones')
+     .select('id,empresa_id,pantalla_id,pantalla_ids,creada_en,fecha_solicitud,fecha_alta,fecha_baja,tipo_solicitud,porcentaje_reproduccion,destinatario_usuario_id,titulo,descripcion,ubicacion,tecnico,destinatario,email_destino,telefono_destino,estado,observaciones,cumplida_en,cumplida_por,campania_cumplida_id,accion_cumplida')
      .eq('empresa_id',company).order('creada_en',{ascending:false}).limit(200),
     db.rpc('arcuva_destinatarios_ordenes_trabajo')
    ]);
