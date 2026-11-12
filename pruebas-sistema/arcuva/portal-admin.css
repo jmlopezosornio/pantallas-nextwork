@@ -168,3 +168,19 @@
 #page-ordenes .ot-muted{font-size:12px;color:#7b8aa2}
 @media(max-width:960px){#page-ordenes .ot-screen-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){#page-ordenes .ot-screen-grid{grid-template-columns:1fr}#page-ordenes .ot-type-options{gap:5px}#page-ordenes .ot-type-options span{padding:10px 6px;font-size:11px}}
+
+/* VNNOX: diagnóstico de registros reales, solo entorno de pruebas. */
+.vnnox-pilot{margin:14px 0 22px;padding:19px;border:1px solid #d6e4f5;border-radius:16px;background:#fff;box-shadow:0 4px 20px rgba(18,46,84,.04)}
+.vnnox-pilot-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.vnnox-pilot-head strong{font-size:15px;color:#193e70}
+.vnnox-pilot-head p,.vnnox-pilot-small{font-size:12px;color:#70839d;margin:6px 0 12px;line-height:1.6}
+.vnnox-pilot-form{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin:12px 0}
+.vnnox-pilot-form label{font-size:11px;color:#476487;font-weight:800;display:flex;flex-direction:column;gap:6px}
+.vnnox-pilot-form input{padding:9px 11px;border:1px solid #dae4f2;border-radius:9px;color:#26496d}
+.vnnox-pilot-message{font-size:12px;color:#315b83;background:#f0f6ff;padding:10px 12px;border-radius:9px}
+.vnnox-pilot-history{overflow-x:auto;font-size:12px;color:#405c7c}
+.vnnox-pilot-history table{border-collapse:collapse;width:100%;min-width:580px}
+.vnnox-pilot-history th{text-align:left;background:#f3f7fd;padding:10px}
+.vnnox-pilot-history td{padding:10px;border-bottom:1px solid #e8eff8}
+.vnnox-pilot-history a{color:#2158a7;font-weight:700;text-decoration:underline}
+@media(max-width:640px){.vnnox-pilot-head{flex-direction:column}.vnnox-pilot{padding:14px}}
