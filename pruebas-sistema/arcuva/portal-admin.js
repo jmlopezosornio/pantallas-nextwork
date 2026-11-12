@@ -402,6 +402,36 @@
       }catch(err){feedback.textContent=err.message;}
     }
   }
+  const pendingStatuses=['borrador','enviada','en_proceso'];
+  async function populatePendingOrders(tipo,selectId='campaignWorkOrder'){
+    const select=$(selectId);
+    if(!select)return;
+    const {data,error}=await db.from('ordenes_trabajo')
+      .select('id,tipo_solicitud,descripcion,pantalla_ids,fecha_solicitud,estado')
+      .eq('empresa_id',COMPANY_ID).eq('tipo_solicitud',tipo)
+      .in('estado',pendingStatuses).order('creada_en',{ascending:false}).limit(100);
+    if(!$(selectId)||$(selectId)!==select)return;
+    if(error){select.innerHTML='<option value="">No se pudieron consultar órdenes pendientes</option>';return;}
+    const screens=new Map(base.getModel().screens.map(p=>[p.id,p.nombre]));
+    select.innerHTML='<option value="">Sin orden asociada (opcional)</option>'+
+      (data||[]).map(o=>'<option value="'+esc(o.id)+'">OT-'+esc(o.id.slice(0,8).toUpperCase())+
+       ' · '+esc((o.pantalla_ids||[]).map(id=>screens.get(id)||id).join(', '))+
+       ' · '+esc((o.descripcion||'').slice(0,55))+'</option>').join('');
+  }
+  function pendingOrderField(){
+    return '<div class="admin-field full"><label for="campaignWorkOrder">Orden de trabajo pendiente (opcional)</label>'+
+     '<select id="campaignWorkOrder"><option value="">Cargando órdenes pendientes…</option></select>'+
+     '<small>Si seleccionás una orden, se marcará cumplida únicamente después de guardar la operación. Debe corresponder al tipo de solicitud y a todas sus pantallas. Esto no confirma reproducción en Taurus.</small></div>';
+  }
+  async function fulfillWorkOrder(orderId,campaignId,type){
+    if(!orderId)return '';
+    const {error}=await db.rpc('arcuva_cumplir_orden_trabajo',{
+      p_orden_id:orderId,p_campania_id:campaignId,p_accion:type
+    });
+    if(error)return 'La campaña se guardó, pero NO se marcó cumplida la orden: '+error.message;
+    window.ArcuvaOrders?.load?.();
+    return 'La orden vinculada quedó marcada como cumplida.';
+  }
   function openCampaign(id=''){
     if(!canEdit)return;
     const item=id?snapshotCampaigns.find(c=>c.id===id):null;
@@ -433,8 +463,9 @@
       +[25,50,75,100,150].map(n=>'<option value="'+n+'" '+(Number(item?.porcentaje??100)===n?'selected':'')+'>'+n+'%</option>').join('')+'</select></div>'
       +'<div class="admin-field"><label for="campaignStart">Fecha desde *</label><input id="campaignStart" type="date" value="'+esc(start)+'" required></div>'
       +'<div class="admin-field"><label for="campaignEnd">Fecha hasta *</label><input id="campaignEnd" type="date" value="'+esc(ending)+'" required></div>'
-      +extra+'<div class="admin-field full"><div id="fileDetails" class="tiny"></div></div>'
+      +extra+pendingOrderField()+'<div class="admin-field full"><div id="fileDetails" class="tiny"></div></div>'
       +'</div>',()=>saveCampaign(id));
+    populatePendingOrders(id?'actualizacion':'alta');
     const select=$('campaignType');
     select.addEventListener('change',()=>{
       // Nunca se hereda un archivo de un tipo anterior.
@@ -513,6 +544,7 @@
     const screenNames=new Map(getActiveScreens().map(p=>[p.id,p.nombre]));
     const changes=[added.length?'Agregar: '+added.map(x=>screenNames.get(x)||x).join(', '):'',
       removed.length?'Quitar: '+removed.map(x=>screenNames.get(x)||x).join(', '):''].filter(Boolean);
+    const workOrderId=$('campaignWorkOrder')?.value||'';
     const ok=window.confirm(id
       ?'Se guardarán los cambios de la campaña en Arcuva.'+(changes.length?'\\n\\nPantallas:\\n'+changes.join('\\n'):'\\n\\nSin cambios en las pantallas asignadas.')+
         '\\n\\nEsto puede modificar la programación publicitaria cuando los reproductores se sincronicen. ¿Continuar?'
@@ -522,6 +554,7 @@
     try{
       await permission(validGroup);
       if(file){archivo=await mediaPath(type,clientId);}
+      let savedCampaignId=id||'';
       const payload={cliente_id:clientId,nombre,tipo_contenido:type,archivo_url:archivo,
         duracion_seg:duracion,fecha_desde:desde,fecha_hasta:hasta,porcentaje:percent};
       if(id){
@@ -541,14 +574,16 @@
         if(error)throw error;
         if(data?.length!==1)throw Error('No se pudo confirmar el alta de la campaña.');
         const newId=data[0].id;
+        savedCampaignId=newId;
         const {error:linkError}=await db.from('campanias_pantallas').insert(selectedScreenIds.map(pantalla_id=>({campania_id:newId,pantalla_id})));
         if(linkError){
           await db.from('campanias').update({eliminada:true,pausada:true}).eq('id',newId);
           throw Error('La campaña quedó pausada, pero no se pudieron vincular pantallas: '+linkError.message);
         }
       }
+      const workResult=await fulfillWorkOrder(workOrderId,savedCampaignId,id?'actualizacion':'alta');
       closeDialog();await base.reload();
-      alert('Campaña guardada. No se enviaron cambios a Taurus automáticamente.');
+      alert('Campaña guardada. No se enviaron cambios a Taurus automáticamente.'+(workResult?'\n\n'+workResult:''));
     }catch(err){fail(err.message||'No se pudo guardar la campaña.');}
     finally{saving(false);}
   }
@@ -556,16 +591,37 @@
     const raw=snapshotCampaigns.find(x=>x.id===id),visible=base.getModel().campaigns.find(x=>x.id===id);
     if(!raw||!visible||!canEdit||!groupWritable(raw.grupo_id))return;
     const newValue=!raw.pausada;
-    if(!window.confirm(newValue
-      ?'¿Pausar la campaña '+raw.nombre+'? La programación del Taurus podrá requerir una sincronización para reflejarlo.'
-      :'¿Reactivar la campaña '+raw.nombre+'? Puede comenzar a reproducirse en SMA 01 cuando se sincronice.'))return;
+    if(newValue){
+      currentDialog='campaign-pause';
+      modal('Pausar campaña · '+raw.nombre,
+       '<div class="message notice">La pausa puede corresponder a una orden de Baja. Seleccionala para marcarla cumplida al guardar la pausa. Si la baja es definitiva, la programación deberá reflejarse cuando el reproductor sincronice.</div>'+
+       pendingOrderField(),async()=>{
+        if(pending)return;
+        const workOrderId=$('campaignWorkOrder')?.value||'';
+        saving(true);
+        try{
+          await permission(raw.grupo_id);
+          const {data,error}=await db.from('campanias').update({pausada:true})
+            .eq('id',id).eq('grupo_id',raw.grupo_id).select('id');
+          if(error)throw error;
+          if(data?.length!==1)throw Error('No se confirmó la pausa.');
+          const result=await fulfillWorkOrder(workOrderId,id,'baja');
+          closeDialog();await base.reload();
+          alert('Campaña pausada. La programación de Taurus requiere sincronización.'+(result?'\n\n'+result:''));
+        }catch(err){fail(err.message||'No se pudo pausar la campaña.');}
+        finally{saving(false);}
+       });
+      populatePendingOrders('baja');
+      return;
+    }
+    if(!window.confirm('¿Reactivar la campaña '+raw.nombre+'? Puede comenzar a reproducirse cuando se sincronice el Taurus.'))return;
     try{
       await permission(raw.grupo_id);
-      const {data,error}=await db.from('campanias').update({pausada:newValue}).eq('id',id).eq('grupo_id',raw.grupo_id).select('id');
+      const {data,error}=await db.from('campanias').update({pausada:false}).eq('id',id).eq('grupo_id',raw.grupo_id).select('id');
       if(error)throw error;
       if(data?.length!==1)throw Error('No se confirmó el cambio de estado.');
       await base.reload();
-      alert('Estado guardado. La publicación en Taurus requiere sincronización; no se ha realizado en esta operación.');
+      alert('Campaña reactivada. No se ha sincronizado automáticamente con Taurus.');
     }catch(err){alert(err.message||'No se pudo cambiar el estado de la campaña.');}
   }
   $('addClientBtn').addEventListener('click',()=>openClient());
