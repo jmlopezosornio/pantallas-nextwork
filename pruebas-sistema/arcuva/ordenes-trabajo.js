@@ -58,7 +58,7 @@
    'Solicitante: '+(o.tecnico||'No informado'),
    'Destinatario: '+(o.destinatario||'No informado'),
    'Estado: '+(o.estado==='finalizada'?'Cumplida':o.estado),
-   ...(o.cumplida_en?['Cumplida el: '+stamp(o.cumplida_en),'Operación: '+requestType(o),'Campaña vinculada: '+(o.campania_cumplida_id||'No informada')]:[]),
+   ...(o.cumplida_en?['Campaña vinculada: '+(o.campania_cumplida_id||'No informada')]:[]),
    '',
    'DESCRIPCIÓN DE LA TAREA',
    o.descripcion,
@@ -100,7 +100,7 @@
    '<td>'+esc(screenNames(o))+'</td>'+
    '<td><strong>'+esc(requestType(o))+'</strong></td>'+
    '<td>'+esc(o.porcentaje_reproduccion||100)+'%</td>'+
-   '<td><span class="ot-status">'+esc(o.estado==='finalizada'?'Cumplida':o.estado)+'</span>'+(o.cumplida_en?'<small class="ot-completed">'+esc(stamp(o.cumplida_en))+'</small>':'')+'</td>'+
+   '<td><span class="ot-status">'+esc(o.estado==='finalizada'?'Cumplida':o.estado)+'</span></td>' +
    '<td><div class="ot-actions"><button type="button" data-ot="preview" data-id="'+esc(o.id)+'">Ver</button>'+
    (canWrite()?'<button type="button" data-ot="edit" data-id="'+esc(o.id)+'">Editar</button>':'')+
 
