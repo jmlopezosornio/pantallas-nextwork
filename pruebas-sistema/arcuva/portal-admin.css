@@ -238,3 +238,14 @@
  #page-campanias .campaign-mobile-metrics span{font-size:12px}
  .admin-dialog .dialog-actions{grid-template-columns:1fr 1.4fr}
 }
+
+@media(max-width:630px){
+ .sidebar{display:block!important;padding:0!important;width:100%!important;position:sticky;top:0;z-index:80;overflow:hidden!important}
+ .sidebar .powered-card{display:none!important}
+ .sidebar nav{display:flex;gap:5px;overflow-x:auto;scrollbar-width:thin;padding:9px 10px;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+ .sidebar nav .nav{flex:0 0 auto;font-size:12px;padding:10px 11px;min-height:42px;white-space:nowrap}
+ .sidebar nav .nav[data-page="campanias"]{order:-2}
+ .topbar{min-height:55px;padding:10px 13px}
+ .topbar .subtitle{font-size:10px}
+ .workspace{padding:14px 10px}
+}
