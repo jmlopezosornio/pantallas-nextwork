@@ -180,7 +180,7 @@
         </section>
         <section id="page-ordenes" class="hidden">
           <div class="ot-heading">
-            <div><span class="kicker">Mantenimiento y servicio</span><h2>Órdenes de trabajo</h2><p class="lead">Prepará órdenes para las pantallas de Arcuva y compartilas por WhatsApp con archivos adjuntos.</p></div>
+            <div><span class="kicker">Mantenimiento y servicio</span><h2>Órdenes de trabajo</h2><p class="lead">Prepará órdenes para las pantallas de Arcuva y compartilas por WhatsApp.</p></div>
             <button type="button" id="otRefresh" class="secondary">Actualizar órdenes</button>
           </div>
           <div class="ot-panel">
@@ -209,11 +209,8 @@
                 <label>Usuario solicitante / responsable<input id="otTechnician" type="text" readonly></label>
                 <label>Destinatario · usuarios de Arcuva *<select id="otRecipient" required><option value="">Seleccionar usuario...</option></select></label>
                 
-                <div class="ot-contact-field">
-                  <label for="otPhone">WhatsApp del destinatario</label>
-                  <input id="otPhone" type="tel" maxlength="25" inputmode="tel" placeholder="+54 9 299 ... (opcional)">
-                  <div class="ot-contact-bottom"><small id="otContactHint" class="ot-muted">Seleccioná un destinatario.</small><button type="button" id="otSaveContact" class="secondary" hidden>Guardar número en usuario</button></div>
-                </div>
+                <input id="otPhone" type="hidden">
+                <small class="ot-muted ot-wide">El WhatsApp se toma de la ficha del destinatario en Usuarios.</small>
                 <label class="ot-wide">Observaciones adicionales<textarea id="otNotes" rows="2" maxlength="3000" placeholder="Indicaciones o aclaraciones adicionales"></textarea></label>
               </div>
               <p class="ot-help">Las órdenes se guardan en NextWork. El botón WhatsApp prepara un mensaje de texto con los datos de la orden. El envío se confirma desde WhatsApp; no se envía automáticamente.</p>
