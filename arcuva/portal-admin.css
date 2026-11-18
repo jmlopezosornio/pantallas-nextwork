@@ -126,7 +126,7 @@
 @media(max-width:620px){.nw-diag-row{flex-direction:column;gap:3px}.nw-diag-row span{text-align:left}}
 
 /* Estilos de funcionalidades aprobadas en pruebas, lanzamiento v1.0.0 */
-Órdenes de trabajo - Arcuva entorno de pruebas */
+/* Órdenes de trabajo - Arcuva */
 .ot-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
 .ot-heading h2{margin:5px 0 6px;color:#142e53;letter-spacing:-.025em}
 .ot-heading .lead{margin:0}
