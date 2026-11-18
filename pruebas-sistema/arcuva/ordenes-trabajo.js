@@ -44,35 +44,10 @@
   if(users.some(u=>u.id===previous))select.value=previous;
   setRecipientContact();
  }
- function canManageContacts(){
-  const p=base.getProfile();
-  return !!p&&(p.es_superadmin===true||(p.empresa_id===company&&['administrador','administrativo'].includes(p.rol)));
- }
  function setRecipientContact(){
   const user=users.find(u=>u.id===$('otRecipient')?.value);
-  const phone=$('otPhone'),saveButton=$('otSaveContact'),hint=$('otContactHint');
+  const phone=$('otPhone');
   if(phone)phone.value=user?.telefono_whatsapp||'';
-  if(saveButton){saveButton.disabled=!user||!canManageContacts();saveButton.hidden=!canManageContacts();}
-  if(hint)hint.textContent=user
-   ?(user.telefono_whatsapp?'Número guardado en la ficha del usuario.':'Este usuario aún no tiene un WhatsApp registrado.')
-   :'Seleccioná un destinatario para completar su WhatsApp.';
- }
- async function saveUserContact(){
-  const user=users.find(u=>u.id===$('otRecipient')?.value);
-  const button=$('otSaveContact'),phone=$('otPhone')?.value.trim()||'';
-  if(!user||!canManageContacts())return message('No tenés permiso para editar contactos.',true);
-  const digits=phone.replace(/\D/g,'');
-  if(phone&&(digits.length<10||digits.length>15))return message('Ingresá el WhatsApp con código de país, entre 10 y 15 dígitos.',true);
-  if(!window.confirm('¿Guardar el WhatsApp para '+(user.nombre||user.email)+' en su ficha de usuario?'))return;
-  button.disabled=true;
-  try{
-    const {data,error}=await db.rpc('arcuva_actualizar_whatsapp_usuario',{p_usuario_id:user.id,p_telefono:phone||null});
-    if(error)throw error;
-    user.telefono_whatsapp=data||'';
-    setRecipientContact();
-    message('WhatsApp guardado en el usuario. Se utilizará en las próximas órdenes.');
-  }catch(e){message('No se pudo actualizar el contacto: '+e.message,true);}
-  finally{button.disabled=false;}
  }
  function detail(o){
   return [
@@ -264,7 +239,6 @@
  $('otReset')?.addEventListener('click',()=>{resetForm();message('Formulario limpio.');});
  $('otRefresh')?.addEventListener('click',load);
  $('otRecipient')?.addEventListener('change',setRecipientContact);
- $('otSaveContact')?.addEventListener('click',saveUserContact);
  $('otSelectAll')?.addEventListener('click',()=>document.querySelectorAll('#otScreens input[type="checkbox"]').forEach(x=>x.checked=true));
  $('otSelectNone')?.addEventListener('click',()=>document.querySelectorAll('#otScreens input[type="checkbox"]').forEach(x=>x.checked=false));
  window.addEventListener('arcuva-page-ordenes',load);
