@@ -13,7 +13,7 @@
   <script>
     (() => {
       const stamp = Date.now().toString(36);
-      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./screen-manage.js"},{"tag":"script","path":"./taurus-diagnostic.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"link","path":"./portal-admin.css"}];
+      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./screen-manage.js"},{"tag":"script","path":"./taurus-diagnostic.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"link","path":"./portal-admin.css"}];
       for (const file of files) {
         const local = file.path.startsWith('./');
         const source = local ? file.path + '?nw=' + stamp : file.path;
@@ -71,6 +71,7 @@
         <button type="button" class="nav" data-page="campanias">Campañas</button>
         <button type="button" class="nav" data-page="clientes">Clientes</button>
         <button type="button" class="nav" data-page="reportes">Reportes</button>
+        <button type="button" class="nav" data-page="ordenes">Órdenes de trabajo</button>
         <button type="button" class="nav hidden" id="superadminUsersNav" data-page="usuarios">Usuarios</button>
       </nav>
       
@@ -80,7 +81,7 @@
       <header class="topbar">
         <div><strong id="pageTitle">Dashboard</strong><div class="subtitle">Arcuva · Plataforma de pantallas LED</div></div>
         <div class="userarea">
-          
+          <span class="testtag">PORTAL DE PRUEBAS</span>
           <span id="userName" class="user-name"></span>
           <button id="logoutBtn" class="secondary" type="button">Salir</button>
         </div>
@@ -172,18 +173,65 @@
         </section>
 
         <section id="page-usuarios" class="hidden">
-          <div class="page-top"><div><span class="kicker">Acceso Superadmin</span><h2>Usuarios</h2><p class="lead">Administración general de cuentas, roles, empresas y accesos a pantallas.</p></div></div>
+          <div class="page-top"><div><span class="kicker">Contactos y accesos</span><h2>Usuarios</h2><p class="lead">Consultá usuarios y actualizá sus teléfonos de WhatsApp para las órdenes de trabajo.</p></div></div>
           <div class="panel superadmin-tools">
-            <div class="page-top"><div><h3>Usuarios y asignaciones</h3><p class="lead">Vista directa de las cuentas, empresas, roles y grupos asignados.</p></div><button type="button" class="secondary" id="refreshSuperUsers">Actualizar</button></div>
+            <div class="page-top"><div><h3>Usuarios y contactos</h3><p class="lead">Administración puede editar los teléfonos de Arcuva; Superadmin conserva la consulta global de cuentas.</p></div><button type="button" class="secondary" id="refreshSuperUsers">Actualizar</button></div>
             <div id="superUsersInfo" class="tiny">Cargando usuarios…</div>
             <div id="superUsersTable" class="scroll"><div class="empty">Esperando sesión Superadmin…</div></div>
           </div>
+        </section>
+        <div id="userWhatsappDialog" hidden></div>
+        <section id="page-ordenes" class="hidden">
+          <div class="ot-heading">
+            <div><span class="kicker">Mantenimiento y servicio</span><h2>Órdenes de trabajo</h2><p class="lead">Prepará órdenes para las pantallas de Arcuva y compartilas por WhatsApp.</p></div>
+            <button type="button" id="otRefresh" class="secondary">Actualizar órdenes</button>
+          </div>
+          <div class="ot-panel">
+            <div class="ot-panel-title"><h3>Nueva orden de trabajo</h3><span>Los campos con * son obligatorios</span></div>
+            <form id="otForm" novalidate>
+              <div class="ot-fields">
+                <div class="ot-wide ot-screen-picker">
+                  <div class="ot-section-title"><span>Pantallas de destino *</span><div><button type="button" id="otSelectAll" class="secondary">Seleccionar todas</button><button type="button" id="otSelectNone" class="secondary">Quitar selección</button></div></div>
+                  <div id="otScreens" class="ot-screen-grid" role="group" aria-label="Seleccionar pantallas"><span class="ot-muted">Cargando pantallas…</span></div>
+                </div>
+                <fieldset class="ot-wide ot-type-fieldset"><legend>Trabajo solicitado *</legend>
+                  <div class="ot-type-options">
+                    <label><input type="radio" name="otType" value="alta" checked><span>Alta</span></label>
+                    <label><input type="radio" name="otType" value="actualizacion"><span>Actualización</span></label>
+                    <label><input type="radio" name="otType" value="baja"><span>Baja</span></label>
+                  </div>
+                </fieldset>
+                <label>Porcentaje de reproducción<select id="otPercent">
+                  <option value="25">25%</option><option value="50">50%</option><option value="75">75%</option>
+                  <option value="100" selected>100%</option><option value="150">150%</option>
+                </select></label>
+                <label>Fecha de solicitud<input id="otRequestDate" type="date" readonly></label>
+                <label>Fecha de alta<input id="otFrom" type="date"></label>
+                <label>Fecha de baja<input id="otTo" type="date"></label>
+                <label class="ot-wide">Descripción de la tarea *<textarea id="otDescription" required rows="4" maxlength="5000" placeholder="Describí libremente la publicidad, contenido, indicaciones y acciones solicitadas"></textarea></label>
+                <label>Usuario solicitante / responsable<input id="otTechnician" type="text" readonly></label>
+                <label>Destinatario · usuarios de Arcuva *<select id="otRecipient" required><option value="">Seleccionar usuario...</option></select></label>
+                
+                <input id="otPhone" type="hidden">
+                <small class="ot-muted ot-wide">El WhatsApp se toma de la ficha del destinatario en Usuarios.</small>
+                <label class="ot-wide">Observaciones adicionales<textarea id="otNotes" rows="2" maxlength="3000" placeholder="Indicaciones o aclaraciones adicionales"></textarea></label>
+              </div>
+              <p class="ot-help">Las órdenes se guardan en NextWork. El botón WhatsApp prepara un mensaje de texto con los datos de la orden. El envío se confirma desde WhatsApp; no se envía automáticamente.</p>
+              <div id="otMessage" class="ot-message" role="status" aria-live="polite"></div>
+              <div class="ot-form-actions"><button type="button" id="otReset" class="secondary">Limpiar</button><button type="submit" id="otSave" class="primary">Guardar orden</button></div>
+            </form>
+          </div>
+          <div class="ot-panel">
+            <div class="ot-panel-title"><h3>Órdenes registradas</h3><span>Historial de Arcuva</span></div>
+            <div id="otList"><div class="ot-empty">Cargando órdenes…</div></div>
+          </div>
+          <div id="otPreview"></div>
         </section>
         <section id="page-reportes" class="hidden">
           <div class="rpt-shell">
             <div class="rpt-head">
               <div><h2>Reporte de Clientes y Campañas</h2>
-                <p>Listado de campañas y reproducciones registradas por cliente, período y pantalla.</p>
+                <p>Listado administrativo por cliente, campaña, vigencia, pantallas asignadas y porcentaje de salidas.</p>
               </div>
               <div class="rpt-actions">
                 <button class="secondary" type="button" id="rptReset">Limpiar filtros</button>
@@ -212,7 +260,7 @@
           <button id="printBtn" class="hidden" type="button" aria-hidden="true" tabindex="-1"></button>
         </section>
         <div class="message note-role" id="roleInfo" aria-live="polite">Verificando permisos de edición de Arcuva…</div>
-        <div class="footer">Arcuva · Desarrollado por NextWork</div>
+        <div class="footer">Arcuva · Desarrollado por NextWork · v1.0.0</div>
       </main>
     </div>
   </section>
