@@ -1,0 +1,14 @@
+{
+  "producto": "NextWork — Portal Arcuva",
+  "version": "1.0.0",
+  "fecha_publicacion": "2026-11-18",
+  "entorno": "produccion",
+  "criterio": "Incrementar version solo al promover cambios aprobados desde pruebas a produccion",
+  "cambios": [
+    "Mejoras de gestion y visualizacion de campañas en dispositivos moviles",
+    "Ordenes de trabajo y notificacion por WhatsApp",
+    "Edicion de contactos telefonicos de usuarios autorizados",
+    "Conservacion de administracion de pantallas y diagnostico Taurus existentes",
+    "Ajustes de estilos y reportes"
+  ]
+}
