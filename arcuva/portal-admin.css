@@ -124,3 +124,142 @@
 .nw-diag-warning{font-size:12px;color:#a33a32;line-height:1.55}
 .nw-diag-notice{font-size:12px;line-height:1.65;color:#526a88}
 @media(max-width:620px){.nw-diag-row{flex-direction:column;gap:3px}.nw-diag-row span{text-align:left}}
+
+/* Estilos de funcionalidades aprobadas en pruebas, lanzamiento v1.0.0 */
+Órdenes de trabajo - Arcuva entorno de pruebas */
+.ot-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.ot-heading h2{margin:5px 0 6px;color:#142e53;letter-spacing:-.025em}
+.ot-heading .lead{margin:0}
+.ot-panel{background:#fff;border:1px solid #e1e9f5;border-radius:19px;box-shadow:0 8px 30px rgba(27,65,110,.05);padding:23px 24px;margin-bottom:19px}
+.ot-panel-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:19px}
+.ot-panel-title h3{margin:0;font-size:19px;color:#17365a}
+.ot-panel-title span{font-size:12px;color:#71839b}
+.ot-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.ot-fields label{display:flex;flex-direction:column;gap:8px;color:#3f5a7c;font-size:12px;font-weight:800}
+.ot-fields .ot-wide{grid-column:1/-1}
+.ot-fields input,.ot-fields select,.ot-fields textarea{width:100%;min-width:0;border:1px solid #d6e2f1;background:#fff;color:#1d3557;padding:12px 13px;border-radius:11px;font-size:14px;font-weight:400;line-height:1.4;outline-offset:2px}
+.ot-fields textarea{resize:vertical;min-height:82px;font-family:inherit}
+.ot-fields input:focus,.ot-fields select:focus,.ot-fields textarea:focus{border-color:#5c85db}
+.ot-help{color:#697e99;font-size:12px;line-height:1.6;margin:17px 0}
+.ot-message{min-height:18px;font-size:12px;line-height:1.5}
+.ot-error{color:#b62735}.ot-success{color:#217245}
+.ot-form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
+.ot-list-table-wrap{overflow-x:auto}
+.ot-list-table{border-collapse:collapse;width:100%;min-width:850px;font-size:12px}
+.ot-list-table th{text-align:left;background:#eff4fa;color:#547195;padding:12px 10px;text-transform:uppercase;font-size:10px;letter-spacing:.045em}
+.ot-list-table td{border-bottom:1px solid #e8eef6;padding:12px 10px;vertical-align:top;color:#18365c}
+.ot-list-table td strong{font-weight:850}
+.ot-list-table tr:last-child td{border-bottom:0}
+.ot-status{display:inline-flex;border-radius:999px;background:#eaf1fd;color:#255ba3;padding:5px 8px;font-weight:800;text-transform:capitalize}
+.ot-actions{display:flex;gap:6px;flex-wrap:wrap;min-width:230px}
+.ot-actions button{font-size:11px;font-weight:800;border:1px solid #d7e3f1;background:#fff;color:#285285;border-radius:9px;padding:7px 8px}
+.ot-actions button:hover{background:#eff5ff}
+.ot-empty{color:#74859c;text-align:center;padding:26px;font-size:13px}
+.ot-preview-overlay{position:fixed;inset:0;z-index:1200;background:rgba(12,31,58,.65);display:flex;align-items:center;justify-content:center;padding:22px}
+.ot-preview-card{width:min(780px,100%);max-height:90vh;overflow:auto;background:white;border-radius:19px;padding:26px;box-shadow:0 24px 80px rgba(0,0,0,.22)}
+.ot-preview-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.ot-preview-heading h3{margin:0;color:#163a68}
+.ot-preview-card pre{white-space:pre-wrap;overflow-wrap:anywhere;font-family:inherit;line-height:1.7;color:#293f5e;background:#f5f8fc;border:1px solid #e1eaf5;border-radius:12px;padding:18px}
+@media(max-width:760px){.ot-fields{grid-template-columns:1fr}.ot-panel{padding:17px 13px}.ot-panel-title{align-items:flex-start;flex-direction:column}.ot-preview-card{padding:18px}}
+
+/* Solicitudes publicitarias: selección múltiple, tipo y porcentajes. */
+#page-ordenes .ot-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#3f5a7c;font-weight:800;font-size:12px;margin-bottom:10px;flex-wrap:wrap}
+#page-ordenes .ot-section-title>div{display:flex;gap:8px;flex-wrap:wrap}
+#page-ordenes .ot-section-title button{font-size:11px;padding:7px 10px;border:1px solid #d9e3f2;color:#315482;background:white;border-radius:8px}
+#page-ordenes .ot-screen-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;max-height:250px;overflow-y:auto;padding:14px;border:1px solid #dce6f4;border-radius:13px;background:#f6f9fe}
+#page-ordenes .ot-fields .ot-screen-checkbox{display:flex;flex-direction:row;align-items:center;gap:10px;padding:11px;background:white;border:1px solid #e1e8f4;border-radius:9px;color:#193a67;font-weight:750;font-size:12px;cursor:pointer;line-height:1.3;min-width:0}
+#page-ordenes .ot-fields .ot-screen-checkbox input{width:17px;height:17px;min-width:17px;margin:0;accent-color:#6d40e4}
+#page-ordenes .ot-screen-checkbox span{overflow-wrap:anywhere}
+#page-ordenes .ot-type-fieldset{border:0;padding:0;margin:0;min-width:0}
+#page-ordenes .ot-type-fieldset legend{font-size:12px;font-weight:800;color:#3f5a7c;margin-bottom:10px}
+#page-ordenes .ot-type-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#page-ordenes .ot-type-options label{display:block;cursor:pointer;position:relative}
+#page-ordenes .ot-type-options input{position:absolute;opacity:0;width:1px;height:1px}
+#page-ordenes .ot-type-options span{display:block;text-align:center;padding:12px;border-radius:11px;border:1px solid #d8e3f3;background:#f8faff;color:#35577b;font-size:13px;font-weight:850;transition:background .15s,color .15s}
+#page-ordenes .ot-type-options input:checked+span{background:#215cbb;color:white;border-color:#215cbb;box-shadow:0 4px 12px #215cbb20}
+#page-ordenes .ot-type-options input:focus-visible+span{outline:2px solid #583eda;outline-offset:2px}
+#page-ordenes input[readonly]{background:#f0f4fa;color:#48607c;cursor:default}
+#page-ordenes .ot-muted{font-size:12px;color:#7b8aa2}
+@media(max-width:960px){#page-ordenes .ot-screen-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){#page-ordenes .ot-screen-grid{grid-template-columns:1fr}#page-ordenes .ot-type-options{gap:5px}#page-ordenes .ot-type-options span{padding:10px 6px;font-size:11px}}
+
+/* Contactos WhatsApp persistentes en usuarios de Arcuva. */
+#page-ordenes .ot-contact-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+#page-ordenes .ot-contact-field>label{font-weight:700;color:#345473;font-size:12px}
+#page-ordenes .ot-contact-field>input{width:100%;box-sizing:border-box}
+#page-ordenes .ot-contact-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#page-ordenes #otSaveContact{font-size:11px;padding:7px 9px}
+#page-ordenes #otSaveContact[hidden]{display:none!important}
+
+/* Edición de teléfono desde Usuarios, sin contacto editable en la orden. */
+#userWhatsappDialog[hidden]{display:none!important}
+#userWhatsappDialog{position:fixed;inset:0;z-index:4000}
+.user-contact-backdrop{position:absolute;inset:0;background:rgba(11,29,54,.6);display:flex;align-items:center;justify-content:center;padding:20px}
+.user-contact-dialog{background:white;border-radius:16px;max-width:480px;width:100%;padding:25px;box-shadow:0 25px 65px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:13px}
+.user-contact-dialog h3,.user-contact-dialog p{margin:0}
+.user-contact-dialog label{font-weight:700;font-size:13px;color:#294669}
+.user-contact-dialog input{font-size:16px;border-radius:9px;border:1px solid #cbd7e8;padding:11px;width:100%;box-sizing:border-box}
+.user-contact-actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+#userWhatsappError{font-size:12px;color:#bd2424}
+
+
+/* Campañas desde móvil: tarjetas y formulario a pantalla completa. */
+.campaign-mobile-list{display:none}
+@media(max-width:700px){
+ #page-campanias{min-width:0}
+ #page-campanias .campaign-shell{padding:14px 12px;border-radius:14px;margin:0;min-width:0}
+ #page-campanias .campaign-header{align-items:stretch;flex-direction:column;gap:12px}
+ #page-campanias .campaign-header h2{font-size:23px}
+ #page-campanias #addCampaignBtn{display:block;width:100%;min-height:52px;font-size:16px}
+ #page-campanias .campaign-filter-row{display:grid;grid-template-columns:1fr;gap:9px;margin:13px 0}
+ #page-campanias .campaign-filter-row input,#page-campanias .campaign-filter-row select{font-size:16px;min-height:48px}
+ #page-campanias .campaign-status-tabs{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;gap:4px;-webkit-overflow-scrolling:touch}
+ #page-campanias .campaign-tab{flex:0 0 auto;min-height:45px;padding:11px 9px}
+ #page-campanias .campaign-table-scroll{display:none}
+ #page-campanias .campaign-mobile-list{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+ #page-campanias .campaign-mobile-card{min-width:0;background:#fff;border:1px solid #dce6f3;border-radius:15px;padding:15px;box-shadow:0 4px 14px #17375e0c}
+ #page-campanias .campaign-mobile-top{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+ #page-campanias .campaign-mobile-card h3{margin:13px 0 4px;color:#153a64;font-size:18px;line-height:1.3;overflow-wrap:anywhere}
+ #page-campanias .campaign-mobile-client{color:#637b98;font-size:13px;margin:0 0 12px;overflow-wrap:anywhere}
+ #page-campanias .campaign-mobile-detail{font-size:13px;line-height:1.5;margin:10px 0;padding:10px;background:#f5f8fc;border-radius:10px;display:grid;gap:5px;overflow-wrap:anywhere}
+ #page-campanias .campaign-mobile-detail strong{font-size:11px;text-transform:uppercase;color:#577293}
+ #page-campanias .campaign-mobile-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:13px 0}
+ #page-campanias .campaign-mobile-metrics span{display:flex;flex-direction:column;gap:4px;color:#294c77;font-weight:750;font-size:13px;min-width:0}
+ #page-campanias .campaign-mobile-metrics small{color:#7186a2;font-size:10px;font-weight:700}
+ #page-campanias .campaign-mobile-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:15px}
+ #page-campanias .campaign-mobile-actions button{min-height:46px;font-size:13px;padding:8px;overflow-wrap:anywhere}
+ #page-campanias .campaign-mobile-actions [data-edit-campaign]{grid-column:1/-1;font-size:15px;min-height:48px}
+ .admin-backdrop{padding:0;display:block;background:#fff;overflow:hidden}
+ .admin-dialog{width:100%;max-height:100dvh;height:100dvh;height:100svh;margin:0;padding:0;border-radius:0;display:flex;flex-direction:column;overflow:hidden;box-shadow:none}
+ .admin-dialog .dialog-head{padding:14px 17px;margin:0;flex-shrink:0;border-bottom:1px solid #e5edf8;background:#fff}
+ .admin-dialog .dialog-head h3{font-size:20px}
+ .admin-dialog #adminForm{display:flex;flex-direction:column;overflow:auto;overscroll-behavior:contain;flex:1;min-height:0;padding:0 16px 15px;scroll-padding-bottom:100px;-webkit-overflow-scrolling:touch}
+ .admin-dialog>.message{margin:12px 16px 0;padding:12px;font-size:12px;flex:0 0 auto;max-height:96px;overflow:auto}
+ .admin-dialog .admin-grid{grid-template-columns:minmax(0,1fr);gap:15px}
+ .admin-dialog .admin-field.full{grid-column:1}
+ .admin-dialog .admin-field input,.admin-dialog .admin-field select{font-size:16px;min-height:49px}
+ .admin-dialog .admin-field input[type=file]{font-size:15px;min-height:62px;padding:13px 8px;max-width:100%}
+ .admin-dialog .screens-list{grid-template-columns:1fr;gap:5px;max-height:230px;overflow:auto;border:1px solid #e4ebf5;border-radius:12px;padding:7px}
+ .admin-dialog .screen-checkbox{padding:12px;min-height:48px;margin:0;font-size:13px}
+ .admin-dialog .dialog-actions{position:sticky;bottom:-15px;z-index:5;background:white;margin:18px -16px -15px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1.5fr;box-shadow:0 -5px 20px #102d4d12}
+ .admin-dialog .dialog-actions button{min-height:50px;font-size:14px;white-space:normal}
+ .admin-dialog .dialog-error{font-size:13px}
+ .admin-dialog #fileDetails{overflow-wrap:anywhere}
+ .sidebar .nav[data-page="campanias"]{order:-2}
+}
+@media(max-width:390px){
+ #page-campanias .campaign-mobile-metrics{gap:2px}
+ #page-campanias .campaign-mobile-metrics span{font-size:12px}
+ .admin-dialog .dialog-actions{grid-template-columns:1fr 1.4fr}
+}
+
+@media(max-width:630px){
+ .sidebar{display:block!important;padding:0!important;width:100%!important;position:sticky;top:0;z-index:80;overflow:hidden!important}
+ .sidebar .powered-card{display:none!important}
+ .sidebar nav{display:flex;gap:5px;overflow-x:auto;scrollbar-width:thin;padding:9px 10px;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+ .sidebar nav .nav{flex:0 0 auto;font-size:12px;padding:10px 11px;min-height:42px;white-space:nowrap}
+ .sidebar nav .nav[data-page="campanias"]{order:-2}
+ .topbar{min-height:55px;padding:10px 13px}
+ .topbar .subtitle{font-size:10px}
+ .workspace{padding:14px 10px}
+}
