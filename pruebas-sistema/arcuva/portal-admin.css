@@ -176,3 +176,14 @@
 #page-ordenes .ot-contact-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 #page-ordenes #otSaveContact{font-size:11px;padding:7px 9px}
 #page-ordenes #otSaveContact[hidden]{display:none!important}
+
+/* Edición de teléfono desde Usuarios, sin contacto editable en la orden. */
+#userWhatsappDialog[hidden]{display:none!important}
+#userWhatsappDialog{position:fixed;inset:0;z-index:4000}
+.user-contact-backdrop{position:absolute;inset:0;background:rgba(11,29,54,.6);display:flex;align-items:center;justify-content:center;padding:20px}
+.user-contact-dialog{background:white;border-radius:16px;max-width:480px;width:100%;padding:25px;box-shadow:0 25px 65px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:13px}
+.user-contact-dialog h3,.user-contact-dialog p{margin:0}
+.user-contact-dialog label{font-weight:700;font-size:13px;color:#294669}
+.user-contact-dialog input{font-size:16px;border-radius:9px;border:1px solid #cbd7e8;padding:11px;width:100%;box-sizing:border-box}
+.user-contact-actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+#userWhatsappError{font-size:12px;color:#bd2424}
