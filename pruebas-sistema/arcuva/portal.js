@@ -19,13 +19,13 @@
     $('loginError').classList.add('hidden');$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');
     $('userName').textContent=profile.nombre||profile.email||'Usuario';
     const superadmin=profile.es_superadmin===true;
-    $('superadminUsersNav')?.classList.toggle('hidden',!superadmin);
+    $('superadminUsersNav')?.classList.toggle('hidden',!(superadmin||['administrativo','administrador'].includes(profile.rol)));
     $('superadminScreenTools')?.classList.toggle('hidden',!superadmin);
     showPage('resumen');
   }
   function showPage(page){
     const titles={resumen:'Dashboard',pantallas:'Pantallas',campanias:'Campañas',clientes:'Clientes',reportes:'Reportes',ordenes:'Órdenes de trabajo',usuarios:'Usuarios'};
-    if(!profile||!titles[page]||(page==='usuarios'&&profile.es_superadmin!==true))return;
+    if(!profile||!titles[page]||(page==='usuarios'&&!(profile.es_superadmin===true||['administrativo','administrador'].includes(profile.rol))))return;
     Object.keys(titles).forEach(key=>$('page-'+key).classList.toggle('hidden',key!==page));
     document.querySelectorAll('.nav[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
     $('pageTitle').textContent=titles[page];
