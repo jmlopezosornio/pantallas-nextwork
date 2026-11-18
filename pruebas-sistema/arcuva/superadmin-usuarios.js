@@ -61,7 +61,7 @@ async function load(){
  msg.textContent='Cargando usuarios y teléfonos de contacto…';
  const isSuper=profile.es_superadmin===true;
  if(!isSuper){
-  const {data,error}=await db.rpc('arcuva_destinatarios_ordenes_trabajo');
+  const {data,error}=await db.rpc('arcuva_usuarios_contactos');
   if(generation!==serial)return;
   if(error){msg.textContent='No se pudieron consultar usuarios de Arcuva';box.innerHTML='<div class="empty">'+esc(error.message)+'</div>';return;}
   users=(data||[]).map(u=>({...u,empresa_id:COMPANY,es_superadmin:false}));
