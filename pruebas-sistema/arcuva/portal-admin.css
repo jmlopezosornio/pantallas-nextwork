@@ -168,3 +168,11 @@
 #page-ordenes .ot-muted{font-size:12px;color:#7b8aa2}
 @media(max-width:960px){#page-ordenes .ot-screen-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){#page-ordenes .ot-screen-grid{grid-template-columns:1fr}#page-ordenes .ot-type-options{gap:5px}#page-ordenes .ot-type-options span{padding:10px 6px;font-size:11px}}
+
+/* Contactos WhatsApp persistentes en usuarios de Arcuva. */
+#page-ordenes .ot-contact-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+#page-ordenes .ot-contact-field>label{font-weight:700;color:#345473;font-size:12px}
+#page-ordenes .ot-contact-field>input{width:100%;box-sizing:border-box}
+#page-ordenes .ot-contact-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#page-ordenes #otSaveContact{font-size:11px;padding:7px 9px}
+#page-ordenes #otSaveContact[hidden]{display:none!important}
