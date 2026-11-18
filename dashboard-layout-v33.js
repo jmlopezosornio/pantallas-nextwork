@@ -75,6 +75,39 @@
     #page-dashboard .nw-stat-header{min-height:58px}
     #page-dashboard .nw-stat-click{appearance:none;-webkit-appearance:none;border:1px solid #e9edf5}
     @media(max-width:600px){#page-dashboard .nw-symbol svg{width:21px;height:21px}#page-dashboard .nw-title-icon svg{width:23px;height:23px}#page-dashboard .nw-stat-header{min-height:35px}}
+
+    /* Ajuste compacto: evita saltos de títulos y desborde de tablas. */
+    #page-dashboard .nw-heading{margin:0 0 17px}
+    #page-dashboard .nw-heading h1{font-size:clamp(25px,2.25vw,32px)}
+    #page-dashboard .nw-heading p{font-size:14px}
+    #page-dashboard .nw-stats{gap:14px;margin-bottom:18px}
+    #page-dashboard .nw-stat{min-height:158px;padding:15px 15px 13px;border-radius:17px}
+    #page-dashboard .nw-stat-header{font-size:clamp(12px,1.05vw,15px);gap:9px;min-height:46px}
+    #page-dashboard .nw-symbol{width:46px;height:46px;border-radius:12px;flex-basis:46px}
+    #page-dashboard .nw-symbol svg{width:25px;height:25px}
+    #page-dashboard .nw-value{font-size:clamp(32px,3.1vw,44px);margin:6px 0 0 55px}
+    #page-dashboard .nw-sub{font-size:12px;margin:2px 0 0 55px}
+    #page-dashboard .nw-progress{height:8px}
+    #page-dashboard .nw-bottom{grid-template-columns:minmax(0,1.22fr) minmax(0,1fr);gap:16px}
+    #page-dashboard .nw-panel{min-height:310px;padding:18px 17px;border-radius:17px}
+    #page-dashboard .nw-panel-title{font-size:clamp(15px,1.5vw,20px);gap:9px;line-height:1.18;white-space:nowrap;margin-bottom:17px}
+    #page-dashboard .nw-panel-title .nw-title-icon{width:25px;height:25px;flex-basis:25px}
+    #page-dashboard .nw-panel-title .nw-title-icon svg{width:24px;height:24px}
+    #page-dashboard .nw-table th{font-size:12px;padding:10px 8px}
+    #page-dashboard .nw-table td{font-size:13px;padding:9px 8px}
+    #page-dashboard .nw-table th:nth-child(2){width:36%}
+    #page-dashboard .nw-table th:first-child{width:40px}
+    #page-dashboard .nw-rank{width:28px;height:28px}
+    #page-dashboard .nw-quantity{padding:5px 11px;min-width:35px}
+    #page-dashboard .nw-link{font-size:12px}
+    #page-dashboard .nw-donut-layout{margin-top:19px;gap:13px}
+    #page-dashboard .nw-donut{width:190px;height:190px;min-width:190px}
+    #page-dashboard .nw-donut-center strong{font-size:34px}
+    #page-dashboard .nw-legend{gap:8px}
+    #page-dashboard .nw-legend-item{font-size:12px;gap:6px;padding-bottom:7px}
+    #page-dashboard .nw-legend-item strong{font-size:12px}
+    @media(max-width:1100px){#page-dashboard .nw-stat-header{font-size:12px}#page-dashboard .nw-bottom{grid-template-columns:1fr}#page-dashboard .nw-panel-title{white-space:normal}}
+    @media(max-width:600px){#page-dashboard .nw-stats{gap:10px}#page-dashboard .nw-stat{min-height:135px;padding:11px}#page-dashboard .nw-stat-header{font-size:11px;min-height:34px}#page-dashboard .nw-symbol{width:34px;height:34px;flex-basis:34px}#page-dashboard .nw-symbol svg{width:20px;height:20px}#page-dashboard .nw-value{font-size:32px;margin-left:0}#page-dashboard .nw-sub{margin-left:0}#page-dashboard .nw-panel{padding:12px}#page-dashboard .nw-panel-title{font-size:16px}#page-dashboard .nw-table th,#page-dashboard .nw-table td{padding:8px 4px;font-size:11px}#page-dashboard .nw-donut{width:145px;height:145px;min-width:145px}}
   `;
   document.head.appendChild(style);
 
