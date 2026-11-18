@@ -61,8 +61,36 @@
     @media(max-width:1320px){#page-dashboard .nw-stats{gap:12px}#page-dashboard .nw-stat{padding:20px 15px}#page-dashboard .nw-bottom{grid-template-columns:1.1fr 1fr}#page-dashboard .nw-donut{width:195px;height:195px;min-width:195px}#page-dashboard .nw-donut-layout{gap:12px}}
     @media(max-width:1000px){#page-dashboard .nw-stats{grid-template-columns:repeat(2,minmax(0,1fr))}#page-dashboard .nw-bottom{grid-template-columns:1fr}}
     @media(max-width:600px){#page-dashboard .nw-stats{gap:10px}#page-dashboard .nw-stat{padding:13px;min-height:155px}#page-dashboard .nw-stat-header{font-size:12px;gap:7px}#page-dashboard .nw-symbol{width:35px;height:35px;font-size:18px}#page-dashboard .nw-value{font-size:33px;margin-left:0;margin-top:10px}#page-dashboard .nw-sub{margin-left:0;font-size:12px}#page-dashboard .nw-heading h1{font-size:28px}#page-dashboard .nw-panel{padding:13px;min-height:auto}#page-dashboard .nw-panel-title{font-size:18px}#page-dashboard .nw-table td{font-size:13px;padding:9px 4px}#page-dashboard .nw-table th{font-size:11px;padding:9px 4px}#page-dashboard .nw-link{font-size:11px}#page-dashboard .nw-donut{width:165px;height:165px;min-width:165px}#page-dashboard .nw-donut-layout{gap:10px}#page-dashboard .nw-legend-item{font-size:12px;gap:5px}#page-dashboard .nw-donut-center strong{font-size:28px}}
+
+    /* Corrección de iconografía y alineación de tarjetas, acorde con la maqueta. */
+    #page-dashboard .nw-symbol svg{display:block;width:32px;height:32px;flex-shrink:0}
+    #page-dashboard .nw-title-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex:0 0 30px}
+    #page-dashboard .nw-title-icon svg{width:28px;height:28px;display:block}
+    #page-dashboard .nw-panel{min-width:0;overflow:hidden}
+    #page-dashboard .nw-table{width:100%;max-width:100%;table-layout:fixed}
+    #page-dashboard .nw-table th:nth-child(2){width:33%}
+    #page-dashboard .nw-table th:last-child{width:auto}
+    #page-dashboard .nw-table td{overflow-wrap:anywhere}
+    #page-dashboard .nw-link{background:none;border:0;padding:6px 0;cursor:pointer}
+    #page-dashboard .nw-stat-header{min-height:58px}
+    #page-dashboard .nw-stat-click{appearance:none;-webkit-appearance:none;border:1px solid #e9edf5}
+    @media(max-width:600px){#page-dashboard .nw-symbol svg{width:21px;height:21px}#page-dashboard .nw-title-icon svg{width:23px;height:23px}#page-dashboard .nw-stat-header{min-height:35px}}
   `;
   document.head.appendChild(style);
+
+
+  // Íconos vectoriales consistentes con la maqueta aprobada.
+  const nwIcon = (name) => {
+    const paths = {
+      monitor: '<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 22h8M12 18v4"/>',
+      megaphone: '<path d="m3 11 12-5v12L3 13z"/><path d="M15 9.5c2 0 4 1.5 4 3s-2 3-4 3"/><path d="m6 14 2 6h4l-2-7"/>',
+      calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/>',
+      users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+      ranking: '<path d="M5 20v-6M10 20V9M15 20V4M20 20v-9"/>',
+      pie: '<path d="M21 12.8A9 9 0 1 1 11.2 3V13h9.8Z"/><path d="M13 3a8 8 0 0 1 8 8h-8Z"/>'
+    };
+    return '<svg viewBox="0 0 24 24" width="31" height="31" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (paths[name] || '') + '</svg>';
+  };
 
   dashboard.innerHTML = `
     <div class="nw-heading">
@@ -71,33 +99,33 @@
     </div>
     <div class="nw-stats">
       <div class="nw-stat">
-        <div class="nw-stat-header"><span class="nw-symbol blue">▣</span><span>Pantallas operativas</span></div>
+        <div class="nw-stat-header"><span class="nw-symbol blue">${nwIcon("monitor")}</span><span>Pantallas operativas</span></div>
         <div id="nwOnline" class="nw-value">—</div><div id="nwOnlineSub" class="nw-sub">Calculando…</div>
         <div class="nw-progress"><span id="nwOnlineBar" style="width:0%"></span></div>
       </div>
       <div class="nw-stat">
-        <div class="nw-stat-header"><span class="nw-symbol green">◁</span><span>Campañas activas</span></div>
+        <div class="nw-stat-header"><span class="nw-symbol green">${nwIcon("megaphone")}</span><span>Campañas activas</span></div>
         <div id="nwActive" class="nw-value">—</div>
       </div>
       <button class="nw-stat nw-stat-click" type="button" id="nwExpiringBtn" aria-label="Mostrar campañas próximas a vencer">
-        <div class="nw-stat-header"><span class="nw-symbol orange">▤</span><span>Campañas a vencer</span></div>
+        <div class="nw-stat-header"><span class="nw-symbol orange">${nwIcon("calendar")}</span><span>Campañas a vencer</span></div>
         <div id="nwExpiring" class="nw-value orange">—</div>
       </button>
       <div class="nw-stat">
-        <div class="nw-stat-header"><span class="nw-symbol people">♧</span><span>Clientes</span></div>
+        <div class="nw-stat-header"><span class="nw-symbol people">${nwIcon("users")}</span><span>Clientes</span></div>
         <div id="nwClients" class="nw-value">—</div>
       </div>
     </div>
     <div class="nw-bottom">
       <section class="nw-panel">
-        <h2 class="nw-panel-title"><span class="nw-title-icon">▥</span> Elemento con más campañas (Top 5)</h2>
+        <h2 class="nw-panel-title"><span class="nw-title-icon">${nwIcon("ranking")}</span> Elemento con más campañas (Top 5)</h2>
         <table class="nw-table">
           <thead><tr><th>#</th><th>Pantalla</th><th colspan="2">Cantidad de campañas</th></tr></thead>
           <tbody id="nwTopFive"></tbody>
         </table>
       </section>
       <section class="nw-panel">
-        <h2 class="nw-panel-title"><span class="nw-title-icon">◴</span> Campañas por estado</h2>
+        <h2 class="nw-panel-title"><span class="nw-title-icon">${nwIcon("pie")}</span> Campañas por estado</h2>
         <div class="nw-donut-layout">
           <div id="nwDonut" class="nw-donut"><div class="nw-donut-center"><strong id="nwDonutTotal">0</strong><span>Campañas</span></div></div>
           <div id="nwLegend" class="nw-legend"></div>
