@@ -60,7 +60,7 @@
    'Período: '+dateText(o.fecha_alta)+' al '+dateText(o.fecha_baja),
    'Solicitante: '+(o.tecnico||'No informado'),
    'Destinatario: '+(o.destinatario||'No informado'),
-   'Estado: '+(o.estado==='finalizada'?'Cumplida':o.estado),
+   'Estado: '+(o.estado==='finalizada'?'Cumplida':o.estado==='borrador'?'Generado':o.estado),
    ...(o.cumplida_en?['Campaña vinculada: '+(o.campania_cumplida_id||'No informada')]:[]),
    '',
    'DESCRIPCIÓN DE LA TAREA',
@@ -103,7 +103,7 @@
    '<td>'+esc(screenNames(o))+'</td>'+
    '<td><strong>'+esc(requestType(o))+'</strong></td>'+
    '<td>'+esc(o.porcentaje_reproduccion||100)+'%</td>'+
-   '<td><span class="ot-status">'+esc(o.estado==='finalizada'?'Cumplida':o.estado)+'</span></td>' +
+   '<td><span class="ot-status">'+esc(o.estado==='finalizada'?'Cumplida':o.estado==='borrador'?'Generado':o.estado)+'</span></td>' +
    '<td><div class="ot-actions"><button type="button" data-ot="preview" data-id="'+esc(o.id)+'">Ver</button>'+
    (canWrite()?'<button type="button" data-ot="edit" data-id="'+esc(o.id)+'">Editar</button>':'')+
 
