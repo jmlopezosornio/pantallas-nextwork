@@ -1,4 +1,4 @@
-// NextWork - Reportes Arcuva — portal estable.
+// NextWork - Reportes Arcuva, portal estable de Arcuva.
 // Reutiliza exclusivamente el modelo de campañas/pantallas autorizado al usuario.
 (()=>{
 'use strict';
