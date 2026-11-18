@@ -20,19 +20,20 @@
     $('userName').textContent=profile.nombre||profile.email||'Usuario';
     const superadmin=profile.es_superadmin===true;
     const screenManager=superadmin||(profile.empresa_id===COMPANY_ID&&profile.rol==='administrador');
-    $('superadminUsersNav')?.classList.toggle('hidden',!superadmin);
+    $('superadminUsersNav')?.classList.toggle('hidden',!(superadmin||['administrativo','administrador'].includes(profile.rol)));
     $('superadminScreenTools')?.classList.toggle('hidden',!screenManager);
     showPage('resumen');
   }
   function showPage(page){
-    const titles={resumen:'Dashboard',pantallas:'Pantallas',campanias:'Campañas',clientes:'Clientes',reportes:'Reportes',usuarios:'Usuarios'};
-    if(!profile||!titles[page]||(page==='usuarios'&&profile.es_superadmin!==true))return;
+    const titles={resumen:'Dashboard',pantallas:'Pantallas',campanias:'Campañas',clientes:'Clientes',reportes:'Reportes',ordenes:'Órdenes de trabajo',usuarios:'Usuarios'};
+    if(!profile||!titles[page]||(page==='usuarios'&&!(profile.es_superadmin===true||['administrativo','administrador'].includes(profile.rol))))return;
     Object.keys(titles).forEach(key=>$('page-'+key).classList.toggle('hidden',key!==page));
     document.querySelectorAll('.nav[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
     $('pageTitle').textContent=titles[page];
     if(page==='resumen')window.dispatchEvent(new Event('arcuva-page-resumen'));
     if(page==='campanias')window.dispatchEvent(new Event('arcuva-page-campanias'));
     if(page==='reportes')window.dispatchEvent(new Event('arcuva-page-reportes'));
+    if(page==='ordenes')window.dispatchEvent(new Event('arcuva-page-ordenes'));
     if(page==='usuarios')window.dispatchEvent(new Event('arcuva-page-usuarios'));
   }
   async function verifyUser(authUser){
@@ -59,7 +60,7 @@
     if(!profile)return;
     const current=++epoch;
     const {data:screens,error:err}=await db.from('pantallas')
-      .select('id,nombre,ubicacion,ancho,alto,hora_inicio,hora_fin,licencia_estado,licencia_hasta,empresa_id,activo')
+      .select('id,nombre,ubicacion,ancho,alto,empresa_id,activo')
       .eq('empresa_id',COMPANY_ID).eq('activo',true).order('nombre');
     if(current!==epoch||!profile)return;
     if(err){for(const id of ['dashScreenList','screenTable','campaignTable','clientTable','reportTable']) { const el=$(id); if(el) el.innerHTML=empty('No se pudieron leer las pantallas: '+err.message); } return;}
@@ -105,7 +106,7 @@
     let playerRows=[],playerQueryFailed=false;
     if(allowedScreens.length){
       const {data:rows,error:playerError}=await db.from('players')
-        .select('pantalla_id,tipo,estado,ultima_conexion,actualizado_en,vnnox_online_status,vnnox_player_id,vnnox_version,version_player,proveedor')
+        .select('pantalla_id,tipo,estado,ultima_conexion,actualizado_en,vnnox_online_status,vnnox_player_id')
         .in('pantalla_id',allowedScreens.map(p=>p.id));
       if(current!==epoch||!profile)return;
       if(playerError){
@@ -233,7 +234,7 @@
   setInterval(()=>{
     if(profile && !$('page-pantallas')?.classList.contains('hidden'))loadData();
   },60_000);
-  // API interna del portal Arcuva. Sin service-role y sin saltear políticas RLS.
+  // API interna del portal de pruebas. Sin service-role y sin saltear políticas RLS.
   window.ArcuvaPortalBase=Object.freeze({db,getProfile:()=>profile,getModel:()=>model,reload:loadData,escapeHtml,empty,dates});
   $('loginForm').addEventListener('submit',async e=>{
     e.preventDefault();$('loginError').classList.add('hidden');$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';
