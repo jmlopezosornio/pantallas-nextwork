@@ -148,7 +148,30 @@
         (kind!=='web'?'<button type="button" class="campaign-media-btn" data-download-campaign="'+esc(c.id)+'">Descargar</button>':'<span class="tiny">Enlace web</span>'):'<span class="tiny">Sin archivo</span>');
       return '<tr><td class="campaign-action-cell">'+menu+'</td><td><strong>'+esc(c.campania)+'</strong></td><td>'+esc(c.cliente||'—')+'</td><td><span class="campaign-screen-chip">'+esc((c.pantallas||[]).join(', ')||'Sin pantalla')+'</span></td><td class="campaign-date">'+dates(c.fecha_desde)+'</td><td class="campaign-date">'+dates(c.fecha_hasta)+'</td><td><strong>'+esc(c.porcentaje)+'%</strong></td><td><span class="campaign-state state-'+esc(status)+'">'+esc(label)+'</span></td><td class="campaign-content">'+content+'</td></tr>';
     });
-    panel.innerHTML='<div class="campaign-table-scroll"><table class="campaign-list-table"><thead><tr>'+['Acciones','Campaña','Cliente','Pantalla / Grupo','Desde','Hasta','Frecuencia','Estado','Contenido'].map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
+    const mobileCards=filtered.map(c=>{
+      const raw=snapshotCampaigns.find(x=>x.id===c.id);
+      const writable=!!raw&&canEdit&&groupWritable(raw.grupo_id);
+      const status=statusForCampaign(c);
+      const label={vigentes:'Vigente',futuras:'Futura',pasadas:'Pasada',pausadas:'Pausada'}[status]||status;
+      const media=campaignMediaRef(c),kind=c.tipo_contenido||'video';
+      const typeLabel=kind==='imagen'?'Imagen':kind==='web'?'Web':'Video';
+      return '<article class="campaign-mobile-card">'+
+       '<div class="campaign-mobile-top"><span class="campaign-state state-'+esc(status)+'">'+esc(label)+'</span>'+
+       '<span class="campaign-type-chip">'+esc(typeLabel)+'</span></div>'+
+       '<h3>'+esc(c.campania)+'</h3><p class="campaign-mobile-client">'+esc(c.cliente||'Sin cliente')+'</p>'+
+       '<div class="campaign-mobile-detail"><strong>Pantallas</strong><span>'+esc((c.pantallas||[]).join(', ')||'Sin pantalla')+'</span></div>'+
+       '<div class="campaign-mobile-metrics"><span><small>Desde</small>'+esc(dates(c.fecha_desde))+'</span>'+
+       '<span><small>Hasta</small>'+esc(dates(c.fecha_hasta))+'</span>'+
+       '<span><small>Reproducción</small>'+esc(c.porcentaje)+'%</span></div>'+
+       '<div class="campaign-mobile-actions">'+
+       (writable?'<button type="button" class="primary" data-edit-campaign="'+esc(c.id)+'">Editar campaña</button>'+
+        '<button type="button" class="secondary" data-pause-campaign="'+esc(c.id)+'">'+(raw.pausada?'Reactivar':'Pausar')+'</button>':'')+
+       (media?'<button type="button" class="secondary" data-preview-campaign="'+esc(c.id)+'">Vista previa</button>':'')+
+       (media&&kind!=='web'?'<button type="button" class="secondary" data-download-campaign="'+esc(c.id)+'">Descargar</button>':'')+
+       '</div></article>';
+    }).join('');
+    panel.innerHTML='<div class="campaign-table-scroll"><table class="campaign-list-table"><thead><tr>'+['Acciones','Campaña','Cliente','Pantalla / Grupo','Desde','Hasta','Frecuencia','Estado','Contenido'].map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>'+
+      '<div class="campaign-mobile-list">'+mobileCards+'</div>';
     panel.querySelectorAll('[data-campaign-menu]').forEach(btn=>btn.addEventListener('click',()=>{
       const target=panel.querySelector('[data-campaign-options="'+btn.dataset.campaignMenu+'"]');
       panel.querySelectorAll('[data-campaign-options]').forEach(menu=>{if(menu!==target)menu.classList.add('hidden');});
@@ -261,7 +284,7 @@
     const root=$('adminModalRoot');
     root.innerHTML='<div class="admin-backdrop" role="presentation"><div class="admin-dialog" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><div class="dialog-head"><h3>'+esc(title)+'</h3><button class="secondary" type="button" id="closeAdminDialog" aria-label="Cerrar">×</button></div>'
       +'<div class="message notice"><strong>Atención:</strong> este portal está conectado a la base real. Guardar datos produce cambios efectivos en Arcuva. Recursos Hídricos no se modifica.</div>'
-      +'<form id="adminForm">'+content+'<div class="dialog-error hidden" id="adminError" role="alert"></div><div class="dialog-actions"><button type="button" class="secondary" id="cancelAdminDialog">Cancelar</button><button type="submit" class="primary" id="adminSaveBtn">Guardar</button></div></form></div></div>';
+      +'<form id="adminForm">'+content+'<div class="dialog-error hidden" id="adminError" role="alert"></div><div class="dialog-actions"><button type="button" class="secondary" id="cancelAdminDialog">Cancelar</button><button type="submit" class="primary" id="adminSaveBtn">Guardar campaña</button></div></form></div></div>';
     $('closeAdminDialog').addEventListener('click',closeDialog);
     $('cancelAdminDialog').addEventListener('click',closeDialog);
     $('adminForm').addEventListener('submit',e=>{e.preventDefault();saveHandler();});
@@ -273,7 +296,7 @@
   }
   function saving(value){
     pending=value;
-    const btn=$('adminSaveBtn');if(btn){btn.disabled=value;btn.textContent=value?'Guardando…':'Guardar';}
+    const btn=$('adminSaveBtn');if(btn){btn.disabled=value;btn.textContent=value?'Guardando…':'Guardar campaña';}
   }
   async function permission(groupId,clientOnly=false){
     const user=base.getProfile();
