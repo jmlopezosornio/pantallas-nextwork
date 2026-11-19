@@ -175,7 +175,7 @@
     return {label:'Fuera de línea',cls:'nw-connection-offline',detail:last?'Última comunicación registrada: '+new Date(last).toLocaleString('es-AR')+'.':'No hay comunicaciones registradas del reproductor.'};
   }
   function renderScreens(){
-    const admin=!!profile&&(profile.es_superadmin===true||(profile.empresa_id===COMPANY_ID&&profile.rol==='administrador'));
+    const superadmin=profile?.es_superadmin===true;
     const screenRows=model.screens||[];
     const players=model.playerRows||[];
     const byScreen=new Map(players.map(player=>[player.pantalla_id,player]));
@@ -186,8 +186,8 @@
     const root=$('screenTable');
     if(!root)return;
     const header='<div class="ar-screen-group"><span class="ar-screen-group-dot" aria-hidden="true"></span><span>ARCUVA</span></div>';
-    const table='<div class="ar-screen-scroll"><table class="ar-screen-table"><thead><tr>'+
-      '<th>Pantalla</th><th>Estado</th><th>Reproductor</th><th>Resolución</th><th>Última conexión</th><th>Acciones</th>'+
+    const table='<div class="ar-screen-scroll"><table class="ar-screen-table'+(superadmin?'':' ar-screen-table-readonly')+'"><thead><tr>'+ 
+      '<th>Pantalla</th><th>Estado</th><th>Reproductor</th><th>Resolución</th><th>Última conexión</th>'+(superadmin?'<th>Acciones</th>':'')+
       '</tr></thead><tbody>'+screens.map(({screen:p,player,connection:c})=>{
         const taurus=player?.tipo==='novastar_taurus';
         const type=taurus?'NovaStar Taurus':player?.tipo==='windows'?'PC Windows':player?.tipo==='raspberry'?'Raspberry Pi':player?.tipo?'Reproductor':'Player';
@@ -196,21 +196,21 @@
         const validTime=Date.parse(player?.ultima_conexion||'');
         const last=Number.isFinite(validTime)?new Date(validTime).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}):'Sin registro';
         const monitor='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M9 21h6M12 18v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
-        const diagnosis=taurus?'<button type="button" class="secondary small-btn" data-diagnose-taurus="'+escapeHtml(p.id)+'">Diagnóstico</button>':'';
-        const edit=admin?'<button type="button" class="secondary small-btn" data-edit-screen="'+escapeHtml(p.id)+'">Editar</button>':'';
+        const diagnosis=superadmin&&taurus?'<button type="button" class="secondary small-btn" data-diagnose-taurus="'+escapeHtml(p.id)+'">Diagnóstico</button>':'';
+        const edit=superadmin?'<button type="button" class="secondary small-btn" data-edit-screen="'+escapeHtml(p.id)+'">Editar</button>':'';
         return '<tr>'+
           '<td><div class="ar-screen-name-cell"><span class="ar-screen-icon">'+monitor+'</span><span><strong>'+escapeHtml(p.nombre)+'</strong><small>'+escapeHtml(p.ubicacion||'Sin ubicación')+'</small></span></div></td>'+
           '<td><span class="nw-connection-status '+escapeHtml(c.cls)+'" title="'+escapeHtml(c.detail)+'">'+escapeHtml(c.label)+'</span></td>'+
           '<td><strong class="ar-screen-player">'+escapeHtml(type)+'</strong><span class="ar-screen-muted">'+escapeHtml(provider)+' · '+escapeHtml(version)+'</span></td>'+
           '<td class="ar-screen-res"><strong>'+escapeHtml(p.ancho)+' × '+escapeHtml(p.alto)+' px</strong></td>'+
           '<td class="ar-screen-last" title="Última comunicación registrada por NextWork; no equivale a una verificación visual.">'+escapeHtml(last)+'</td>'+
-          '<td><div class="ar-screen-actions">'+diagnosis+edit+(diagnosis||edit?'':'—')+'</div></td>'+
+          (superadmin?'<td><div class="ar-screen-actions">'+diagnosis+edit+(diagnosis||edit?'':'—')+'</div></td>':'')+
           '</tr>';
       }).join('')+'</tbody></table></div>';
     root.innerHTML=screenRows.length?header+table:header+empty('Todavía no hay pantallas registradas a nombre de Arcuva.');
-    if(admin)root.querySelectorAll('[data-edit-screen]').forEach(btn=>
+    if(superadmin)root.querySelectorAll('[data-edit-screen]').forEach(btn=>
       btn.addEventListener('click',()=>window.ArcuvaScreenManage?.edit(btn.dataset.editScreen)));
-    root.querySelectorAll('[data-diagnose-taurus]').forEach(btn=>
+    if(superadmin)root.querySelectorAll('[data-diagnose-taurus]').forEach(btn=>
       btn.addEventListener('click',()=>window.ArcuvaTaurusDiagnostic?.open(btn.dataset.diagnoseTaurus)));
   }
   function render(){
