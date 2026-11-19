@@ -1,0 +1,223 @@
+
+/* Dashboard ejecutivo aprobado para Arcuva producción · v1.1.0. */
+#page-resumen.arcuva-summary{max-width:1440px;margin:0 auto;padding:4px 0 20px;color:#101d3a}
+.arcuva-summary-heading{margin:0 0 14px}
+.arcuva-summary-heading h2{font-size:26px;letter-spacing:-.035em;color:#0d1a39;margin:0 0 4px;line-height:1.12;font-weight:850}
+.arcuva-summary-heading p{margin:0;font-size:12px;color:#78869c}
+.arcuva-summary-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:15px}
+.arcuva-summary-card,.arcuva-summary-panel{background:white;border:1px solid #e6edf6;border-radius:15px;box-shadow:0 7px 20px rgba(16,45,85,.065);min-width:0}
+.arcuva-summary-card{display:flex;flex-direction:column;align-items:stretch;text-align:left;min-height:131px;padding:13px 14px 12px;appearance:none;color:inherit;font:inherit}
+.arcuva-expiring-card{cursor:pointer;transition:transform .16s,box-shadow .16s}
+.arcuva-expiring-card:hover{transform:translateY(-2px);box-shadow:0 11px 24px rgba(20,75,143,.14)}
+.arcuva-expiring-card:focus-visible,.arcuva-top-open:focus-visible{outline:3px solid #4d9bff;outline-offset:2px}
+.arcuva-card-head{display:flex;align-items:center;gap:9px;font-size:12px;line-height:1.25;font-weight:800;color:#152543;min-height:39px}
+.arcuva-card-icon{width:39px;height:39px;flex:0 0 39px;display:flex;align-items:center;justify-content:center;border-radius:13px}
+.arcuva-card-icon svg{width:22px;height:22px;display:block}
+.arcuva-card-icon.blue{color:#147ce4;background:#e2f2ff}
+.arcuva-card-icon.green{color:#16b95c;background:#e5f9ec}
+.arcuva-card-icon.orange{color:#f47910;background:#fff0df}
+.arcuva-card-icon.people{color:#247dea;background:#e7f2ff}
+.arcuva-card-number{font-size:33px;font-weight:850;letter-spacing:-.045em;line-height:1.1;margin:5px 0 0 48px;color:#0b1b3a}
+.arcuva-expiring-card .arcuva-card-number{color:#f47709}
+.arcuva-card-caption{margin:0 0 0 48px;font-size:11px;color:#8290a5}
+.arcuva-meter{height:6px;overflow:hidden;border-radius:12px;background:#e4e9f1;margin-top:auto}
+.arcuva-meter span{height:100%;width:0;display:block;background:#27c980;border-radius:12px}
+.arcuva-summary-bottom{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(0,1fr);gap:13px}
+.arcuva-summary-panel{padding:16px 16px;min-height:270px}
+.arcuva-summary-panel h3{margin:0 0 14px;display:flex;gap:8px;align-items:center;white-space:normal;font-size:17px;line-height:1.2;font-weight:850;color:#11203e;letter-spacing:-.025em}
+.arcuva-summary-panel h3 svg{height:20px;width:20px;flex:0 0 20px;color:#1975e5}
+.arcuva-top-table-wrap{width:100%;overflow-x:auto}
+.arcuva-top-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.arcuva-top-table th{text-align:left;background:#eff3fa;color:#536783;font-size:10px;font-weight:850;padding:8px}
+.arcuva-top-table th:first-child{width:43px;border-radius:8px 0 0 0}
+.arcuva-top-table th:nth-child(2){width:41%}
+.arcuva-top-table th:nth-child(3){width:90px}
+.arcuva-top-table td{padding:8px;border-bottom:1px solid #e9eef5;font-size:12px;font-weight:720;color:#142442;overflow-wrap:anywhere}
+.arcuva-rank{display:inline-flex;align-items:center;justify-content:center;background:#e5f2ff;color:#166cc4;width:25px;height:25px;border-radius:8px}
+.arcuva-count{display:inline-flex;align-items:center;justify-content:center;background:#dff9e9;border-radius:9px;min-width:31px;padding:5px 8px}
+.arcuva-top-open{border:0;background:none;color:#086bdd;font-weight:800;font-size:11px;white-space:nowrap;padding:6px 0;cursor:pointer}
+.arcuva-status-layout{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px}
+.arcuva-donut{height:174px;width:174px;flex:0 0 174px;border-radius:50%;display:grid;place-items:center;background:#e4e9f2}
+.arcuva-donut-core{height:52%;width:52%;border-radius:50%;background:white;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.arcuva-donut-core strong{font-size:29px;font-weight:850;line-height:1.1}
+.arcuva-donut-core span{font-size:11px;color:#7c8aa1}
+.arcuva-status-legend{min-width:0;flex:1;display:grid;gap:6px}
+.arcuva-legend-row{display:grid;align-items:center;grid-template-columns:12px minmax(0,1fr) auto;gap:6px;padding:5px 0;border-bottom:1px solid #eef1f6;font-size:11px}
+.arcuva-legend-row i{width:12px;height:12px;border-radius:4px}
+.arcuva-legend-row strong{white-space:nowrap}
+.arcuva-summary-note{font-size:12px;color:#7c8aa0;margin:12px 2px 0}
+.arcuva-summary-modal-backdrop{position:fixed;z-index:9999;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(8,20,45,.55);padding:18px}
+.arcuva-summary-modal{background:white;max-width:620px;width:100%;padding:23px;border-radius:20px;box-shadow:0 22px 80px rgba(3,15,40,.3);max-height:85vh;display:flex;flex-direction:column;gap:13px}
+.arcuva-summary-modal h3{margin:0;color:#10213d;font-size:22px}
+.arcuva-summary-modal-list{display:grid;gap:9px;overflow-y:auto}
+.arcuva-summary-modal-item{background:#f8fbff;border:1px solid #e6edf8;border-radius:11px;padding:11px}
+.arcuva-summary-modal-item strong{display:block;color:#142343}
+.arcuva-summary-modal-item span{display:block;font-size:12px;color:#687d96;margin-top:5px}
+.arcuva-summary-modal-close{align-self:flex-end;border:0;background:#eaf1fb;color:#174a87;padding:9px 16px;border-radius:10px;font-weight:800}
+@media(max-width:1180px){.arcuva-summary-cards{gap:10px}.arcuva-summary-card{padding:14px 12px}.arcuva-card-head{font-size:12px;gap:8px}.arcuva-card-icon{width:40px;height:40px;flex-basis:40px}.arcuva-card-icon svg{width:23px;height:23px}.arcuva-card-number,.arcuva-card-caption{margin-left:48px}.arcuva-summary-panel h3{font-size:17px}.arcuva-donut{width:168px;height:168px;flex-basis:168px}}
+@media(max-width:950px){.arcuva-summary-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.arcuva-summary-bottom{grid-template-columns:1fr}.arcuva-summary-panel{min-height:auto}.arcuva-summary-panel h3{font-size:17px}.arcuva-donut{width:200px;height:200px;flex-basis:200px}}
+@media(max-width:530px){.arcuva-summary-heading h2{font-size:25px}.arcuva-summary-card{min-height:138px;padding:12px}.arcuva-card-head{font-size:11px;min-height:37px}.arcuva-card-icon{width:34px;height:34px;flex-basis:34px}.arcuva-card-icon svg{width:19px;height:19px}.arcuva-card-number{font-size:33px;margin-left:0}.arcuva-card-caption{margin-left:0}.arcuva-summary-panel{padding:14px 10px}.arcuva-summary-panel h3{font-size:16px;white-space:normal}.arcuva-top-table th,.arcuva-top-table td{padding:8px 5px;font-size:11px}.arcuva-top-table th:nth-child(2){width:36%}.arcuva-top-table th:nth-child(3){width:62px}.arcuva-top-open{font-size:10px}.arcuva-status-layout{gap:11px}.arcuva-donut{width:140px;height:140px;flex-basis:140px}.arcuva-donut-core strong{font-size:26px}.arcuva-legend-row{font-size:11px;gap:5px}}
+
+/* Escala compacta del panel ejecutivo (escritorio); otros módulos no se alteran. */
+@media(min-width:951px){
+  #page-resumen.arcuva-summary{padding-top:0}
+  .arcuva-summary-heading h2{font-size:26px}
+  .arcuva-summary-cards{gap:12px}
+  .arcuva-summary-panel h3{font-size:17px}
+}
+@media(min-width:951px) and (max-width:1350px){
+  .arcuva-summary-card{padding:12px 10px}
+  .arcuva-card-head{font-size:11px;gap:7px}
+  .arcuva-card-icon{width:35px;height:35px;flex-basis:35px}
+  .arcuva-card-icon svg{width:20px;height:20px}
+  .arcuva-card-number{font-size:30px;margin-left:42px}
+  .arcuva-card-caption{margin-left:42px}
+  .arcuva-status-layout{gap:9px}
+  .arcuva-donut{width:146px;height:146px;flex-basis:146px}
+  .arcuva-legend-row{font-size:10px}
+}
+
+/* Dashboard Arcuva · alineación editorial y geometría consistente.
+   Sobrescribe tamaños anteriores sin afectar el resto del portal. */
+#page-resumen.arcuva-summary{
+  width:100%;
+  max-width:1440px;
+  padding-top:4px;
+}
+#page-resumen .arcuva-summary-heading{margin-bottom:17px}
+#page-resumen .arcuva-summary-heading h2{
+  font-size:27px;line-height:1.16;letter-spacing:-.03em;font-weight:850
+}
+#page-resumen .arcuva-summary-heading p{font-size:13px;line-height:1.5;margin-top:4px}
+#page-resumen .arcuva-summary-cards{
+  grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px
+}
+#page-resumen .arcuva-summary-card{
+  min-height:172px;
+  padding:17px 14px 15px;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  text-align:center;border-radius:17px
+}
+#page-resumen .arcuva-card-head{
+  width:100%;min-height:44px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  font-size:13px;line-height:1.3;font-weight:800;text-align:left;
+}
+#page-resumen .arcuva-card-head>span:last-child{max-width:165px;overflow-wrap:normal}
+#page-resumen .arcuva-card-icon{width:42px;height:42px;flex:0 0 42px;border-radius:12px}
+#page-resumen .arcuva-card-icon svg{width:23px;height:23px}
+#page-resumen .arcuva-card-number{
+  width:100%;margin:12px 0 0;text-align:center;
+  font-size:37px;line-height:1.1;font-weight:850;letter-spacing:-.04em;
+}
+#page-resumen .arcuva-card-caption{width:100%;margin:3px 0 0;text-align:center;font-size:12px}
+#page-resumen .arcuva-meter{width:100%;margin-top:auto}
+#page-resumen .arcuva-summary-bottom{
+  display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);
+  align-items:stretch;gap:16px;
+}
+#page-resumen .arcuva-summary-panel{
+  padding:20px 20px 18px;
+  min-width:0;min-height:340px;
+  display:flex;flex-direction:column;border-radius:17px;
+}
+#page-resumen .arcuva-summary-panel h3{
+  min-height:28px;margin:0 0 19px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  font-size:17px;line-height:1.3;text-align:center;white-space:normal
+}
+#page-resumen .arcuva-summary-panel h3 svg{height:20px;width:20px;flex:0 0 20px}
+#page-resumen .arcuva-top-table-wrap{
+  overflow-x:hidden;
+  width:100%;max-width:100%;
+  min-width:0;flex:1
+}
+#page-resumen .arcuva-top-table{
+  width:100%;min-width:0;table-layout:fixed;border-collapse:collapse
+}
+#page-resumen .arcuva-top-table th,
+#page-resumen .arcuva-top-table td{
+  padding:11px 7px;
+  vertical-align:middle;
+  overflow-wrap:break-word;
+  box-sizing:border-box
+}
+#page-resumen .arcuva-top-table th{
+  font-size:10px;letter-spacing:.045em;text-transform:uppercase
+}
+#page-resumen .arcuva-top-table td{font-size:12px;line-height:1.35}
+#page-resumen .arcuva-top-table th:first-child{width:40px}
+#page-resumen .arcuva-top-table th:nth-child(2){width:auto}
+#page-resumen .arcuva-top-table th:nth-child(3){width:89px}
+#page-resumen .arcuva-top-table th:nth-child(4){width:124px}
+#page-resumen .arcuva-top-table th:first-child,
+#page-resumen .arcuva-top-table td:first-child,
+#page-resumen .arcuva-top-table th:nth-child(3),
+#page-resumen .arcuva-top-table td:nth-child(3),
+#page-resumen .arcuva-top-table th:nth-child(4),
+#page-resumen .arcuva-top-table td:nth-child(4){text-align:center}
+#page-resumen .arcuva-top-table td:nth-child(2){font-weight:750}
+#page-resumen .arcuva-rank,#page-resumen .arcuva-count{margin-inline:auto}
+#page-resumen .arcuva-top-open{
+  display:inline-flex;align-items:center;justify-content:center;
+  text-align:center;max-width:100%;white-space:normal;line-height:1.3;
+  font-size:11px;padding:8px 2px
+}
+#page-resumen .arcuva-status-layout{
+  width:100%;min-width:0;flex:1;margin:0;
+  display:grid;grid-template-columns:minmax(165px,.95fr) minmax(0,1.05fr);
+  align-items:center;justify-items:center;column-gap:15px;
+}
+#page-resumen .arcuva-donut{
+  width:min(100%,202px);height:auto;aspect-ratio:1;flex:auto;
+  justify-self:center;align-self:center
+}
+#page-resumen .arcuva-donut-core strong{font-size:32px}
+#page-resumen .arcuva-status-legend{
+  width:100%;min-width:0;
+  display:grid;gap:3px;align-content:center
+}
+#page-resumen .arcuva-legend-row{
+  display:grid;grid-template-columns:12px minmax(0,1fr) auto;
+  align-items:center;gap:8px;padding:10px 0;
+  font-size:12px;line-height:1.3
+}
+#page-resumen .arcuva-legend-row span{min-width:0}
+#page-resumen .arcuva-legend-row strong{text-align:right;font-size:12px;white-space:nowrap}
+#page-resumen .arcuva-summary-note{text-align:center;margin-top:15px;font-size:11px}
+
+/* Estructura fluida para notebooks y móviles sin barras horizontales. */
+@media(max-width:1260px){
+ #page-resumen .arcuva-summary-card{padding-inline:10px}
+ #page-resumen .arcuva-card-head{font-size:12px;gap:7px}
+ #page-resumen .arcuva-card-icon{width:36px;height:36px;flex-basis:36px}
+ #page-resumen .arcuva-card-icon svg{width:21px;height:21px}
+ #page-resumen .arcuva-summary-panel{padding:17px 13px}
+ #page-resumen .arcuva-status-layout{grid-template-columns:minmax(130px,.9fr) minmax(0,1.1fr);gap:9px}
+ #page-resumen .arcuva-legend-row{font-size:11px}
+}
+@media(max-width:1050px){
+ #page-resumen .arcuva-summary-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #page-resumen .arcuva-summary-bottom{grid-template-columns:1fr}
+ #page-resumen .arcuva-summary-panel{min-height:unset}
+ #page-resumen .arcuva-status-layout{grid-template-columns:minmax(150px,220px) minmax(0,1fr);gap:20px}
+}
+@media(max-width:560px){
+ #page-resumen .arcuva-summary-cards{gap:9px}
+ #page-resumen .arcuva-summary-card{min-height:154px;padding:12px 8px}
+ #page-resumen .arcuva-card-head{min-height:44px;flex-direction:column;gap:5px;font-size:11px;text-align:center}
+ #page-resumen .arcuva-card-icon{width:31px;height:31px;flex-basis:31px}
+ #page-resumen .arcuva-card-icon svg{width:18px;height:18px}
+ #page-resumen .arcuva-card-number{font-size:31px;margin-top:9px}
+ #page-resumen .arcuva-card-caption{font-size:10px}
+ #page-resumen .arcuva-summary-panel{padding:14px 10px}
+ #page-resumen .arcuva-summary-panel h3{font-size:15px}
+ #page-resumen .arcuva-top-table th,#page-resumen .arcuva-top-table td{padding:9px 4px;font-size:10px}
+ #page-resumen .arcuva-top-table th:first-child{width:27px}
+ #page-resumen .arcuva-top-table th:nth-child(3){width:58px}
+ #page-resumen .arcuva-top-table th:nth-child(4){width:77px}
+ #page-resumen .arcuva-top-open{font-size:10px}
+ #page-resumen .arcuva-status-layout{grid-template-columns:1fr;gap:14px}
+ #page-resumen .arcuva-donut{width:158px}
+ #page-resumen .arcuva-status-legend{max-width:320px;margin:auto}
+}
