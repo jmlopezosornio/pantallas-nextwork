@@ -226,7 +226,7 @@
       if(error)throw error;
       if(data?.length!==1)throw Error('No se confirmó la eliminación.');
       await base.reload();
-      alert('Campaña eliminada del listado. Se conserva en el historial.');
+      // Eliminación confirmada: sin ventana emergente de éxito.
     }catch(err){alert(err.message||'No se pudo eliminar la campaña.');}
   }
   function table(columns,rows){
@@ -606,7 +606,7 @@
       }
       const workResult=await fulfillWorkOrder(workOrderId,savedCampaignId,id?'actualizacion':'alta');
       closeDialog();await base.reload();
-      alert('Campaña guardada correctamente. Los reproductores actualizarán su programación según su mecanismo de sincronización.'+(workResult?'\n\n'+workResult:''));
+      if(workResult.startsWith('La campaña se guardó, pero NO'))alert(workResult);
     }catch(err){fail(err.message||'No se pudo guardar la campaña.');}
     finally{saving(false);}
   }
@@ -630,7 +630,7 @@
           if(data?.length!==1)throw Error('No se confirmó la pausa.');
           const result=await fulfillWorkOrder(workOrderId,id,'baja');
           closeDialog();await base.reload();
-          alert('Campaña pausada correctamente. La actualización de la programación en los reproductores depende de su sincronización.'+(result?'\n\n'+result:''));
+          if(result.startsWith('La campaña se guardó, pero NO'))alert(result);
         }catch(err){fail(err.message||'No se pudo pausar la campaña.');}
         finally{saving(false);}
        });
@@ -644,7 +644,7 @@
       if(error)throw error;
       if(data?.length!==1)throw Error('No se confirmó el cambio de estado.');
       await base.reload();
-      alert('Campaña reactivada correctamente. La actualización en los reproductores depende de su sincronización.');
+      // Reactivación confirmada: actualizar listado sin ventana emergente.
     }catch(err){alert(err.message||'No se pudo cambiar el estado de la campaña.');}
   }
   $('addClientBtn').addEventListener('click',()=>openClient());
