@@ -13,7 +13,7 @@
   <script>
     (() => {
       const stamp = Date.now().toString(36);
-      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./screen-manage.js"},{"tag":"script","path":"./taurus-diagnostic.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"link","path":"./portal-admin.css"}];
+      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./screen-manage.js"},{"tag":"script","path":"./taurus-diagnostic.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"link","path":"./portal-admin.css"},{"tag":"link","path":"./dashboard-compact.css"}];
       for (const file of files) {
         const local = file.path.startsWith('./');
         const source = local ? file.path + '?nw=' + stamp : file.path;
@@ -87,50 +87,18 @@
         </div>
       </header>
       <main class="workspace">
-        <section id="page-resumen" class="nw-dashboard">
-          <div class="nw-dash-heading">
-            <div><span class="kicker">Centro de control</span><h2>Dashboard · Arcuva</h2><p class="lead">Resumen operativo de pantallas, campañas y reproducciones registradas.</p></div>
-            <div class="nw-period-box"><label for="nwDashFrom">Período</label><input type="date" id="nwDashFrom" aria-label="Fecha desde"><span>al</span><input type="date" id="nwDashTo" aria-label="Fecha hasta"></div>
+        <section id="page-resumen" class="arcuva-summary">
+          <div class="arcuva-summary-heading"><h2>Resumen general</h2><p>Panel de administración y seguimiento comercial</p></div>
+          <div class="arcuva-summary-cards"><div class="arcuva-summary-card " ><div class="arcuva-card-head"><span class="arcuva-card-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 22h8M12 18v4"/></svg></span><span>Pantallas operativas</span></div><strong id="arcuvaKpiOnline" class="arcuva-card-number">—</strong><span id="arcuvaOnlinePercent" class="arcuva-card-caption">Calculando…</span><div class="arcuva-meter"><span id="arcuvaOnlineBar"></span></div></div><div class="arcuva-summary-card " ><div class="arcuva-card-head"><span class="arcuva-card-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 12-5v12L3 13z"/><path d="M15 9.5c2 0 4 1.5 4 3s-2 3-4 3"/><path d="m6 14 2 6h4l-2-7"/></svg></span><span>Campañas activas</span></div><strong id="arcuvaKpiActive" class="arcuva-card-number">—</strong></div><button type="button" class="arcuva-summary-card arcuva-expiring-card" id="arcuvaExpiringCard" aria-label="Consultar campañas próximas a vencer"><div class="arcuva-card-head"><span class="arcuva-card-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg></span><span>Campañas a vencer</span></div><strong id="arcuvaKpiExpiring" class="arcuva-card-number">—</strong></button><div class="arcuva-summary-card " ><div class="arcuva-card-head"><span class="arcuva-card-icon people"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Clientes</span></div><strong id="arcuvaKpiClients" class="arcuva-card-number">—</strong></div></div>
+          <div class="arcuva-summary-bottom">
+            <section class="arcuva-summary-panel"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20v-6M10 20V9M15 20V4M20 20v-9"/></svg><span>Elemento con más campañas (Top 5)</span></h3>
+              <div class="arcuva-top-table-wrap"><table class="arcuva-top-table"><thead><tr><th>#</th><th>Pantalla</th><th>Campañas</th><th></th></tr></thead><tbody id="arcuvaTopFive"><tr><td colspan="4">Cargando…</td></tr></tbody></table></div>
+            </section>
+            <section class="arcuva-summary-panel"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3V13h9.8Z"/><path d="M13 3a8 8 0 0 1 8 8h-8Z"/></svg><span>Campañas por estado</span></h3>
+              <div class="arcuva-status-layout"><div id="arcuvaDonut" class="arcuva-donut"><div class="arcuva-donut-core"><strong id="arcuvaDonutTotal">—</strong><span>Campañas</span></div></div><div id="arcuvaStatusLegend" class="arcuva-status-legend"></div></div>
+            </section>
           </div>
-          <div class="nw-dash-filters">
-            <label>Ciudad<select id="nwDashCity"><option value="">Todas las ciudades</option></select></label>
-            <label>Cliente<select id="nwDashClient"><option value="">Todos</option></select></label>
-            <label>Campaña<select id="nwDashCampaign"><option value="">Todas</option></select></label>
-            <button class="secondary" type="button" id="nwDashRefresh">Actualizar</button>
-          </div>
-          <div class="nw-metric-layout">
-            <div class="nw-metrics">
-              <div class="nw-kpi"><span class="nw-kpi-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></svg></span><strong id="nwKpiScreens">—</strong><span>Elementos</span></div>
-              <div class="nw-kpi"><span class="nw-kpi-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4z"/></svg></span><strong id="nwKpiCampaigns">—</strong><span>Campañas</span></div>
-              <div class="nw-kpi nw-kpi-green"><span class="nw-kpi-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 5 11 7-11 7z"/></svg></span><strong id="nwKpiActive">—</strong><span>Activas</span></div>
-              <div class="nw-kpi"><span class="nw-kpi-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><strong id="nwKpiClients">—</strong><span>Clientes</span></div>
-              <div class="nw-kpi nw-kpi-purple"><span class="nw-kpi-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4m-4 6h4m10-6h4m-4 6h4"/><path d="m10 9 4 3-4 3z"/></svg></span><strong id="nwKpiPlays">—</strong><span>Salidas registradas</span></div>
-            </div>
-            <div class="nw-connectivity">
-              <div class="nw-online"><span class="nw-connection-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/><path d="m9 10 2 2 4-4"/></svg></span><strong id="nwKpiOnline">—</strong><span>En línea</span></div>
-              <div class="nw-offline"><span class="nw-connection-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/><path d="m9 9 6 6m0-6-6 6"/></svg></span><strong id="nwKpiOffline">—</strong><span>Sin conexión reciente</span></div>
-            </div>
-          </div>
-          <p id="nwDashNotice" class="nw-dash-notice" aria-live="polite">Consultando los datos de Arcuva…</p>
-          <div class="nw-charts">
-            <div class="panel nw-analytics-panel"><h3>Campañas por estado</h3><div id="nwStatusChart" class="nw-chart-slot">Consultando campañas…</div></div>
-            <div class="panel nw-analytics-panel"><h3>Salidas por elemento</h3><div id="nwScreenChart" class="nw-chart-slot">Consultando reproducciones…</div></div>
-            <div class="panel nw-analytics-panel"><h3>Salidas diarias del período</h3><div id="nwDailyChart" class="nw-chart-slot">Consultando reproducciones…</div></div>
-          </div>
-          <div class="nw-bottom-charts">
-            <div class="panel nw-analytics-panel">
-              <h3>Elementos por ciudad</h3>
-              <p class="tiny">Campañas activas asignadas y promedio diario de salidas en días con reproducciones registradas.</p>
-              <div id="nwElementsTable" class="nw-table-holder">Consultando elementos…</div>
-              <div id="nwElementsPager" class="nw-table-pager"></div>
-            </div>
-            <div class="panel nw-analytics-panel">
-              <h3>Elementos por salidas · de mayor a menor</h3>
-              <p class="tiny">Ranking según reproducciones registradas en el período seleccionado.</p>
-              <div id="nwRankingChart" class="nw-chart-slot">Consultando ranking…</div>
-            </div>
-          </div>
-          <p class="nw-dash-method">Las salidas corresponden únicamente a reproducciones registradas por los equipos. Una campaña asignada no equivale a una reproducción confirmada. El estado de conexión se basa en comunicaciones recientes del reproductor.</p>
+          <p id="arcuvaSummaryNotice" class="arcuva-summary-note" role="status"></p>
         </section>
 
         <section id="page-pantallas" class="hidden">
@@ -260,7 +228,7 @@
           <button id="printBtn" class="hidden" type="button" aria-hidden="true" tabindex="-1"></button>
         </section>
         <div class="message note-role" id="roleInfo" aria-live="polite">Verificando permisos de edición de Arcuva…</div>
-        <div class="footer">Arcuva · Desarrollado por NextWork · v1.0.0</div>
+        <div class="footer">Arcuva · Desarrollado por NextWork · v1.1.0</div>
       </main>
     </div>
   </section>
