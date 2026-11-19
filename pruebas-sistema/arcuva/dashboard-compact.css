@@ -76,3 +76,148 @@
   .arcuva-donut{width:146px;height:146px;flex-basis:146px}
   .arcuva-legend-row{font-size:10px}
 }
+
+/* Dashboard Arcuva · alineación editorial y geometría consistente.
+   Sobrescribe tamaños anteriores sin afectar el resto del portal. */
+#page-resumen.arcuva-summary{
+  width:100%;
+  max-width:1440px;
+  padding-top:4px;
+}
+#page-resumen .arcuva-summary-heading{margin-bottom:17px}
+#page-resumen .arcuva-summary-heading h2{
+  font-size:27px;line-height:1.16;letter-spacing:-.03em;font-weight:850
+}
+#page-resumen .arcuva-summary-heading p{font-size:13px;line-height:1.5;margin-top:4px}
+#page-resumen .arcuva-summary-cards{
+  grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px
+}
+#page-resumen .arcuva-summary-card{
+  min-height:172px;
+  padding:17px 14px 15px;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  text-align:center;border-radius:17px
+}
+#page-resumen .arcuva-card-head{
+  width:100%;min-height:44px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  font-size:13px;line-height:1.3;font-weight:800;text-align:left;
+}
+#page-resumen .arcuva-card-head>span:last-child{max-width:165px;overflow-wrap:normal}
+#page-resumen .arcuva-card-icon{width:42px;height:42px;flex:0 0 42px;border-radius:12px}
+#page-resumen .arcuva-card-icon svg{width:23px;height:23px}
+#page-resumen .arcuva-card-number{
+  width:100%;margin:12px 0 0;text-align:center;
+  font-size:37px;line-height:1.1;font-weight:850;letter-spacing:-.04em;
+}
+#page-resumen .arcuva-card-caption{width:100%;margin:3px 0 0;text-align:center;font-size:12px}
+#page-resumen .arcuva-meter{width:100%;margin-top:auto}
+#page-resumen .arcuva-summary-bottom{
+  display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);
+  align-items:stretch;gap:16px;
+}
+#page-resumen .arcuva-summary-panel{
+  padding:20px 20px 18px;
+  min-width:0;min-height:340px;
+  display:flex;flex-direction:column;border-radius:17px;
+}
+#page-resumen .arcuva-summary-panel h3{
+  min-height:28px;margin:0 0 19px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  font-size:17px;line-height:1.3;text-align:center;white-space:normal
+}
+#page-resumen .arcuva-summary-panel h3 svg{height:20px;width:20px;flex:0 0 20px}
+#page-resumen .arcuva-top-table-wrap{
+  overflow-x:hidden;
+  width:100%;max-width:100%;
+  min-width:0;flex:1
+}
+#page-resumen .arcuva-top-table{
+  width:100%;min-width:0;table-layout:fixed;border-collapse:collapse
+}
+#page-resumen .arcuva-top-table th,
+#page-resumen .arcuva-top-table td{
+  padding:11px 7px;
+  vertical-align:middle;
+  overflow-wrap:break-word;
+  box-sizing:border-box
+}
+#page-resumen .arcuva-top-table th{
+  font-size:10px;letter-spacing:.045em;text-transform:uppercase
+}
+#page-resumen .arcuva-top-table td{font-size:12px;line-height:1.35}
+#page-resumen .arcuva-top-table th:first-child{width:40px}
+#page-resumen .arcuva-top-table th:nth-child(2){width:auto}
+#page-resumen .arcuva-top-table th:nth-child(3){width:89px}
+#page-resumen .arcuva-top-table th:nth-child(4){width:124px}
+#page-resumen .arcuva-top-table th:first-child,
+#page-resumen .arcuva-top-table td:first-child,
+#page-resumen .arcuva-top-table th:nth-child(3),
+#page-resumen .arcuva-top-table td:nth-child(3),
+#page-resumen .arcuva-top-table th:nth-child(4),
+#page-resumen .arcuva-top-table td:nth-child(4){text-align:center}
+#page-resumen .arcuva-top-table td:nth-child(2){font-weight:750}
+#page-resumen .arcuva-rank,#page-resumen .arcuva-count{margin-inline:auto}
+#page-resumen .arcuva-top-open{
+  display:inline-flex;align-items:center;justify-content:center;
+  text-align:center;max-width:100%;white-space:normal;line-height:1.3;
+  font-size:11px;padding:8px 2px
+}
+#page-resumen .arcuva-status-layout{
+  width:100%;min-width:0;flex:1;margin:0;
+  display:grid;grid-template-columns:minmax(165px,.95fr) minmax(0,1.05fr);
+  align-items:center;justify-items:center;column-gap:15px;
+}
+#page-resumen .arcuva-donut{
+  width:min(100%,202px);height:auto;aspect-ratio:1;flex:auto;
+  justify-self:center;align-self:center
+}
+#page-resumen .arcuva-donut-core strong{font-size:32px}
+#page-resumen .arcuva-status-legend{
+  width:100%;min-width:0;
+  display:grid;gap:3px;align-content:center
+}
+#page-resumen .arcuva-legend-row{
+  display:grid;grid-template-columns:12px minmax(0,1fr) auto;
+  align-items:center;gap:8px;padding:10px 0;
+  font-size:12px;line-height:1.3
+}
+#page-resumen .arcuva-legend-row span{min-width:0}
+#page-resumen .arcuva-legend-row strong{text-align:right;font-size:12px;white-space:nowrap}
+#page-resumen .arcuva-summary-note{text-align:center;margin-top:15px;font-size:11px}
+
+/* Estructura fluida para notebooks y móviles sin barras horizontales. */
+@media(max-width:1260px){
+ #page-resumen .arcuva-summary-card{padding-inline:10px}
+ #page-resumen .arcuva-card-head{font-size:12px;gap:7px}
+ #page-resumen .arcuva-card-icon{width:36px;height:36px;flex-basis:36px}
+ #page-resumen .arcuva-card-icon svg{width:21px;height:21px}
+ #page-resumen .arcuva-summary-panel{padding:17px 13px}
+ #page-resumen .arcuva-status-layout{grid-template-columns:minmax(130px,.9fr) minmax(0,1.1fr);gap:9px}
+ #page-resumen .arcuva-legend-row{font-size:11px}
+}
+@media(max-width:1050px){
+ #page-resumen .arcuva-summary-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #page-resumen .arcuva-summary-bottom{grid-template-columns:1fr}
+ #page-resumen .arcuva-summary-panel{min-height:unset}
+ #page-resumen .arcuva-status-layout{grid-template-columns:minmax(150px,220px) minmax(0,1fr);gap:20px}
+}
+@media(max-width:560px){
+ #page-resumen .arcuva-summary-cards{gap:9px}
+ #page-resumen .arcuva-summary-card{min-height:154px;padding:12px 8px}
+ #page-resumen .arcuva-card-head{min-height:44px;flex-direction:column;gap:5px;font-size:11px;text-align:center}
+ #page-resumen .arcuva-card-icon{width:31px;height:31px;flex-basis:31px}
+ #page-resumen .arcuva-card-icon svg{width:18px;height:18px}
+ #page-resumen .arcuva-card-number{font-size:31px;margin-top:9px}
+ #page-resumen .arcuva-card-caption{font-size:10px}
+ #page-resumen .arcuva-summary-panel{padding:14px 10px}
+ #page-resumen .arcuva-summary-panel h3{font-size:15px}
+ #page-resumen .arcuva-top-table th,#page-resumen .arcuva-top-table td{padding:9px 4px;font-size:10px}
+ #page-resumen .arcuva-top-table th:first-child{width:27px}
+ #page-resumen .arcuva-top-table th:nth-child(3){width:58px}
+ #page-resumen .arcuva-top-table th:nth-child(4){width:77px}
+ #page-resumen .arcuva-top-open{font-size:10px}
+ #page-resumen .arcuva-status-layout{grid-template-columns:1fr;gap:14px}
+ #page-resumen .arcuva-donut{width:158px}
+ #page-resumen .arcuva-status-legend{max-width:320px;margin:auto}
+}
