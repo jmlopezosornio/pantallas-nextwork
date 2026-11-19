@@ -347,3 +347,20 @@ tbody tr:hover{background:#fbfcff}
 .ar-screen-actions .small-btn{border:1px solid #d7e3f3!important;background:#fff!important;color:#2b4a70!important;border-radius:9px!important;padding:7px 9px!important;min-width:0;font-size:10px!important}
 #page-pantallas .nw-connection-status{font-size:11px;padding:7px 11px}
 @media(max-width:850px){#page-pantallas .ar-screen-top{flex-direction:column;gap:14px}#page-pantallas .ar-screen-inventory{padding:14px 10px}.ar-screen-top-actions{justify-content:flex-start}}
+
+/* Navegación lateral visible al desplazarse por reportes y tablas extensas. */
+@media screen and (min-width:631px){
+  .shell>.sidebar{
+    position:sticky;
+    top:0;
+    align-self:flex-start;
+    height:100vh;
+    height:100dvh;
+    overflow-y:auto;
+    overflow-x:hidden;
+    overscroll-behavior-y:contain;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(183,202,230,.4) transparent;
+    z-index:30;
+  }
+}
