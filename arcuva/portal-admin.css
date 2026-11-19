@@ -263,3 +263,7 @@
  .topbar .subtitle{font-size:10px}
  .workspace{padding:14px 10px}
 }
+
+/* Pantallas de Administración: cinco columnas sin controles de Superadmin. */
+.ar-screen-table-readonly{min-width:760px}
+.ar-screen-table-readonly th:last-child,.ar-screen-table-readonly td:last-child{text-align:left}
