@@ -12,7 +12,7 @@
 .arcuva-expiring-card:focus-visible,.arcuva-top-open:focus-visible{outline:3px solid #4d9bff;outline-offset:2px}
 .arcuva-card-head{display:flex;align-items:center;gap:9px;font-size:12px;line-height:1.25;font-weight:800;color:#152543;min-height:39px}
 .arcuva-card-icon{width:39px;height:39px;flex:0 0 39px;display:flex;align-items:center;justify-content:center;border-radius:13px}
-.arcuva-card-icon svg{width:26px;height:26px;display:block}
+.arcuva-card-icon svg{width:22px;height:22px;display:block}
 .arcuva-card-icon.blue{color:#147ce4;background:#e2f2ff}
 .arcuva-card-icon.green{color:#16b95c;background:#e5f9ec}
 .arcuva-card-icon.orange{color:#f47910;background:#fff0df}
@@ -55,7 +55,7 @@
 .arcuva-summary-modal-item span{display:block;font-size:12px;color:#687d96;margin-top:5px}
 .arcuva-summary-modal-close{align-self:flex-end;border:0;background:#eaf1fb;color:#174a87;padding:9px 16px;border-radius:10px;font-weight:800}
 @media(max-width:1180px){.arcuva-summary-cards{gap:10px}.arcuva-summary-card{padding:14px 12px}.arcuva-card-head{font-size:12px;gap:8px}.arcuva-card-icon{width:40px;height:40px;flex-basis:40px}.arcuva-card-icon svg{width:23px;height:23px}.arcuva-card-number,.arcuva-card-caption{margin-left:48px}.arcuva-summary-panel h3{font-size:17px}.arcuva-donut{width:168px;height:168px;flex-basis:168px}}
-@media(max-width:950px){.arcuva-summary-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.arcuva-summary-bottom{grid-template-columns:1fr}.arcuva-summary-panel{min-height:auto}.arcuva-summary-panel h3{font-size:20px}.arcuva-donut{width:200px;height:200px;flex-basis:200px}}
+@media(max-width:950px){.arcuva-summary-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.arcuva-summary-bottom{grid-template-columns:1fr}.arcuva-summary-panel{min-height:auto}.arcuva-summary-panel h3{font-size:17px}.arcuva-donut{width:200px;height:200px;flex-basis:200px}}
 @media(max-width:530px){.arcuva-summary-heading h2{font-size:25px}.arcuva-summary-card{min-height:138px;padding:12px}.arcuva-card-head{font-size:11px;min-height:37px}.arcuva-card-icon{width:34px;height:34px;flex-basis:34px}.arcuva-card-icon svg{width:19px;height:19px}.arcuva-card-number{font-size:33px;margin-left:0}.arcuva-card-caption{margin-left:0}.arcuva-summary-panel{padding:14px 10px}.arcuva-summary-panel h3{font-size:16px;white-space:normal}.arcuva-top-table th,.arcuva-top-table td{padding:8px 5px;font-size:11px}.arcuva-top-table th:nth-child(2){width:36%}.arcuva-top-table th:nth-child(3){width:62px}.arcuva-top-open{font-size:10px}.arcuva-status-layout{gap:11px}.arcuva-donut{width:140px;height:140px;flex-basis:140px}.arcuva-donut-core strong{font-size:26px}.arcuva-legend-row{font-size:11px;gap:5px}}
 
 /* Escala compacta del panel ejecutivo (escritorio); otros módulos no se alteran. */
