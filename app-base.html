@@ -1705,8 +1705,9 @@
         <div class="section-title">
           <div>
             <h2>Usuarios</h2>
-            <div class="small" style="margin-top:4px">Definí el rol del usuario y su alcance por grupos y pantallas.</div>
+            <div class="small" style="margin-top:4px">Administrá cuentas, roles y accesos por grupos y pantallas.</div>
           </div>
+          <button type="button" class="btn btn-primary superadmin-only" onclick="openNuevoUsuario()">+ Nuevo usuario</button>
         </div>
         <div class="table-wrap">
           <table>
@@ -3405,6 +3406,79 @@
     await loadGrupos();
   }
 
+  // Administración de cuentas exclusivamente Superadmin.
+  async function adminUserApi(payload){
+    if(!isSuperAdmin())throw Error('Solo el Superadmin puede administrar cuentas.');
+    const {data,error}=await sb.auth.getSession();
+    if(error||!data?.session?.access_token)throw Error('Sesión vencida. Volvé a iniciar sesión.');
+    const response=await fetch(SUPABASE_URL+'/functions/v1/admin-user-api',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+data.session.access_token},
+      body:JSON.stringify(payload)
+    });
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok||!result.ok)throw Error(result.error||'No se pudo completar la operación.');
+    return result;
+  }
+
+  async function openNuevoUsuario(){
+    if(!isSuperAdmin())return;
+    const {data:companies,error}=await sb.from('empresas').select('id,nombre_fantasia').order('nombre_fantasia');
+    if(error){alert('No se pudieron cargar las empresas: '+error.message);return;}
+    if(!companies?.length){alert('No hay empresas disponibles.');return;}
+    $('modalRoot').innerHTML=`
+      <div class="modal-backdrop" onclick="if(event.target===this) closeModal()">
+        <div class="modal" style="max-width:570px">
+          <h3>Nuevo usuario</h3>
+          <p class="small">Creá una cuenta y asignale su empresa y rol. Luego podrás configurar los permisos sobre grupos y pantallas.</p>
+          <div class="field"><label>Nombre completo</label><input id="newUserName" maxlength="150" autocomplete="name"></div>
+          <div class="field"><label>Correo electrónico</label><input id="newUserEmail" type="email" autocomplete="off"></div>
+          <div class="field"><label>Empresa</label><select id="newUserCompany">${companies.map(c=>'<option value="'+escapeHtml(c.id)+'">'+escapeHtml(c.nombre_fantasia)+'</option>').join('')}</select></div>
+          <div class="field"><label>Rol inicial</label><select id="newUserRole">
+            <option value="operador">Operador</option>
+            <option value="administrativo">Administración</option>
+            <option value="administrador">Administrador</option>
+          </select></div>
+          <div class="field"><label>Contraseña temporal (mínimo 8 caracteres)</label><input id="newUserPassword" type="password" autocomplete="new-password"></div>
+          <div id="newUserError" class="small" role="alert" style="color:#b42318;margin:10px 0"></div>
+          <div class="actions">
+            <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" type="button" id="newUserSave" onclick="adminCreateUsuario()">Crear usuario</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function adminCreateUsuario(){
+    if(!isSuperAdmin())return;
+    const nombre=$('newUserName')?.value.trim()||'';
+    const email=$('newUserEmail')?.value.trim()||'';
+    const empresaId=$('newUserCompany')?.value||'';
+    const rol=$('newUserRole')?.value||'';
+    const password=$('newUserPassword')?.value||'';
+    const errorBox=$('newUserError'),button=$('newUserSave');
+    if(nombre.length<2||!email.includes('@')||password.length<8){
+      errorBox.textContent='Completá nombre, correo y contraseña de al menos 8 caracteres.';return;
+    }
+    button.disabled=true;button.textContent='Creando…';errorBox.textContent='';
+    try{
+      await adminUserApi({action:'create-user',nombre,email,empresaId,rol,password});
+      closeModal();await loadUsuarios();
+      alert('Usuario creado correctamente. Ya podés asignarle los grupos y pantallas desde Permisos.');
+    }catch(e){errorBox.textContent=e.message||String(e);}
+    finally{if(button.isConnected){button.disabled=false;button.textContent='Crear usuario';}}
+  }
+
+  async function adminSetUsuarioActivo(userId,active){
+    if(!isSuperAdmin())return;
+    if(!confirm(active?'¿Reactivar este usuario y permitir su acceso?':'¿Dar de baja este usuario? Se bloqueará su acceso, pero se conservará su historial.'))return;
+    try{
+      await adminUserApi({action:'set-active',userId,active});
+      await loadUsuarios();
+      alert(active?'Usuario reactivado correctamente.':'Usuario dado de baja. Se bloqueó su acceso y se conservaron sus datos.');
+    }catch(e){alert('No se pudo actualizar el usuario: '+(e.message||String(e)));}
+  }
+
   async function loadUsuarios(){
     if(!canManageUsers()){
       $('usuariosBody').innerHTML = '';
@@ -3446,6 +3520,9 @@
               : ''}
             ${isSuperAdmin()
               ? `<button class="btn btn-outline btn-sm" style="margin-left:6px" onclick="openAdminResetPassword('${u.id}','${escapeHtml(u.nombre || u.email || 'Usuario')}','${escapeHtml(u.email || '')}')">Resetear contraseña</button>`
+              : ''}
+            ${isSuperAdmin() && !u.es_superadmin
+              ? `<button class="btn btn-outline btn-sm" style="margin-left:6px" onclick="adminSetUsuarioActivo('${u.id}',${!u.activo})">${u.activo?'Dar de baja':'Reactivar'}</button>`
               : ''}
           </td>
         </tr>`;
