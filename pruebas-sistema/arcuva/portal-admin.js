@@ -53,7 +53,7 @@
     if(btnClient)btnClient.classList.toggle('hidden',!canEditClients);
     if(!current)banner('Iniciá sesión para consultar los datos de Arcuva.');
     else if(!validGroup)banner('Arcuva no tiene un grupo técnico accesible para este usuario. No es posible modificar campañas.');
-    else if(canEdit)banner('Edición habilitada para Arcuva. Atención: esta versión utiliza la base real; las campañas nuevas quedan pausadas y los cambios no se sincronizan automáticamente con Taurus.',true);
+    else if(canEdit)banner('Edición habilitada para Arcuva. Esta versión utiliza la base real. Las campañas nuevas se guardan pausadas y la actualización de los reproductores se realiza por separado.',true);
     else if(canEditClients)banner('Administración de Arcuva: podés agregar y editar clientes. Las campañas mantienen sus permisos actuales.',true);
     else banner('Acceso de consulta. Para editar campañas y clientes, el superadministrador debe asignar el rol Operador o Administrador en Arcuva.');
   }
@@ -606,7 +606,7 @@
       }
       const workResult=await fulfillWorkOrder(workOrderId,savedCampaignId,id?'actualizacion':'alta');
       closeDialog();await base.reload();
-      alert('Campaña guardada. No se enviaron cambios a Taurus automáticamente.'+(workResult?'\n\n'+workResult:''));
+      alert('Campaña guardada correctamente. Los reproductores actualizarán su programación según su mecanismo de sincronización.'+(workResult?'\n\n'+workResult:''));
     }catch(err){fail(err.message||'No se pudo guardar la campaña.');}
     finally{saving(false);}
   }
@@ -630,21 +630,21 @@
           if(data?.length!==1)throw Error('No se confirmó la pausa.');
           const result=await fulfillWorkOrder(workOrderId,id,'baja');
           closeDialog();await base.reload();
-          alert('Campaña pausada. La programación de Taurus requiere sincronización.'+(result?'\n\n'+result:''));
+          alert('Campaña pausada correctamente. La actualización de la programación en los reproductores depende de su sincronización.'+(result?'\n\n'+result:''));
         }catch(err){fail(err.message||'No se pudo pausar la campaña.');}
         finally{saving(false);}
        });
       populatePendingOrders('baja');
       return;
     }
-    if(!window.confirm('¿Reactivar la campaña '+raw.nombre+'? Puede comenzar a reproducirse cuando se sincronice el Taurus.'))return;
+    if(!window.confirm('¿Reactivar la campaña '+raw.nombre+'? Podrá comenzar a reproducirse cuando el reproductor reciba la actualización.'))return;
     try{
       await permission(raw.grupo_id);
       const {data,error}=await db.from('campanias').update({pausada:false}).eq('id',id).eq('grupo_id',raw.grupo_id).select('id');
       if(error)throw error;
       if(data?.length!==1)throw Error('No se confirmó el cambio de estado.');
       await base.reload();
-      alert('Campaña reactivada. No se ha sincronizado automáticamente con Taurus.');
+      alert('Campaña reactivada correctamente. La actualización en los reproductores depende de su sincronización.');
     }catch(err){alert(err.message||'No se pudo cambiar el estado de la campaña.');}
   }
   $('addClientBtn').addEventListener('click',()=>openClient());
