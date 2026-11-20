@@ -434,13 +434,13 @@
     if(!select)return;
     const {data,error}=await db.from('ordenes_trabajo')
       .select('id,tipo_solicitud,descripcion,pantalla_ids,fecha_solicitud,estado')
-      .eq('empresa_id',COMPANY_ID).eq('tipo_solicitud',tipo)
+      .eq('empresa_id',COMPANY_ID).in('tipo_solicitud',tipo==='campania'?['alta','actualizacion']:[tipo])
       .in('estado',pendingStatuses).order('creada_en',{ascending:false}).limit(100);
     if(!$(selectId)||$(selectId)!==select)return;
     if(error){select.innerHTML='<option value="">No se pudieron consultar órdenes pendientes</option>';return;}
     const screens=new Map(base.getModel().screens.map(p=>[p.id,p.nombre]));
     select.innerHTML='<option value="">Sin orden asociada (opcional)</option>'+
-      (data||[]).map(o=>'<option value="'+esc(o.id)+'">OT-'+esc(o.id.slice(0,8).toUpperCase())+
+      (data||[]).map(o=>'<option value="'+esc(o.id)+'" data-tipo="'+esc(o.tipo_solicitud)+'">OT-'+esc(o.id.slice(0,8).toUpperCase())+
        ' · '+esc((o.pantalla_ids||[]).map(id=>screens.get(id)||id).join(', '))+
        ' · '+esc((o.descripcion||'').slice(0,55))+'</option>').join('');
   }
@@ -491,7 +491,7 @@
       +'<div class="admin-field"><label for="campaignEnd">Fecha hasta *</label><input id="campaignEnd" type="date" value="'+esc(ending)+'" required></div>'
       +extra+pendingOrderField()+'<div class="admin-field full"><div id="fileDetails" class="tiny"></div></div>'
       +'</div>',()=>saveCampaign(id));
-    populatePendingOrders(id?'actualizacion':'alta');
+    populatePendingOrders('campania');
     const select=$('campaignType');
     select.addEventListener('change',()=>{
       // Nunca se hereda un archivo de un tipo anterior.
@@ -607,7 +607,8 @@
           throw Error('La campaña quedó pausada, pero no se pudieron vincular pantallas: '+linkError.message);
         }
       }
-      const workResult=await fulfillWorkOrder(workOrderId,savedCampaignId,id?'actualizacion':'alta');
+      const workOrderType=$('campaignWorkOrder')?.selectedOptions?.[0]?.dataset?.tipo|| (id?'actualizacion':'alta');
+      const workResult=await fulfillWorkOrder(workOrderId,savedCampaignId,workOrderType);
       closeDialog();await base.reload();
       if(workResult.startsWith('La campaña se guardó, pero NO'))alert(workResult);
     }catch(err){fail(err.message||'No se pudo guardar la campaña.');}
