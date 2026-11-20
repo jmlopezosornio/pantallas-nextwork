@@ -447,7 +447,7 @@
   function pendingOrderField(){
     return '<div class="admin-field full"><label for="campaignWorkOrder">Orden de trabajo pendiente (opcional)</label>'+
      '<select id="campaignWorkOrder"><option value="">Cargando órdenes pendientes…</option></select>'+
-     '<small>Si seleccionás una orden, se marcará cumplida únicamente después de guardar la operación. Debe corresponder al tipo de solicitud y a todas sus pantallas. Esto no confirma reproducción en Taurus.</small></div>';
+     '<small>Si seleccionás una orden, se marcará cumplida únicamente después de guardar la operación. Se marcará cumplida al guardar correctamente la campaña, aunque la campaña no incluya todas las pantallas de la orden. Esto no confirma reproducción en Taurus.</small></div>';
   }
   async function fulfillWorkOrder(orderId,campaignId,type){
     if(!orderId)return '';
