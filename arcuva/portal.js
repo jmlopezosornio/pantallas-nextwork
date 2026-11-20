@@ -106,7 +106,7 @@
     let playerRows=[],playerQueryFailed=false;
     if(allowedScreens.length){
       const {data:rows,error:playerError}=await db.from('players')
-        .select('pantalla_id,tipo,estado,ultima_conexion,actualizado_en,vnnox_online_status,vnnox_player_id')
+        .select('pantalla_id,tipo,estado,ultima_conexion,actualizado_en,vnnox_online_status,vnnox_player_id,version_player,vnnox_version,proveedor')
         .in('pantalla_id',allowedScreens.map(p=>p.id));
       if(current!==epoch||!profile)return;
       if(playerError){
@@ -190,8 +190,8 @@
       '<th>Pantalla</th><th>Estado</th><th>Reproductor</th><th>Resolución</th><th>Última conexión</th>'+(superadmin?'<th>Acciones</th>':'')+
       '</tr></thead><tbody>'+screens.map(({screen:p,player,connection:c})=>{
         const taurus=player?.tipo==='novastar_taurus';
-        const type=taurus?'NovaStar Taurus':player?.tipo==='windows'?'PC Windows':player?.tipo==='raspberry'?'Raspberry Pi':player?.tipo?'Reproductor':'Player';
-        const provider=taurus?'VNNOX':player?.tipo?'NextWork':'Sin vincular';
+        const type=taurus?'NovaStar Taurus':player?.tipo==='windows'?'Windows Player':player?.tipo==='raspberry'?'Raspberry Pi':player?.tipo?'Reproductor':'Player';
+        const provider=taurus?'VNNOX':player?.tipo?'Nextwork Player':'Sin vincular';
         const version=player?.vnnox_version||player?.version_player||'Sin versión';
         const validTime=Date.parse(player?.ultima_conexion||'');
         const last=Number.isFinite(validTime)?new Date(validTime).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}):'Sin registro';
