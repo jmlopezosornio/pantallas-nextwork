@@ -37,6 +37,16 @@
     if(page==='reportes')window.dispatchEvent(new Event('arcuva-page-reportes'));
     if(page==='ordenes')window.dispatchEvent(new Event('arcuva-page-ordenes'));
     if(page==='usuarios')window.dispatchEvent(new Event('arcuva-page-usuarios'));
+    // Cada sección comienza desde arriba, independientemente de la posición anterior.
+    // Se ejecuta después de actualizar la vista para evitar conservar el scroll previo.
+    const resetPageScroll=()=>{
+      window.scrollTo({top:0,left:0,behavior:'instant'});
+      if(document.scrollingElement)document.scrollingElement.scrollTop=0;
+      const main=document.querySelector('#appView .main');
+      if(main)main.scrollTop=0;
+    };
+    resetPageScroll();
+    requestAnimationFrame(resetPageScroll);
   }
   async function verifyUser(authUser){
     const {data,error:err}=await db.from('usuarios').select('id,nombre,email,rol,activo,empresa_id,es_superadmin').eq('id',authUser.id).single();
