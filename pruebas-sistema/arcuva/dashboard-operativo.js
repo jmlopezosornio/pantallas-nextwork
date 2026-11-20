@@ -38,11 +38,19 @@ function modal(title,rows){
  document.querySelector('.arcuva-summary-modal-backdrop')?.remove();
  const overlay=document.createElement('div');overlay.className='arcuva-summary-modal-backdrop';
  overlay.innerHTML='<div class="arcuva-summary-modal" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><h3>'+esc(title)+'</h3><div class="arcuva-summary-modal-list">'+
- (rows.length?rows.map(r=>'<div class="arcuva-summary-modal-item"><strong>'+esc(r.title)+'</strong><span>'+esc(r.info)+'</span></div>').join(''):'<div class="arcuva-summary-modal-item">Sin campañas para mostrar.</div>')+
+ (rows.length?rows.map(r=>r.id?'<button type="button" class="arcuva-summary-modal-item arcuva-summary-modal-link" data-campaign-target="'+esc(r.id)+'"><strong>'+esc(r.title)+'</strong><span>'+esc(r.info)+'</span></button>':'<div class="arcuva-summary-modal-item"><strong>'+esc(r.title)+'</strong><span>'+esc(r.info)+'</span></div>').join(''):'<div class="arcuva-summary-modal-item">Sin campañas para mostrar.</div>')+
  '</div><button class="arcuva-summary-modal-close" type="button">Cerrar</button></div>';
  document.body.appendChild(overlay);
  const close=()=>overlay.remove();
  overlay.querySelector('button').addEventListener('click',close);
+ overlay.querySelectorAll('[data-campaign-target]').forEach(button=>button.addEventListener('click',()=>{
+   const target=button.dataset.campaignTarget;
+   close();
+   const nav=document.querySelector('.nav[data-page="campanias"]');
+   if(!nav)return;
+   nav.click();
+   window.dispatchEvent(new CustomEvent('arcuva-focus-campaign',{detail:{id:target}}));
+ }));
  overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
  const onKey=e=>{if(e.key==='Escape'){close();document.removeEventListener('keydown',onKey)}};
  document.addEventListener('keydown',onKey,{once:true});
@@ -86,7 +94,7 @@ function update(){
  $('arcuvaStatusLegend').innerHTML=dataStates.map(s=>'<div class="arcuva-legend-row"><i style="background:'+s.color+'"></i><span>'+s.name+'</span><strong>'+num(s.n)+' ('+(total?Math.round(s.n/total*100):0)+'%)</strong></div>').join('');
  $('arcuvaSummaryNotice').textContent=data.playerQueryFailed?'No se pudo consultar el estado de conexión de algunas pantallas.': 'Resumen de Arcuva actualizado · Vencimientos próximos: 7 días';
 }
-$('arcuvaExpiringCard')?.addEventListener('click',()=>modal('Campañas próximas a vencer · 7 días',expiring().map(c=>({title:c.campania||'Campaña',info:(c.cliente||'Sin cliente')+' · Vence: '+asDate(c.fecha_hasta)}))));
+$('arcuvaExpiringCard')?.addEventListener('click',()=>modal('Campañas próximas a vencer · 7 días',expiring().map(c=>({id:c.id,title:c.campania||'Campaña',info:(c.cliente||'Sin cliente')+' · Vence: '+asDate(c.fecha_hasta)}))));
 window.addEventListener('arcuva-data-loaded',update);
 window.addEventListener('arcuva-page-resumen',update);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)update()});
