@@ -29,8 +29,13 @@ function n(v,d=0){ const x=Number(v); return Number.isFinite(x)?x:d; }
 function typeOf(c){ return String(c.tipo_contenido||c.tipo||c.type||'video').toLowerCase(); }
 function idOf(c){ return c.id||c.campania_id||c.campaign_id||c.nombre||c.campania||'sin-id'; }
 function weightOf(c){
-  const p=n(c.porcentaje||c.participacion||c.weight,100);
-  if(p<=25) return 1; if(p<=50) return 2; if(p<=75) return 3; return 4;
+  const p=n(c.porcentaje??c.participacion??c.weight,100);
+  if(p<=0) return 0;
+  if(p<=25) return 1;
+  if(p<=50) return 2;
+  if(p<=75) return 3;
+  if(p<=100) return 4;
+  return 6; // 150%: una vez y media el peso de 100%.
 }
 function durationOf(c){
   const t=typeOf(c);
@@ -60,12 +65,26 @@ function isCampaignActive(c){
   if((t==='video'||t==='imagen'||t==='image') && !c.local_url && !c.archivo_url && !c.url) return false;
   return true;
 }
+let lastPlayedId = null;
 function rebuildQueue(){
   const active=(state?.campaigns||[]).filter(isCampaignActive);
-  const expanded=[];
-  active.forEach(c=>{ for(let i=0;i<weightOf(c);i++) expanded.push(c); });
-  for(let i=expanded.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [expanded[i],expanded[j]]=[expanded[j],expanded[i]]; }
-  queue=expanded;
+  const remaining=active.map(c=>({campaign:c,count:weightOf(c),id:String(idOf(c))})).filter(x=>x.count>0);
+  const mixed=[];
+  let previous=lastPlayedId;
+  // Mezclar las salidas sin cambiar la cantidad de veces de cada campaña.
+  // Evitar salidas consecutivas de la misma campaña cuando aún haya otra disponible.
+  while(remaining.some(x=>x.count>0)){
+    const options=remaining.filter(x=>x.count>0&&x.id!==previous);
+    const candidates=options.length?options:remaining.filter(x=>x.count>0);
+    const total=candidates.reduce((sum,x)=>sum+x.count,0);
+    let pick=Math.random()*total;
+    let selected=candidates[candidates.length-1];
+    for(const x of candidates){pick-=x.count;if(pick<0){selected=x;break;}}
+    mixed.push(selected.campaign);
+    selected.count--;
+    previous=selected.id;
+  }
+  queue=mixed;
 }
 function blank(reason){
   clearTimeout(timer); timer=null; current=null; stage.innerHTML=''; stage.style.background='#000';
@@ -89,7 +108,7 @@ function next(){
   stoppedBySchedule=false;
   if(!queue.length) rebuildQueue();
   if(!queue.length) return blank('Sin campañas activas');
-  const c=queue.shift(); current=c;
+  const c=queue.shift(); current=c; lastPlayedId=String(idOf(c));
   const t=typeOf(c);
   const src=c.local_url||c.archivo_url||c.url||c.content_url||c.contenido_url||c.media_url;
   statusBox.textContent=`${state.serverOnline?'ONLINE':'OFFLINE'} · ${c.nombre||c.campania||idOf(c)}`;
