@@ -169,17 +169,107 @@ function reset(){
  $('rptEstado').value='activa';
  updateMode('general');
 }
+// Exportación PDF independiente de los encabezados/pies automáticos de Chrome.
+let reportPdfLibraries=null;
+function loadReportPdfLibraries(){
+ if(reportPdfLibraries)return reportPdfLibraries;
+ const load=url=>new Promise((resolve,reject)=>{
+   const script=document.createElement('script');
+   script.src=url;script.async=true;
+   script.onload=resolve;script.onerror=()=>reject(new Error('No se pudo cargar el generador PDF.'));
+   document.head.appendChild(script);
+ });
+ reportPdfLibraries=(async()=>{
+   if(!window.jspdf?.jsPDF)await load('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js');
+   if(!window.jspdf?.jsPDF?.API?.autoTable)await load('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js');
+   if(!window.jspdf?.jsPDF?.API?.autoTable)throw new Error('No está disponible el generador de tablas PDF.');
+ })().catch(error=>{reportPdfLibraries=null;throw error;});
+ return reportPdfLibraries;
+}
+async function reportLogoPng(){
+ const src=$('sidebarLogo')?.getAttribute('src');
+ if(!src)return null;
+ try{
+   const image=new Image();image.crossOrigin='anonymous';
+   await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=src;});
+   const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+   const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0);
+   return {data:canvas.toDataURL('image/png'),ratio:image.naturalWidth/image.naturalHeight};
+ }catch(error){console.warn('Logo de Arcuva no disponible para PDF:',error);return null;}
+}
 async function printReport(){
  if(!rows?.length){alert('No hay campañas para imprimir con estos filtros.');return;}
- const w=window.open('','_blank','width=1200,height=800');if(!w){alert('Habilitá las ventanas emergentes para imprimir el reporte.');return;}
- if(mode==='fechas'&&!countsReady){await fetchCounts();}
- if(mode==='fechas'&&(!countsReady||countIssue)){w.close();alert(countIssue||'No se pudo confirmar la cantidad de reproducciones. Intentá nuevamente.');return;}
- const logo=$('sidebarLogo')?.getAttribute('src')||'';
- const head=logo?'<img src="'+esc(logo)+'" alt="Arcuva">':'<strong>Arcuva</strong>';
- const filters=['Período: '+labelPeriod(),'Cliente: '+selectedText('rptCliente','Todos'),'Campaña: '+selectedText('rptCampania','Todas'),'Pantalla: '+selectedText('rptPantalla','Todas'),'Estado: '+selectedText('rptEstado','Activas')];
- const trs=rows.map(r=>'<tr><td>'+esc(r.cliente)+'</td><td>'+esc(r.campania)+'</td><td>'+display(r.desde)+' – '+display(r.hasta)+'</td><td>'+esc(r.pantallas.join(', ')||'Sin pantalla')+'</td><td>'+r.pct+'%</td><td>'+(r.plays===null?(r.unmeasured?noMeasurement:'—'):number(r.plays))+'</td></tr>').join('');
- w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Arcuva · Reporte de Clientes y Campañas</title><style>@page{size:A4 landscape;margin:14mm 12mm 20mm 12mm}*{box-sizing:border-box}html,body{width:auto;max-width:100%}body{font-family:Arial,sans-serif;color:#17243b;margin:0;padding:0}.head{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:2px solid #1769d2;margin-bottom:15px}.head img{max-width:160px;max-height:70px;border-radius:12px;object-fit:contain}.head h1{font-size:22px;color:#0b2b59;margin:0}.head p{font-size:11px;color:#657790}.filters{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;background:#edf4fc;padding:12px;border-radius:8px;font-size:10px;margin-bottom:15px}table{border-collapse:collapse;width:100%;font-size:10px;table-layout:fixed}thead{display:table-header-group}tfoot{display:table-footer-group}tr{break-inside:avoid;page-break-inside:avoid}th,td{overflow-wrap:anywhere}th{background:#0d457b;color:white;text-align:left;padding:9px}td{padding:8px;border:1px solid #dce5ee}tr:nth-child(even){background:#f4f7fb}.footer{display:flex;justify-content:space-between;border-top:1px solid #ccd5e1;padding-top:10px;margin-top:16px;color:#64748b;font-size:9px;break-inside:avoid;page-break-inside:avoid}</style></head><body><div class="head"><div>'+head+'</div><div><h1>Reporte de Clientes y Campañas</h1><p>Arcuva · Sistema de Gestión de Pantallas</p></div></div><div class="filters">'+filters.map(s=>'<div>'+esc(s)+'</div>').join('')+'</div><table><thead><tr><th>Cliente</th><th>Campaña</th><th>Vigencia</th><th>Pantallas</th><th>% Salidas</th><th>Salidas registradas</th></tr></thead><tbody>'+trs+'</tbody></table><div class="footer"><span>Reporte generado el '+esc(new Date().toLocaleString('es-AR'))+'</span><span>Arcuva · Powered by NextWork</span></div><script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>');
- w.document.close();
+ const w=window.open('','_blank');if(!w){alert('Habilitá las ventanas emergentes para generar el PDF.');return;}
+ w.document.write('<!doctype html><html lang="es"><meta charset="utf-8"><title>Generando reporte Arcuva</title><body style="font:16px Arial,sans-serif;padding:30px;color:#173258">Generando reporte PDF de Arcuva…</body></html>');
+ try{
+   if(mode==='fechas'&&!countsReady)await fetchCounts();
+   if(mode==='fechas'&&(!countsReady||countIssue))throw new Error(countIssue||'No se pudo confirmar la cantidad de reproducciones.');
+   await loadReportPdfLibraries();
+   const logo=await reportLogoPng();
+   const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+   const width=297,height=210,left=12,right=12,bottom=20;
+   const filters=[
+     'Período: '+labelPeriod(),
+     'Cliente: '+selectedText('rptCliente','Todos'),
+     'Campaña: '+selectedText('rptCampania','Todas'),
+     'Pantalla: '+selectedText('rptPantalla','Todas'),
+     'Estado: '+selectedText('rptEstado','Activas')
+   ];
+   const footerDate=new Date().toLocaleString('es-AR');
+   const drawFrame=(pageNumber)=>{
+     // Encabezado institucional original. Sin fecha/título/URL automáticos del navegador.
+     if(logo){
+       const logoHeight=Math.min(20,35/logo.ratio);
+       doc.addImage(logo.data,'PNG',left,12,logoHeight*logo.ratio,logoHeight);
+     }else{
+       doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(23,58,111);
+       doc.text('ARCUVA',left,23);
+     }
+     doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(11,43,89);
+     doc.text('Reporte de Clientes y Campañas',width-right,21,{align:'right'});
+     doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(101,119,144);
+     doc.text('Arcuva · Sistema de Gestión de Pantallas',width-right,27,{align:'right'});
+     doc.setDrawColor(23,105,210);doc.setLineWidth(0.5);doc.line(left,36,width-right,36);
+     if(pageNumber===1){
+       doc.setFillColor(237,244,252);doc.roundedRect(left,41,width-left-right,18,2,2,'F');
+       const slot=(width-left-right)/5;
+       doc.setFontSize(7.3);doc.setTextColor(40,58,86);
+       filters.forEach((label,i)=>{
+         const parts=doc.splitTextToSize(label,slot-6).slice(0,3);
+         doc.text(parts,left+i*slot+3,46);
+       });
+     }
+     // Pie institucional original, colocado dentro del área imprimible del A4.
+     doc.setDrawColor(204,213,225);doc.setLineWidth(0.25);doc.line(left,height-bottom+1,width-right,height-bottom+1);
+     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(100,116,139);
+     doc.text('Reporte generado el '+footerDate,left,height-bottom+6);
+     doc.text('Arcuva · Powered by NextWork',width-right,height-bottom+6,{align:'right'});
+   };
+   const body=rows.map(r=>[
+     r.cliente,r.campania,display(r.desde)+' – '+display(r.hasta),
+     r.pantallas.join(', ')||'Sin pantalla',r.pct+'%',
+     r.plays===null?(r.unmeasured?noMeasurement:'—'):number(r.plays)
+   ]);
+   doc.autoTable({
+     head:[['Cliente','Campaña','Vigencia','Pantallas','% Salidas','Salidas registradas']],
+     body,startY:66,
+     margin:{top:43,bottom:bottom+12,left,right},
+     theme:'grid',
+     styles:{font:'helvetica',fontSize:8,cellPadding:2.3,overflow:'linebreak',lineColor:[220,229,238],lineWidth:0.18,textColor:[23,36,59],valign:'middle'},
+     headStyles:{fillColor:[13,69,123],textColor:[255,255,255],fontStyle:'bold',fontSize:8.3,cellPadding:3},
+     alternateRowStyles:{fillColor:[244,247,251]},
+     columnStyles:{0:{cellWidth:36},1:{cellWidth:42},2:{cellWidth:40},3:{cellWidth:111},4:{cellWidth:19},5:{cellWidth:25}},
+     rowPageBreak:'avoid',
+     didDrawPage:data=>drawFrame(data.pageNumber)
+   });
+   const url=URL.createObjectURL(doc.output('blob'));
+   w.location.replace(url);
+   setTimeout(()=>URL.revokeObjectURL(url),120000);
+ }catch(error){
+   console.error('No se pudo generar el PDF de Arcuva',error);
+   w.close();
+   alert('No se pudo generar el PDF: '+(error?.message||error));
+ }
 }
 function init(){
  if(!$('rptBody'))return;
