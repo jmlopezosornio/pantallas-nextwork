@@ -267,3 +267,12 @@
 /* Pantallas de Administración: cinco columnas sin controles de Superadmin. */
 .ar-screen-table-readonly{min-width:760px}
 .ar-screen-table-readonly th:last-child,.ar-screen-table-readonly td:last-child{text-align:left}
+
+/* Campaña seleccionada desde el dashboard. */
+.campaign-focus-bar{
+ display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+ background:#eef5ff;border:1px solid #caddf8;border-radius:11px;padding:11px 14px;
+ color:#204e89;font-size:13px;font-weight:750;margin-bottom:12px;
+}
+.campaign-focused{background:#f2f8ff!important;box-shadow:inset 3px 0 #2374d8}
+@media(max-width:700px){.campaign-focus-bar{align-items:stretch;flex-direction:column}.campaign-focus-bar button{min-height:44px}}
