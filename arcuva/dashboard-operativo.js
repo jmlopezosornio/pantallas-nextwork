@@ -42,7 +42,7 @@ function modal(title,rows){
  '</div><button class="arcuva-summary-modal-close" type="button">Cerrar</button></div>';
  document.body.appendChild(overlay);
  const close=()=>overlay.remove();
- overlay.querySelector('button').addEventListener('click',close);
+ overlay.querySelector('.arcuva-summary-modal-close').addEventListener('click',close);
  overlay.querySelectorAll('[data-campaign-target]').forEach(button=>button.addEventListener('click',()=>{
    const target=button.dataset.campaignTarget;
    close();
