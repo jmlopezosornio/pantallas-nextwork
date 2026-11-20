@@ -10,6 +10,7 @@
   const $=id=>document.getElementById(id);
   let groups=[],clients=[],memberships=[],groupScreens=[],scopeIds=new Set(),canEdit=false,canEditClients=false,validGroup='',pending=false,currentDialog='',revision=0;
   let snapshotCampaigns=[];
+  let focusedCampaignId='';
   const allowedPercentages=new Set([25,50,75,100,150]);
   function localDay(date){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');}
   const urlValid=v=>{try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)&&!!u.hostname;}catch{return false;}};
@@ -127,7 +128,8 @@
       const tab=b.dataset.campaignTab;b.classList.toggle('active',tab===campaignTab);
       const n=b.querySelector('.tab-count');if(n)n.textContent=String(counts[tab]||0);
     });
-    const filtered=campaignTab==='todas'?searched:searched.filter(c=>statusForCampaign(c)===campaignTab);
+    const byTab=campaignTab==='todas'?searched:searched.filter(c=>statusForCampaign(c)===campaignTab);
+    const filtered=focusedCampaignId?byTab.filter(c=>c.id===focusedCampaignId):byTab;
     const panel=$('campaignTable');
     if($('campaignListCount'))$('campaignListCount').textContent=filtered.length+' campaña'+(filtered.length===1?'':'s')+' · '+(campaignTab==='todas'?'Todas':({vigentes:'Vigentes',futuras:'Futuras',pasadas:'Pasadas',pausadas:'Pausadas'}[campaignTab]||''));
     if(!filtered.length){panel.innerHTML=empty('No hay campañas que coincidan con los filtros seleccionados.');return;}
@@ -146,7 +148,7 @@
       const content='<span class="campaign-type-chip">'+esc(typeLabel)+(kind==='video'&&Number(c.duracion_seg)>0?' · '+esc(Number(c.duracion_seg))+'s':'')+'</span>'+
         (media?'<button type="button" class="campaign-media-btn" data-preview-campaign="'+esc(c.id)+'">Vista previa</button>'+
         (kind!=='web'?'<button type="button" class="campaign-media-btn" data-download-campaign="'+esc(c.id)+'">Descargar</button>':'<span class="tiny">Enlace web</span>'):'<span class="tiny">Sin archivo</span>');
-      return '<tr><td class="campaign-action-cell">'+menu+'</td><td><strong>'+esc(c.campania)+'</strong></td><td>'+esc(c.cliente||'—')+'</td><td><span class="campaign-screen-chip">'+esc((c.pantallas||[]).join(', ')||'Sin pantalla')+'</span></td><td class="campaign-date">'+dates(c.fecha_desde)+'</td><td class="campaign-date">'+dates(c.fecha_hasta)+'</td><td><strong>'+esc(c.porcentaje)+'%</strong></td><td><span class="campaign-state state-'+esc(status)+'">'+esc(label)+'</span></td><td class="campaign-content">'+content+'</td></tr>';
+      return '<tr data-campaign-record="'+esc(c.id)+'"'+(focusedCampaignId===c.id?' class="campaign-focused"':'')+'><td class="campaign-action-cell">'+menu+'</td><td><strong>'+esc(c.campania)+'</strong></td><td>'+esc(c.cliente||'—')+'</td><td><span class="campaign-screen-chip">'+esc((c.pantallas||[]).join(', ')||'Sin pantalla')+'</span></td><td class="campaign-date">'+dates(c.fecha_desde)+'</td><td class="campaign-date">'+dates(c.fecha_hasta)+'</td><td><strong>'+esc(c.porcentaje)+'%</strong></td><td><span class="campaign-state state-'+esc(status)+'">'+esc(label)+'</span></td><td class="campaign-content">'+content+'</td></tr>';
     });
     const mobileCards=filtered.map(c=>{
       const raw=snapshotCampaigns.find(x=>x.id===c.id);
@@ -155,7 +157,7 @@
       const label={vigentes:'Vigente',futuras:'Futura',pasadas:'Pasada',pausadas:'Pausada'}[status]||status;
       const media=campaignMediaRef(c),kind=c.tipo_contenido||'video';
       const typeLabel=kind==='imagen'?'Imagen':kind==='web'?'Web':'Video';
-      return '<article class="campaign-mobile-card">'+
+      return '<article class="campaign-mobile-card'+(focusedCampaignId===c.id?' campaign-focused':'')+'" data-campaign-record="'+esc(c.id)+'">'+
        '<div class="campaign-mobile-top"><span class="campaign-state state-'+esc(status)+'">'+esc(label)+'</span>'+
        '<span class="campaign-type-chip">'+esc(typeLabel)+'</span></div>'+
        '<h3>'+esc(c.campania)+'</h3><p class="campaign-mobile-client">'+esc(c.cliente||'Sin cliente')+'</p>'+
@@ -170,8 +172,9 @@
        (media&&kind!=='web'?'<button type="button" class="secondary" data-download-campaign="'+esc(c.id)+'">Descargar</button>':'')+
        '</div></article>';
     }).join('');
-    panel.innerHTML='<div class="campaign-table-scroll"><table class="campaign-list-table"><thead><tr>'+['Acciones','Campaña','Cliente','Pantalla / Grupo','Desde','Hasta','Frecuencia','Estado','Contenido'].map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>'+
+    panel.innerHTML=(focusedCampaignId?'<div class="campaign-focus-bar"><span>Campaña seleccionada desde el Dashboard</span><button type="button" id="clearCampaignFocus" class="secondary small-btn">Ver todas las campañas</button></div>':'')+'<div class="campaign-table-scroll"><table class="campaign-list-table"><thead><tr>'+['Acciones','Campaña','Cliente','Pantalla / Grupo','Desde','Hasta','Frecuencia','Estado','Contenido'].map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>'+
       '<div class="campaign-mobile-list">'+mobileCards+'</div>';
+    panel.querySelector('#clearCampaignFocus')?.addEventListener('click',()=>{focusedCampaignId='';campaignTab='vigentes';renderCampaignTable();});
     panel.querySelectorAll('[data-campaign-menu]').forEach(btn=>btn.addEventListener('click',()=>{
       const target=panel.querySelector('[data-campaign-options="'+btn.dataset.campaignMenu+'"]');
       panel.querySelectorAll('[data-campaign-options]').forEach(menu=>{if(menu!==target)menu.classList.add('hidden');});
@@ -649,11 +652,23 @@
   }
   $('addClientBtn').addEventListener('click',()=>openClient());
   $('addCampaignBtn').addEventListener('click',()=>openCampaign());
-  window.addEventListener('arcuva-page-campanias',()=>{campaignTab='vigentes';renderCampaignTable();});
-  $('campaignSearch').addEventListener('input',renderCampaignTable);
-  $('campaignTypeFilter').addEventListener('change',renderCampaignTable);
-  $('campaignScreenFilter').addEventListener('change',renderCampaignTable);
-  document.querySelectorAll('#campaignTabs [data-campaign-tab]').forEach(btn=>btn.addEventListener('click',()=>{campaignTab=btn.dataset.campaignTab;renderCampaignTable();}));
+  window.addEventListener('arcuva-page-campanias',()=>{focusedCampaignId='';campaignTab='vigentes';renderCampaignTable();});
+  window.addEventListener('arcuva-focus-campaign',event=>{
+    const id=String(event.detail?.id||'');
+    const campaign=base.getModel().campaigns.find(c=>c.id===id&&c.eliminada!==true);
+    if(!campaign)return;
+    focusedCampaignId=id;
+    campaignTab='todas';
+    $('campaignSearch').value='';
+    $('campaignTypeFilter').value='';
+    $('campaignScreenFilter').value='';
+    renderCampaignTable();
+    $('page-campanias')?.scrollIntoView({block:'start',behavior:'smooth'});
+  });
+  $('campaignSearch').addEventListener('input',()=>{focusedCampaignId='';renderCampaignTable();});
+  $('campaignTypeFilter').addEventListener('change',()=>{focusedCampaignId='';renderCampaignTable();});
+  $('campaignScreenFilter').addEventListener('change',()=>{focusedCampaignId='';renderCampaignTable();});
+  document.querySelectorAll('#campaignTabs [data-campaign-tab]').forEach(btn=>btn.addEventListener('click',()=>{focusedCampaignId='';campaignTab=btn.dataset.campaignTab;renderCampaignTable();}));
   window.ArcuvaAdminRefresh=refresh;
   window.ArcuvaAdminReset=reset;
 })();
