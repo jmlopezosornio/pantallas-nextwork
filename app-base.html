@@ -1774,7 +1774,8 @@
     return ({
       administrador:'Administrador',
       operador:'Operador',
-      administrativo:'Administrativo'
+      administrativo:'Administrativo',
+      gerencia:'Gerencia'
     })[r] || role || '-';
   }
 
@@ -3438,6 +3439,7 @@
             <option value="operador">Operador</option>
             <option value="administrativo">Administración</option>
             <option value="administrador">Administrador</option>
+            <option value="gerencia">Gerencia (solo Arcuva · lectura)</option>
           </select></div>
           <div class="field"><label>Contraseña temporal (mínimo 8 caracteres)</label><input id="newUserPassword" type="password" autocomplete="new-password"></div>
           <div id="newUserError" class="small" role="alert" style="color:#b42318;margin:10px 0"></div>
@@ -3646,6 +3648,7 @@
               <option value="operador" ${normalizedRole(usuario.rol)==='operador'?'selected':''}>Operador</option>
               <option value="administrativo" ${normalizedRole(usuario.rol)==='administrativo'?'selected':''}>Administrativo</option>
               <option value="administrador" ${normalizedRole(usuario.rol)==='administrador'?'selected':''}>Administrador</option>
+              ${usuario.empresa_id==='b59ddc55-40f0-48d0-842a-2bee9ea26a41'?`<option value="gerencia" ${normalizedRole(usuario.rol)==='gerencia'?'selected':''}>Gerencia · solo lectura</option>`:''}
             </select>
             <div class="small" style="margin-top:6px">El rol define qué puede hacer. Los grupos definen sobre qué pantallas, clientes y campañas puede hacerlo.</div>
           </div>
@@ -3696,7 +3699,7 @@
     const groupChecks = [...document.querySelectorAll('.userGroupCheck:checked')];
     const selectedRole = $('userGlobalRole')?.value || 'administrativo';
 
-    if(!['administrador','operador','administrativo'].includes(selectedRole)){
+    if(!['administrador','operador','administrativo','gerencia'].includes(selectedRole)){
       alert('Rol de usuario inválido.');
       return;
     }
@@ -3724,6 +3727,10 @@
       || (!targetUser.es_superadmin && (selectedGroups || []).some(g => g.empresa_id !== targetUser.empresa_id))){
       alert('Los grupos seleccionados deben pertenecer a la misma empresa del usuario. Revisá sus asignaciones.');
       return;
+    }
+
+    if(selectedRole==='gerencia' && targetUser.empresa_id!=='b59ddc55-40f0-48d0-842a-2bee9ea26a41'){
+      alert('Gerencia solo está disponible para Arcuva.');return;
     }
 
     const accessRows = groupChecks.map(chk => {
