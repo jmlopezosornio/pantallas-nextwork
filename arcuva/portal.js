@@ -19,6 +19,8 @@
     $('loginError').classList.add('hidden');$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');
     $('userName').textContent=profile.nombre||profile.email||'Usuario';
     const superadmin=profile.es_superadmin===true;
+    const gerente=profile.rol==='gerencia'&&!superadmin;
+    document.querySelector('.nav[data-page="ordenes"]')?.classList.toggle('hidden',gerente);
     const screenManager=superadmin||(profile.empresa_id===COMPANY_ID&&profile.rol==='administrador');
     $('superadminUsersNav')?.classList.toggle('hidden',!(superadmin||['administrativo','administrador'].includes(profile.rol)));
     $('superadminScreenTools')?.classList.toggle('hidden',!screenManager);
@@ -26,7 +28,7 @@
   }
   function showPage(page){
     const titles={resumen:'Dashboard',pantallas:'Pantallas',campanias:'Campañas',clientes:'Clientes',reportes:'Reportes',ordenes:'Órdenes de trabajo',usuarios:'Usuarios'};
-    if(!profile||!titles[page]||(page==='usuarios'&&!(profile.es_superadmin===true||['administrativo','administrador'].includes(profile.rol))))return;
+    if(!profile||!titles[page]||(page==='ordenes'&&profile.rol==='gerencia'&&!profile.es_superadmin)||(page==='usuarios'&&!(profile.es_superadmin===true||['administrativo','administrador'].includes(profile.rol))))return;
     Object.keys(titles).forEach(key=>$('page-'+key).classList.toggle('hidden',key!==page));
     document.querySelectorAll('.nav[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
     $('pageTitle').textContent=titles[page];
