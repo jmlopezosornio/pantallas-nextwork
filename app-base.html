@@ -3449,6 +3449,15 @@
           </div>
         </div>
       </div>`;
+    const companySelect=$('newUserCompany'),managerOption=$('newUserRole')?.querySelector('option[value="gerencia"]');
+    const updateManagerOption=()=>{
+      if(!managerOption||!companySelect)return;
+      const isArcuva=companySelect.value==='b59ddc55-40f0-48d0-842a-2bee9ea26a41';
+      managerOption.hidden=!isArcuva;managerOption.disabled=!isArcuva;
+      if(!isArcuva&&$('newUserRole')?.value==='gerencia')$('newUserRole').value='operador';
+    };
+    companySelect?.addEventListener('change',updateManagerOption);
+    updateManagerOption();
   }
 
   async function adminCreateUsuario(){
