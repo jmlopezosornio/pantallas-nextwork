@@ -221,3 +221,15 @@
  #page-resumen .arcuva-donut{width:158px}
  #page-resumen .arcuva-status-legend{max-width:320px;margin:auto}
 }
+
+/* Campañas por vencer: cada tarjeta abre su campaña correspondiente. */
+.arcuva-summary-modal-link{
+ display:block;width:100%;text-align:left;cursor:pointer;
+ font:inherit;color:inherit;transition:background .15s,border-color .15s,transform .15s;
+}
+.arcuva-summary-modal-link:hover{
+ background:#eaf3ff;border-color:#a9c9f6;transform:translateY(-1px);
+}
+.arcuva-summary-modal-link:focus-visible{
+ outline:3px solid #2475db;outline-offset:2px;
+}
