@@ -13,7 +13,7 @@
   <script>
     (() => {
       const stamp = Date.now().toString(36);
-      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"script","path":"./certificaciones-publicidad.js"},{"tag":"link","path":"./portal-admin.css"},{"tag":"link","path":"./dashboard-compact.css"}];
+      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./dashboard-gerencial.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"script","path":"./certificaciones-publicidad.js"},{"tag":"link","path":"./portal-admin.css"},{"tag":"link","path":"./dashboard-compact.css"},{"tag":"link","path":"./dashboard-gerencial.css"}];
       for (const file of files) {
         const local = file.path.startsWith('./');
         const source = local ? file.path + '?nw=' + stamp : file.path;
@@ -87,6 +87,41 @@
         </div>
       </header>
       <main class="workspace">
+        
+        <section id="page-gerencia" class="hidden gerencia-dashboard" aria-label="Dashboard gerencial Arcuva">
+          <div class="gerencia-titlebar">
+            <div><h2>Dashboard Gerencial</h2><p>Arcuva · Vista ejecutiva · Solo lectura</p></div>
+            <div class="gerencia-filters">
+              <label>Año<select id="gerYear" aria-label="Año"></select></label>
+              <label>Pantalla<select id="gerScreen" aria-label="Pantalla"><option value="">Todas</option></select></label>
+              <label>Localidad<select id="gerCity" aria-label="Localidad"><option value="">Todas</option></select></label>
+              <label>Cliente<select id="gerClient" aria-label="Cliente"><option value="">Todos</option></select></label>
+            </div>
+          </div>
+          <div class="gerencia-kpis">
+            <article class="gerencia-kpi"><span class="gerencia-icon purple">▣</span><div><h3>Pantallas operativas</h3><strong id="gerOnline">—</strong><p id="gerOnlinePercent">Monitoreando…</p><div class="gerencia-progress"><span id="gerOnlineBar"></span></div></div></article>
+            <article class="gerencia-kpi"><span class="gerencia-icon cyan">◈</span><div><h3>Campañas activas</h3><strong id="gerActive">—</strong><p>En reproducción</p></div></article>
+            <article class="gerencia-kpi"><span class="gerencia-icon amber">▢</span><div><h3>Campañas a vencer (7 días)</h3><strong id="gerExpiring">—</strong><p>Próximos vencimientos</p></div></article>
+            <article class="gerencia-kpi"><span class="gerencia-icon green">♧</span><div><h3>Clientes activos</h3><strong id="gerClients">—</strong><p>Con campañas vigentes</p></div></article>
+            <article class="gerencia-kpi"><span class="gerencia-icon purple">▷</span><div><h3>Salidas registradas (30 días)</h3><strong id="gerPlays">—</strong><p>Reproducciones verificadas</p></div></article>
+          </div>
+          <div class="gerencia-maincharts">
+            <section class="gerencia-panel gerencia-occupancy"><div class="gerencia-panel-head"><span class="gerencia-panel-icon">▥</span><div><h3>Ocupación publicitaria anual</h3><p>Promedio diario de campañas vigentes por mes. Identificá los períodos de mayor y menor ocupación.</p></div></div>
+              <div class="gerencia-occupancy-content"><div class="gerencia-bar-area"><div id="gerOccupancyBars" class="gerencia-bars" aria-label="Ocupación mensual"></div><div id="gerOccupancyDetail" class="gerencia-chart-detail">Seleccioná un mes para ver las campañas vigentes.</div></div>
+                <div class="gerencia-occupancy-calls"><div class="gerencia-call high"><span>↗</span><div><small>Mayor ocupación</small><strong id="gerHighestMonth">—</strong><p id="gerHighestValue">—</p></div></div><div class="gerencia-call low"><span>↘</span><div><small>Menor ocupación</small><strong id="gerLowestMonth">—</strong><p id="gerLowestValue">—</p></div></div></div>
+              </div>
+            </section>
+            <section class="gerencia-panel gerencia-evolution"><div class="gerencia-panel-head"><span class="gerencia-panel-icon">↗</span><div><h3>Evolución de reproducciones</h3><p>Salidas de campañas en los últimos 30 días.</p></div></div><div id="gerEvolution" class="gerencia-evolution-chart"></div></section>
+          </div>
+          <div class="gerencia-bottom">
+            <section class="gerencia-panel"><div class="gerencia-panel-head"><span class="gerencia-panel-icon">◔</span><div><h3>Distribución de campañas</h3><p>Estado de campañas del período.</p></div></div><div class="gerencia-distribution"><div class="gerencia-donut" id="gerDonut"><div><strong id="gerDonutTotal">—</strong><small>campañas</small></div></div><div class="gerencia-legend" id="gerLegend"></div></div></section>
+            <section class="gerencia-panel"><div class="gerencia-panel-head"><span class="gerencia-panel-icon">▣</span><div><h3>Pantallas con mayor actividad</h3><p>Top 5 por salidas registradas (30 días).</p></div></div><div class="gerencia-tablewrap"><table><thead><tr><th>#</th><th>Pantalla</th><th>Salidas</th></tr></thead><tbody id="gerScreensTop"><tr><td colspan="3">Consultando…</td></tr></tbody></table></div></section>
+            <section class="gerencia-panel"><div class="gerencia-panel-head"><span class="gerencia-panel-icon">♧</span><div><h3>Clientes con más presencia</h3><p>Top 5 por campañas vigentes.</p></div></div><div class="gerencia-tablewrap"><table><thead><tr><th>#</th><th>Cliente</th><th>Campañas</th></tr></thead><tbody id="gerClientsTop"></tbody></table></div></section>
+            <section class="gerencia-panel"><div class="gerencia-panel-head"><span class="gerencia-panel-icon">♢</span><div><h3>Alertas</h3><p>Situaciones que requieren seguimiento.</p></div></div><div class="gerencia-alerts" id="gerAlerts"></div></section>
+          </div>
+          <p id="gerStatus" class="gerencia-note" role="status" aria-live="polite"></p>
+        </section>
+
         <section id="page-resumen" class="arcuva-summary">
           <div class="arcuva-summary-heading"><h2>Resumen general</h2><p>Panel de administración y seguimiento comercial</p></div>
           <div class="arcuva-summary-cards"><div class="arcuva-summary-card " ><div class="arcuva-card-head"><span class="arcuva-card-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 22h8M12 18v4"/></svg></span><span>Pantallas operativas</span></div><strong id="arcuvaKpiOnline" class="arcuva-card-number">—</strong><span id="arcuvaOnlinePercent" class="arcuva-card-caption">Calculando…</span><div class="arcuva-meter"><span id="arcuvaOnlineBar"></span></div></div><div class="arcuva-summary-card " ><div class="arcuva-card-head"><span class="arcuva-card-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 12-5v12L3 13z"/><path d="M15 9.5c2 0 4 1.5 4 3s-2 3-4 3"/><path d="m6 14 2 6h4l-2-7"/></svg></span><span>Campañas activas</span></div><strong id="arcuvaKpiActive" class="arcuva-card-number">—</strong></div><button type="button" class="arcuva-summary-card arcuva-expiring-card" id="arcuvaExpiringCard" aria-label="Consultar campañas próximas a vencer"><div class="arcuva-card-head"><span class="arcuva-card-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg></span><span>Campañas a vencer</span></div><strong id="arcuvaKpiExpiring" class="arcuva-card-number">—</strong></button><div class="arcuva-summary-card " ><div class="arcuva-card-head"><span class="arcuva-card-icon people"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Clientes</span></div><strong id="arcuvaKpiClients" class="arcuva-card-number">—</strong></div></div>
