@@ -9,6 +9,7 @@
  let orders=[],loading=false,chosen=null,users=[];
  const allowed=()=>{const p=base.getProfile();return p&&(p.es_superadmin===true||(p.empresa_id===company&&p.activo!==false));};
  const canWrite=()=>{const p=base.getProfile();return p&&(p.es_superadmin===true||(p.empresa_id===company&&['administrador','administrativo','operador'].includes(p.rol)));};
+ const canCertify=o=>window.ArcuvaCertificaciones?.canCertify(o)===true;
  const dateText=v=>v?base.dates(v):'A coordinar';
  const stamp=v=>v?new Date(v).toLocaleString('es-AR'):'—';
  const screenName=id=>base.getModel().screens.find(x=>x.id===id)?.nombre||'Pantalla no disponible';
@@ -54,6 +55,7 @@
    'ORDEN DE TRABAJO · ARCUVA / NEXTWORK',
    'N.º '+idText(o),
    'Fecha de solicitud: '+dateText(o.fecha_solicitud),
+   'Cliente: '+(o.cliente_nombre||'Sin cliente registrado'),
    'Pantallas: '+screenNames(o),
    'Trabajo solicitado: '+requestType(o),
    'Porcentaje de reproducción: '+(o.porcentaje_reproduccion||100)+'%',
@@ -69,7 +71,11 @@
    'OBSERVACIONES',
    o.observaciones||'Sin observaciones',
    '',
-   'Solicitamos confirmar recepción y coordinar la ejecución del trabajo.'
+   'Solicitamos confirmar recepción y coordinar la ejecución del trabajo.',
+   '',
+   'CERTIFICACIÓN FOTOGRÁFICA',
+   'Abrí la orden desde el celular para sacar la foto:',
+   'https://pantallas.nextwork.com.ar/pruebas-sistema/arcuva/?orden='+encodeURIComponent(o.id)
   ].join('\n');
  }
  function setSelected(o){
@@ -105,6 +111,7 @@
    '<td>'+esc(o.porcentaje_reproduccion||100)+'%</td>'+
    '<td><span class="ot-status">'+esc(o.estado==='finalizada'?'Cumplida':o.estado==='borrador'?'Generado':o.estado)+'</span></td>' +
    '<td><div class="ot-actions"><button type="button" data-ot="preview" data-id="'+esc(o.id)+'">Ver</button>'+
+   (canCertify(o)?'<button type="button" class="ot-certify-button" data-ot="certify" data-id="'+esc(o.id)+'">📷 Certificar</button>':'<button type="button" data-ot="certify" data-id="'+esc(o.id)+'">Ver fotos</button>')+
    (canWrite()?'<button type="button" data-ot="edit" data-id="'+esc(o.id)+'">Editar</button>':'')+
 
    '<button type="button" data-ot="whatsapp" data-id="'+esc(o.id)+'">WhatsApp</button>'+
@@ -114,7 +121,8 @@
   box.querySelectorAll('[data-ot]').forEach(b=>b.addEventListener('click',()=>{
    const o=orders.find(x=>x.id===b.dataset.id);if(!o)return;
    const action=b.dataset.ot;
-   if(action==='preview')preview(o);
+   if(action==='certify')window.ArcuvaCertificaciones?.open(o.id);
+   else if(action==='preview')preview(o);
    else if(action==='edit')setSelected(o);
    else if(action==='whatsapp')shareWhatsApp(o);
    else if(action==='sent')markSent(o);
@@ -126,7 +134,7 @@
   try{
    const [{data,error},{data:usersData,error:userError}]=await Promise.all([
     db.from('ordenes_trabajo')
-     .select('id,empresa_id,pantalla_id,pantalla_ids,creada_en,fecha_solicitud,fecha_alta,fecha_baja,tipo_solicitud,porcentaje_reproduccion,destinatario_usuario_id,titulo,descripcion,ubicacion,tecnico,destinatario,email_destino,telefono_destino,estado,observaciones,cumplida_en,cumplida_por,campania_cumplida_id,accion_cumplida')
+     .select('id,empresa_id,pantalla_id,pantalla_ids,creada_en,fecha_solicitud,fecha_alta,fecha_baja,tipo_solicitud,porcentaje_reproduccion,destinatario_usuario_id,titulo,descripcion,ubicacion,tecnico,destinatario,email_destino,telefono_destino,estado,observaciones,cumplida_en,cumplida_por,campania_cumplida_id,accion_cumplida,cliente_nombre')
      .eq('empresa_id',company).order('creada_en',{ascending:false}).limit(200),
     db.rpc('arcuva_destinatarios_ordenes_trabajo')
    ]);
