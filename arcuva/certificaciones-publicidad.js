@@ -154,5 +154,18 @@ async function open(orderId){
   renderOverlay(data);await loadHistory();
  }catch(e){alert('No se pudo abrir la certificación: '+reportError(e));}
 }
+let deepLinkStarted=false;
+async function openOrderFromLink(){
+ if(deepLinkStarted||!base.getProfile())return;
+ const id=new URLSearchParams(window.location.search).get('orden')||'';
+ if(!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(id))return;
+ deepLinkStarted=true;
+ document.querySelector('.nav[data-page="ordenes"]')?.click();
+ // Evita abrir la misma certificación en cada actualización del portal.
+ await open(id);
+ const url=new URL(window.location.href);url.searchParams.delete('orden');
+ window.history.replaceState(null,'',url.pathname+url.search+url.hash);
+}
+window.addEventListener('arcuva-data-loaded',openOrderFromLink);
 window.ArcuvaCertificaciones=Object.freeze({open,canCertify});
 })();
