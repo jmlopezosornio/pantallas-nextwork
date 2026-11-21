@@ -276,3 +276,13 @@
 }
 .campaign-focused{background:#f2f8ff!important;box-shadow:inset 3px 0 #2374d8}
 @media(max-width:700px){.campaign-focus-bar{align-items:stretch;flex-direction:column}.campaign-focus-bar button{min-height:44px}}
+
+/* Buscador de órdenes de trabajo: número, cliente y rango de solicitud. */
+#page-ordenes .ot-search-filters{display:grid;grid-template-columns:minmax(170px,1.2fr) minmax(180px,1.5fr) minmax(138px,1fr) minmax(138px,1fr) auto;gap:12px;align-items:end;margin-bottom:12px}
+#page-ordenes .ot-search-filters label{display:flex;flex-direction:column;gap:7px;color:#3f5a7c;font-size:12px;font-weight:800;min-width:0}
+#page-ordenes .ot-search-filters input{width:100%;min-width:0;border:1px solid #d6e2f1;border-radius:11px;background:#fff;color:#1d3557;padding:11px 12px;font-size:13px;outline-offset:2px}
+#page-ordenes .ot-search-filters input:focus{border-color:#5c85db}
+#page-ordenes .ot-search-filters button{min-height:42px;white-space:nowrap}
+#page-ordenes .ot-search-summary{min-height:22px;font-size:12px;color:#667a95;margin-bottom:10px}
+@media(max-width:1150px){#page-ordenes .ot-search-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){#page-ordenes .ot-search-filters{grid-template-columns:1fr}}
