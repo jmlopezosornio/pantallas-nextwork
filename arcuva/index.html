@@ -168,6 +168,7 @@
                     <label><input type="radio" name="otType" value="baja"><span>Baja</span></label>
                   </div>
                 </fieldset>
+                <label class="ot-wide" for="otClient">Cliente / anunciante <input id="otClient" type="text" list="otClientOptions" maxlength="200" placeholder="Seleccioná o escribí el cliente"><datalist id="otClientOptions"></datalist></label>
                 <label>Porcentaje de reproducción<select id="otPercent">
                   <option value="25">25%</option><option value="50">50%</option><option value="75">75%</option>
                   <option value="100" selected>100%</option><option value="150">150%</option>
@@ -190,6 +191,14 @@
           </div>
           <div class="ot-panel">
             <div class="ot-panel-title"><h3>Órdenes registradas</h3><span>Historial de Arcuva</span></div>
+            <div class="ot-search-filters" role="search" aria-label="Buscar órdenes de trabajo">
+              <label for="otSearchNumber">N.º de orden<input id="otSearchNumber" type="search" placeholder="Ej.: OT-1A2B3C4D" autocomplete="off"></label>
+              <label for="otSearchClient">Cliente<input id="otSearchClient" type="search" placeholder="Nombre del cliente" autocomplete="off"></label>
+              <label for="otSearchFrom">Desde<input id="otSearchFrom" type="date"></label>
+              <label for="otSearchTo">Hasta<input id="otSearchTo" type="date"></label>
+              <button id="otSearchClear" type="button" class="secondary">Limpiar filtros</button>
+            </div>
+            <div class="ot-search-summary" id="otSearchSummary" role="status" aria-live="polite"></div>
             <div id="otList"><div class="ot-empty">Cargando órdenes…</div></div>
           </div>
           <div id="otPreview"></div>
