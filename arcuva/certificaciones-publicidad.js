@@ -13,7 +13,7 @@ const orderNumber=o=>'OT-'+String(o.id).slice(0,8).toUpperCase();
 function canCertify(o){
  const p=base.getProfile();
  return !!p&&(p.es_superadmin===true||(p.empresa_id===COMPANY&&p.activo!==false&&
- (p.rol==='administrador'||o.destinatario_usuario_id===p.id)));
+ (p.rol==='administrador'||(['operador','administrativo'].includes(p.rol)&&o.destinatario_usuario_id===p.id))));
 }
 function reportError(e){return e?.message||String(e);}
 function setStatus(message,isError=false){
