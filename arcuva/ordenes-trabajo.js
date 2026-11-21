@@ -6,7 +6,7 @@
  const db=base.db,company='b59ddc55-40f0-48d0-842a-2bee9ea26a41';
  const $=id=>document.getElementById(id);
  const esc=base.escapeHtml;
- let orders=[],loading=false,chosen=null,users=[];
+ let orders=[],loading=false,chosen=null,users=[],initializedMyOrders=false;
  const allowed=()=>{const p=base.getProfile();return p&&(p.es_superadmin===true||(p.empresa_id===company&&p.activo!==false));};
  const canWrite=()=>{const p=base.getProfile();return p&&(p.es_superadmin===true||(p.empresa_id===company&&['administrador','administrativo','operador'].includes(p.rol)));};
  const canCertify=o=>window.ArcuvaCertificaciones?.canCertify(o)===true;
@@ -170,6 +170,11 @@
  }
  async function load(){
   if(!allowed()||loading)return;
+  if(!initializedMyOrders){
+   initializedMyOrders=true;
+   const p=base.getProfile();
+   if($('otOnlyMine'))$('otOnlyMine').checked=!!p&&!p.es_superadmin&&p.rol!=='administrador';
+  }
   loading=true;
   try{
    const [result,{data:usersData,error:userError}]=await Promise.all([
