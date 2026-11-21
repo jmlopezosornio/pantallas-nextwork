@@ -144,18 +144,29 @@
    else if(action==='sent')markSent(o);
   }));
  }
+ async function loadAllOrders(){
+  // Paginación: el buscador debe incluir órdenes anteriores a las primeras 200.
+  const fields='id,empresa_id,pantalla_id,pantalla_ids,creada_en,fecha_solicitud,fecha_alta,fecha_baja,tipo_solicitud,porcentaje_reproduccion,destinatario_usuario_id,titulo,descripcion,ubicacion,tecnico,destinatario,email_destino,telefono_destino,estado,observaciones,cumplida_en,cumplida_por,campania_cumplida_id,accion_cumplida,cliente_nombre';
+  const all=[];const pageSize=500;
+  for(let offset=0;offset<10000;offset+=pageSize){
+    const {data,error}=await db.from('ordenes_trabajo').select(fields)
+      .eq('empresa_id',company).order('creada_en',{ascending:false}).order('id',{ascending:false}).range(offset,offset+pageSize-1);
+    if(error)throw error;
+    all.push(...(data||[]));
+    if((data||[]).length<pageSize)return all;
+  }
+  throw new Error('El historial supera 10.000 órdenes. Se requiere búsqueda paginada en el servidor.');
+ }
  async function load(){
   if(!allowed()||loading)return;
   loading=true;
   try{
-   const [{data,error},{data:usersData,error:userError}]=await Promise.all([
-    db.from('ordenes_trabajo')
-     .select('id,empresa_id,pantalla_id,pantalla_ids,creada_en,fecha_solicitud,fecha_alta,fecha_baja,tipo_solicitud,porcentaje_reproduccion,destinatario_usuario_id,titulo,descripcion,ubicacion,tecnico,destinatario,email_destino,telefono_destino,estado,observaciones,cumplida_en,cumplida_por,campania_cumplida_id,accion_cumplida,cliente_nombre')
-     .eq('empresa_id',company).order('creada_en',{ascending:false}).limit(200),
+   const [result,{data:usersData,error:userError}]=await Promise.all([
+    loadAllOrders(),
     db.rpc('arcuva_destinatarios_ordenes_trabajo')
    ]);
-   if(error)throw error;
    if(userError)throw new Error('No se pudieron consultar los usuarios de Arcuva: '+userError.message);
+   const data=result;
    orders=data||[];users=usersData||[];
    updateScreens();updateUsers();
    const names=[...new Set((base.getModel().campaigns||[]).map(c=>String(c.cliente||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
