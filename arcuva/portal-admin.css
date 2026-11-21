@@ -286,3 +286,34 @@
 #page-ordenes .ot-search-summary{min-height:22px;font-size:12px;color:#667a95;margin-bottom:10px}
 @media(max-width:1150px){#page-ordenes .ot-search-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:580px){#page-ordenes .ot-search-filters{grid-template-columns:1fr}}
+
+/* Certificaciones fotográficas por orden de trabajo — Arcuva */
+#page-ordenes .ot-only-mine{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:750;color:#355778;margin:8px 0 12px;cursor:pointer}
+#page-ordenes .ot-only-mine input{width:17px;height:17px;accent-color:#6740e8}
+#page-ordenes .ot-actions button.ot-certify-button{background:#ede9fe;color:#5126c2;border-color:#c9b8ff}
+.cert-arcuva-overlay{position:fixed;inset:0;z-index:1600;background:rgba(11,25,48,.72);display:flex;align-items:center;justify-content:center;padding:15px}
+.cert-arcuva-dialog{width:min(650px,100%);max-height:94dvh;overflow:auto;background:#fff;border-radius:20px;padding:24px;color:#142e53;box-shadow:0 24px 80px rgba(0,0,0,.25)}
+.cert-arcuva-heading{display:flex;gap:15px;align-items:flex-start;justify-content:space-between;border-bottom:1px solid #dfe7f2;padding-bottom:15px;margin-bottom:15px}
+.cert-arcuva-heading span{font-weight:800;letter-spacing:.06em;font-size:10px;color:#647c9c}
+.cert-arcuva-heading h2{font-size:22px;margin:4px 0}
+.cert-arcuva-heading p{font-size:13px;color:#59708c;margin:0}
+.cert-arcuva-capture{background:#f6f9fe;padding:18px;border-radius:14px;border:1px solid #e0e8f4}
+.cert-arcuva-capture p{font-size:14px;margin:0 0 12px}
+.cert-arcuva-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 15px}
+.cert-arcuva-button{border:1px solid #d1dbed;border-radius:11px;padding:13px 10px;text-align:center;cursor:pointer;font-weight:800;font-size:14px;background:white;color:#233d69}
+.cert-arcuva-button.cert-primary{background:#6135e8;color:#fff;border-color:#6135e8}
+.cert-arcuva-preview{display:block;width:100%;height:auto;max-height:400px;object-fit:contain;border-radius:10px;margin:12px auto}
+.cert-arcuva-capture>label{font-size:12px;font-weight:800;display:block;margin:12px 0 7px}
+.cert-arcuva-capture textarea{box-sizing:border-box;width:100%;min-height:70px;padding:11px;border:1px solid #d1dbed;border-radius:10px;font:inherit;resize:vertical}
+#certUpload{margin-top:12px;width:100%;padding:13px;border-radius:11px;font-weight:800}
+#certUpload:disabled{opacity:.55;cursor:not-allowed}
+.cert-arcuva-help{font-size:12px!important;color:#6d7f95;margin:11px 0!important;line-height:1.45}
+#certStatus{font-size:13px;min-height:18px;margin:12px 0}
+.cert-arcuva-history{border-top:1px solid #e3eaf3;padding-top:14px}
+.cert-arcuva-history h3{font-size:15px;margin:0 0 12px}
+.cert-arcuva-history-row{display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:1px solid #ecf0f7;padding:10px 0}
+.cert-arcuva-history-row strong,.cert-arcuva-history-row small{display:block}
+.cert-arcuva-history-row strong{font-size:13px}
+.cert-arcuva-history-row small{font-size:11px;color:#6a7d97;margin-top:3px}
+.cert-arcuva-history-row button{white-space:nowrap}
+@media(max-width:600px){.cert-arcuva-overlay{padding:0}.cert-arcuva-dialog{height:100dvh;max-height:100dvh;width:100%;border-radius:0;padding:16px}.cert-arcuva-heading{align-items:center}.cert-arcuva-buttons{grid-template-columns:1fr}}
