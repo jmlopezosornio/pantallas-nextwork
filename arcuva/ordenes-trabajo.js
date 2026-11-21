@@ -91,7 +91,11 @@
    'OBSERVACIONES',
    o.observaciones||'Sin observaciones',
    '',
-   'Solicitamos confirmar recepción y coordinar la ejecución del trabajo.'
+   'Solicitamos confirmar recepción y coordinar la ejecución del trabajo.',
+   '',
+   'CERTIFICACIÓN FOTOGRÁFICA',
+   'Accedé a tu orden desde el celular para sacar la foto:',
+   'https://pantallas.nextwork.com.ar/arcuva/?orden='+encodeURIComponent(o.id)
   ].join('\n');
  }
  function setSelected(o){
