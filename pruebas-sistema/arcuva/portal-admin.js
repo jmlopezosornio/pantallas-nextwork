@@ -25,7 +25,7 @@
   }
   function groupWritable(groupId){
     const user=base.getProfile();
-    if(!user||!groups.some(g=>g.id===groupId&&g.empresa_id===COMPANY_ID&&g.activo))return false;
+    if(!user||user.rol==='gerencia'&&!user.es_superadmin||!groups.some(g=>g.id===groupId&&g.empresa_id===COMPANY_ID&&g.activo))return false;
     if(user.es_superadmin===true)return true;
     if(user.empresa_id!==COMPANY_ID)return false;
     if(user.rol==='administrador')return true;
