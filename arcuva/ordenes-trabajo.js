@@ -19,6 +19,23 @@
  const requestType=o=>({alta:'Alta',actualizacion:'Actualización',baja:'Baja'})[o.tipo_solicitud]||o.titulo||'Solicitud';
  const selectedScreens=()=>[...document.querySelectorAll('#otScreens input[type="checkbox"]:checked')].map(e=>e.value);
  const idText=o=>'OT-'+o.id.slice(0,8).toUpperCase();
+ const normalize=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+ const iso=v=>String(v||'').slice(0,10);
+ function filteredOrders(){
+  const number=normalize($('otSearchNumber')?.value).replace(/[^a-z0-9]/g,'');
+  const client=normalize($('otSearchClient')?.value);
+  const from=$('otSearchFrom')?.value||'',to=$('otSearchTo')?.value||'';
+  if(from&&to&&from>to)return [];
+  return orders.filter(o=>{
+   const id=normalize(idText(o)).replace(/[^a-z0-9]/g,'');
+   const name=normalize(o.cliente_nombre);
+   // Órdenes anteriores a la incorporación del cliente: búsqueda textual auxiliar.
+   const legacyText=o.cliente_nombre?'':normalize([o.descripcion,o.titulo,o.observaciones].join(' '));
+   const date=iso(o.fecha_solicitud||o.creada_en);
+   return (!number||id.includes(number))&&(!client||name.includes(client)||legacyText.includes(client))
+     &&(!from||date>=from)&&(!to||date<=to);
+  });
+ }
  function message(text,err=false){const el=$('otMessage');if(el){el.textContent=text;el.className='ot-message '+(err?'ot-error':'ot-success');}}
  function resetForm(){
   $('otForm')?.reset();
@@ -54,6 +71,7 @@
    'ORDEN DE TRABAJO · ARCUVA / NEXTWORK',
    'N.º '+idText(o),
    'Fecha de solicitud: '+dateText(o.fecha_solicitud),
+   'Cliente: '+(o.cliente_nombre||'Sin cliente registrado'),
    'Pantallas: '+screenNames(o),
    'Trabajo solicitado: '+requestType(o),
    'Porcentaje de reproducción: '+(o.porcentaje_reproduccion||100)+'%',
@@ -79,6 +97,7 @@
   const radio=document.querySelector('input[name="otType"][value="'+(o.tipo_solicitud||'alta')+'"]');
   if(radio)radio.checked=true;
   $('otPercent').value=String(o.porcentaje_reproduccion||100);
+  if($('otClient'))$('otClient').value=o.cliente_nombre||'';
   $('otRequestDate').value=o.fecha_solicitud||localToday();
   $('otFrom').value=o.fecha_alta||'';
   $('otTo').value=o.fecha_baja||'';
@@ -95,11 +114,16 @@
  function render(){
   const box=$('otList');if(!box)return;
   if(!allowed()){box.innerHTML='<p>Acceso no autorizado.</p>';return;}
-  box.innerHTML=orders.length?'<div class="ot-list-table-wrap"><table class="ot-list-table"><thead><tr>'+
-   '<th>Orden</th><th>Solicitud</th><th>Pantallas</th><th>Trabajo</th><th>Reproducción</th><th>Estado</th><th>Acciones</th>'+
-   '</tr></thead><tbody>'+orders.map(o=>'<tr>'+
+  const filtered=filteredOrders();
+  const hasFilters=['otSearchNumber','otSearchClient','otSearchFrom','otSearchTo'].some(id=>Boolean($(id)?.value));
+  const summary=$('otSearchSummary');
+  if(summary)summary.textContent=filtered.length+' de '+orders.length+' órdenes'+(hasFilters?' · Filtros aplicados':'');
+  box.innerHTML=filtered.length?'<div class="ot-list-table-wrap"><table class="ot-list-table"><thead><tr>'+
+   '<th>Orden</th><th>Solicitud</th><th>Cliente</th><th>Pantallas</th><th>Trabajo</th><th>Reproducción</th><th>Estado</th><th>Acciones</th>'+
+   '</tr></thead><tbody>'+filtered.map(o=>'<tr>'+
    '<td><strong>'+esc(idText(o))+'</strong></td>'+
    '<td>'+esc(base.dates(o.fecha_solicitud||o.creada_en))+'</td>'+
+   '<td>'+esc(o.cliente_nombre||'Sin registrar')+'</td>'+
    '<td>'+esc(screenNames(o))+'</td>'+
    '<td><strong>'+esc(requestType(o))+'</strong></td>'+
    '<td>'+esc(o.porcentaje_reproduccion||100)+'%</td>'+
@@ -110,7 +134,7 @@
    '<button type="button" data-ot="whatsapp" data-id="'+esc(o.id)+'">WhatsApp</button>'+
    (canWrite()&&o.estado==='borrador'?'<button type="button" data-ot="sent" data-id="'+esc(o.id)+'">Marcar enviada</button>':'')+
    '</div></td></tr>').join('')+'</tbody></table></div>':
-   '<div class="ot-empty">Todavía no hay órdenes de trabajo registradas. Completá el formulario para crear la primera.</div>';
+   '<div class="ot-empty">'+(orders.length?'No hay órdenes que coincidan con los filtros.':'Todavía no hay órdenes de trabajo registradas. Completá el formulario para crear la primera.')+'</div>';
   box.querySelectorAll('[data-ot]').forEach(b=>b.addEventListener('click',()=>{
    const o=orders.find(x=>x.id===b.dataset.id);if(!o)return;
    const action=b.dataset.ot;
@@ -126,7 +150,7 @@
   try{
    const [{data,error},{data:usersData,error:userError}]=await Promise.all([
     db.from('ordenes_trabajo')
-     .select('id,empresa_id,pantalla_id,pantalla_ids,creada_en,fecha_solicitud,fecha_alta,fecha_baja,tipo_solicitud,porcentaje_reproduccion,destinatario_usuario_id,titulo,descripcion,ubicacion,tecnico,destinatario,email_destino,telefono_destino,estado,observaciones,cumplida_en,cumplida_por,campania_cumplida_id,accion_cumplida')
+     .select('id,empresa_id,pantalla_id,pantalla_ids,creada_en,fecha_solicitud,fecha_alta,fecha_baja,tipo_solicitud,porcentaje_reproduccion,destinatario_usuario_id,titulo,descripcion,ubicacion,tecnico,destinatario,email_destino,telefono_destino,estado,observaciones,cumplida_en,cumplida_por,campania_cumplida_id,accion_cumplida,cliente_nombre')
      .eq('empresa_id',company).order('creada_en',{ascending:false}).limit(200),
     db.rpc('arcuva_destinatarios_ordenes_trabajo')
    ]);
@@ -134,6 +158,8 @@
    if(userError)throw new Error('No se pudieron consultar los usuarios de Arcuva: '+userError.message);
    orders=data||[];users=usersData||[];
    updateScreens();updateUsers();
+   const names=[...new Set((base.getModel().campaigns||[]).map(c=>String(c.cliente||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+   if($('otClientOptions'))$('otClientOptions').innerHTML=names.map(n=>'<option value="'+esc(n)+'"></option>').join('');
    if(chosen&&users.some(u=>u.id===chosen.destinatario_usuario_id))$('otPhone').value=chosen.telefono_destino||users.find(u=>u.id===chosen.destinatario_usuario_id)?.telefono_whatsapp||'';
    if(!chosen){$('otTechnician').value=getRequester();$('otRequestDate').value=localToday();}
    render();
@@ -171,6 +197,7 @@
       empresa_id:company,pantalla_ids:ids,pantalla_id:ids[0],
       tipo_solicitud:tipo,porcentaje_reproduccion:porcentaje,
       fecha_alta:alta,fecha_baja:baja,
+      cliente_nombre:$('otClient')?.value.trim()||null,
       titulo:({alta:'Alta de campaña',actualizacion:'Actualización de campaña',baja:'Baja de campaña'})[tipo],
       descripcion:description,prioridad:'normal',
       tecnico:chosen?.tecnico||getRequester(),
@@ -238,6 +265,11 @@
  $('otForm')?.addEventListener('submit',save);
  $('otReset')?.addEventListener('click',()=>{resetForm();message('Formulario limpio.');});
  $('otRefresh')?.addEventListener('click',load);
+ ['otSearchNumber','otSearchClient','otSearchFrom','otSearchTo'].forEach(id=>$(id)?.addEventListener('input',render));
+ $('otSearchClear')?.addEventListener('click',()=>{
+   ['otSearchNumber','otSearchClient','otSearchFrom','otSearchTo'].forEach(id=>{if($(id))$(id).value='';});
+   render();
+ });
  $('otRecipient')?.addEventListener('change',setRecipientContact);
  $('otSelectAll')?.addEventListener('click',()=>document.querySelectorAll('#otScreens input[type="checkbox"]').forEach(x=>x.checked=true));
  $('otSelectNone')?.addEventListener('click',()=>document.querySelectorAll('#otScreens input[type="checkbox"]').forEach(x=>x.checked=false));
