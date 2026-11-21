@@ -9,6 +9,7 @@
  let orders=[],loading=false,chosen=null,users=[];
  const allowed=()=>{const p=base.getProfile();return p&&(p.es_superadmin===true||(p.empresa_id===company&&p.activo!==false));};
  const canWrite=()=>{const p=base.getProfile();return p&&(p.es_superadmin===true||(p.empresa_id===company&&['administrador','administrativo','operador'].includes(p.rol)));};
+ const canCertify=o=>window.ArcuvaCertificaciones?.canCertify(o)===true;
  const dateText=v=>v?base.dates(v):'A coordinar';
  const stamp=v=>v?new Date(v).toLocaleString('es-AR'):'—';
  const screenName=id=>base.getModel().screens.find(x=>x.id===id)?.nombre||'Pantalla no disponible';
@@ -27,6 +28,9 @@
   const from=$('otSearchFrom')?.value||'',to=$('otSearchTo')?.value||'';
   if(from&&to&&from>to)return [];
   return orders.filter(o=>{
+   const p=base.getProfile();
+   const onlyMine=$('otOnlyMine')?.checked===true;
+   if(onlyMine&&o.destinatario_usuario_id!==p?.id)return false;
    const id=normalize(idText(o)).replace(/[^a-z0-9]/g,'');
    const name=normalize(o.cliente_nombre);
    // Órdenes anteriores a la incorporación del cliente: búsqueda textual auxiliar.
@@ -129,6 +133,8 @@
    '<td>'+esc(o.porcentaje_reproduccion||100)+'%</td>'+
    '<td><span class="ot-status">'+esc(o.estado==='finalizada'?'Cumplida':o.estado==='borrador'?'Generado':o.estado)+'</span></td>' +
    '<td><div class="ot-actions"><button type="button" data-ot="preview" data-id="'+esc(o.id)+'">Ver</button>'+
+   (canCertify(o)?'<button type="button" class="ot-certify-button" data-ot="certify" data-id="'+esc(o.id)+'">📷 Certificar</button>':'')+
+   (!canCertify(o)?'<button type="button" data-ot="certify" data-id="'+esc(o.id)+'">Ver fotos</button>':'')+
    (canWrite()?'<button type="button" data-ot="edit" data-id="'+esc(o.id)+'">Editar</button>':'')+
 
    '<button type="button" data-ot="whatsapp" data-id="'+esc(o.id)+'">WhatsApp</button>'+
@@ -138,7 +144,8 @@
   box.querySelectorAll('[data-ot]').forEach(b=>b.addEventListener('click',()=>{
    const o=orders.find(x=>x.id===b.dataset.id);if(!o)return;
    const action=b.dataset.ot;
-   if(action==='preview')preview(o);
+   if(action==='certify')window.ArcuvaCertificaciones?.open(o.id);
+   else if(action==='preview')preview(o);
    else if(action==='edit')setSelected(o);
    else if(action==='whatsapp')shareWhatsApp(o);
    else if(action==='sent')markSent(o);
@@ -277,8 +284,10 @@
  $('otReset')?.addEventListener('click',()=>{resetForm();message('Formulario limpio.');});
  $('otRefresh')?.addEventListener('click',load);
  ['otSearchNumber','otSearchClient','otSearchFrom','otSearchTo'].forEach(id=>$(id)?.addEventListener('input',render));
+ $('otOnlyMine')?.addEventListener('change',render);
  $('otSearchClear')?.addEventListener('click',()=>{
    ['otSearchNumber','otSearchClient','otSearchFrom','otSearchTo'].forEach(id=>{if($(id))$(id).value='';});
+   if($('otOnlyMine'))$('otOnlyMine').checked=false;
    render();
  });
  $('otRecipient')?.addEventListener('change',setRecipientContact);
