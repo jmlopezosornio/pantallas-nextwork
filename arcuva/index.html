@@ -13,7 +13,7 @@
   <script>
     (() => {
       const stamp = Date.now().toString(36);
-      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./screen-manage.js"},{"tag":"script","path":"./taurus-diagnostic.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"script","path":"./certificaciones-publicidad.js"},{"tag":"link","path":"./portal-admin.css"},{"tag":"link","path":"./dashboard-compact.css"}];
+      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./screen-manage.js"},{"tag":"script","path":"./taurus-diagnostic.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"link","path":"./portal-admin.css"},{"tag":"link","path":"./dashboard-compact.css"}];
       for (const file of files) {
         const local = file.path.startsWith('./');
         const source = local ? file.path + '?nw=' + stamp : file.path;
@@ -198,7 +198,6 @@
               <label for="otSearchTo">Hasta<input id="otSearchTo" type="date"></label>
               <button id="otSearchClear" type="button" class="secondary">Limpiar filtros</button>
             </div>
-            <label class="ot-only-mine"><input id="otOnlyMine" type="checkbox"> Mostrar solamente mis órdenes asignadas</label>
             <div class="ot-search-summary" id="otSearchSummary" role="status" aria-live="polite"></div>
             <div id="otList"><div class="ot-empty">Cargando órdenes…</div></div>
           </div>
