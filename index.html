@@ -246,10 +246,13 @@
 </style>`;
     html = html.replace('</head>', groupsStyle + '</head>');
 
-    const editScript = '<script src="./screen-edit.js?v=5">' + '<' + '/script>';
-    const campaignLayoutScript = '<script src="./campaign-layout-v31.js?v=1">' + '<' + '/script>';
-    const groupLayoutScript = '<script src="./groups-layout-v32.js?v=1">' + '<' + '/script>';
-    const dashboardScript = '<script src="./dashboard-layout-v33.js?v=3">' + '<' + '/script>';
+    // Cada apertura descarga la versión actual de los módulos de NextWork.
+    // Evita que el navegador mantenga JS anterior tras publicar una actualización.
+    const assetVersion = Date.now().toString(36);
+    const editScript = '<script src="./screen-edit.js?v=' + assetVersion + '">' + '<' + '/script>';
+    const campaignLayoutScript = '<script src="./campaign-layout-v31.js?v=' + assetVersion + '">' + '<' + '/script>';
+    const groupLayoutScript = '<script src="./groups-layout-v32.js?v=' + assetVersion + '">' + '<' + '/script>';
+    const dashboardScript = '<script src="./dashboard-layout-v33.js?v=' + assetVersion + '">' + '<' + '/script>';
     html = html.replace('</body>', editScript + campaignLayoutScript + groupLayoutScript + dashboardScript + '</body>');
 
     document.open();
