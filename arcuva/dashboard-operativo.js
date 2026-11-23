@@ -20,19 +20,10 @@ const state=c=>{
 let current={screens:[],campaigns:[],clients:[],playerRows:[]};
 function activeCampaigns(){return current.campaigns.filter(c=>state(c)==='activa')}
 function expiring(){const now=today(),last=addDays(now,7);return activeCampaigns().filter(c=>c.fecha_hasta>=now&&c.fecha_hasta<=last).sort((a,b)=>a.fecha_hasta.localeCompare(b.fecha_hasta))}
+// Una sola fuente de verdad: el mismo cálculo que utiliza la tabla de Pantallas.
 function connection(screen){
- if(current.playerQueryFailed)return false;
- const entries=(current.playerRows||[]).filter(p=>p.pantalla_id===screen.id);
- const now=Date.now();
- const taurus=entries.find(p=>p.tipo==='novastar_taurus');
- if(taurus){
-   const checked=Date.parse(taurus.actualizado_en||'');
-   return !!taurus.vnnox_player_id&&Number.isFinite(checked)&&checked<=now&&now-checked<=300000&&Number(taurus.vnnox_online_status)===1;
- }
- return entries.some(p=>{
-  const last=Date.parse(p.ultima_conexion||'');
-  return Number.isFinite(last)&&last<=now&&now-last<=600000&&String(p.estado||'').toLowerCase()==='online';
- });
+ const status=base.screenConnection(screen);
+ return status?.cls==='nw-connection-online';
 }
 function modal(title,rows){
  document.querySelector('.arcuva-summary-modal-backdrop')?.remove();
@@ -61,9 +52,12 @@ function update(){
  const data=base.getModel();
  current={...data,screens:(data.screens||[]).filter(s=>s.empresa_id===company),campaigns:(data.campaigns||[]).filter(c=>!c.eliminada)};
  const screens=current.screens,campaigns=current.campaigns,active=activeCampaigns();
- const online=screens.filter(connection).length,percent=screens.length?Math.round(100*online/screens.length):0;
+ const statuses=screens.map(s=>base.screenConnection(s));
+ const online=statuses.filter(s=>s.cls==='nw-connection-online').length;
+ const unknown=statuses.filter(s=>s.cls==='nw-connection-unknown').length;
+ const percent=screens.length?Math.round(100*online/screens.length):0;
  $('arcuvaKpiOnline').textContent=online+'/'+screens.length;
- $('arcuvaOnlinePercent').textContent=data.playerQueryFailed?'Sin datos de conexión':percent+'% operativas';
+ $('arcuvaOnlinePercent').textContent=data.playerQueryFailed?'Estado no disponible':unknown?percent+'% confirmadas · '+unknown+' sin verificar':percent+'% operativas';
  $('arcuvaOnlineBar').style.width=percent+'%';
  $('arcuvaKpiActive').textContent=num(active.length);
  $('arcuvaKpiExpiring').textContent=num(expiring().length);
@@ -92,7 +86,7 @@ function update(){
  $('arcuvaDonut').style.background=ranges.length?'conic-gradient('+ranges.join(',')+')':'#e4e9f2';
  $('arcuvaDonutTotal').textContent=num(total);
  $('arcuvaStatusLegend').innerHTML=dataStates.map(s=>'<div class="arcuva-legend-row"><i style="background:'+s.color+'"></i><span>'+s.name+'</span><strong>'+num(s.n)+' ('+(total?Math.round(s.n/total*100):0)+'%)</strong></div>').join('');
- $('arcuvaSummaryNotice').textContent=data.playerQueryFailed?'No se pudo consultar el estado de conexión de algunas pantallas.': 'Resumen de Arcuva actualizado · Vencimientos próximos: 7 días';
+ $('arcuvaSummaryNotice').textContent=data.playerQueryFailed?'No se pudo consultar el estado de conexión de las pantallas.': 'Estado según última verificación disponible · Vencimientos próximos: 7 días';
 }
 $('arcuvaExpiringCard')?.addEventListener('click',()=>modal('Campañas próximas a vencer · 7 días',expiring().map(c=>({id:c.id,title:c.campania||'Campaña',info:(c.cliente||'Sin cliente')+' · Vence: '+asDate(c.fecha_hasta)}))));
 window.addEventListener('arcuva-data-loaded',update);
