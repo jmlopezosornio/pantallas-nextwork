@@ -9,12 +9,12 @@
   const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const empty=message=>'<div class="empty">'+escapeHtml(message)+'</div>';
   const dates=value=>{if(!value)return '—';const x=String(value).slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(x)?x.slice(8)+'/'+x.slice(5,7)+'/'+x.slice(0,4):escapeHtml(x);};
-  let profile=null,epoch=0,model={screens:[],campaigns:[],clients:[]};
+  let profile=null,epoch=0,model={screens:[],campaigns:[],clients:[]},modelLoaded=false;
   let taurusSyncBusy=false,lastTaurusSyncAt=0;
   function applyBrand(logo){$('loginLogo').src=logo;$('sidebarLogo').src=logo;}
   applyBrand(LOGO);
   function error(message){$('loginError').textContent=message;$('loginError').classList.remove('hidden');}
-  function showLogin(){profile=null;if(window.ArcuvaAdminReset)window.ArcuvaAdminReset();$('loginView').classList.remove('hidden');$('appView').classList.add('hidden');$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar';}
+  function showLogin(){profile=null;modelLoaded=false;if(window.ArcuvaAdminReset)window.ArcuvaAdminReset();$('loginView').classList.remove('hidden');$('appView').classList.add('hidden');$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar';}
   function showApp(){
     $('loginError').classList.add('hidden');$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');
     $('userName').textContent=profile.nombre||profile.email||'Usuario';
@@ -32,6 +32,9 @@
     Object.keys(titles).forEach(key=>$('page-'+key).classList.toggle('hidden',key!==page));
     document.querySelectorAll('.nav[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
     $('pageTitle').textContent=titles[page];
+    // Los datos se vuelven a consultar al cambiar de sección; el ingreso
+    // inicial ya ejecuta loadData() y no debe duplicar solicitudes.
+    if(modelLoaded && (page==='resumen'||page==='pantallas'))void loadData();
     if(page==='resumen')window.dispatchEvent(new Event('arcuva-page-resumen'));
     if(page==='campanias')window.dispatchEvent(new Event('arcuva-page-campanias'));
     if(page==='reportes')window.dispatchEvent(new Event('arcuva-page-reportes'));
@@ -127,6 +130,7 @@
       }else playerRows=rows||[];
     }
     model={screens:allowedScreens,campaigns,clients,playerRows,playerQueryFailed};
+    modelLoaded=true;
     render();window.dispatchEvent(new Event('arcuva-data-loaded'));
 
     if(window.ArcuvaAdminRefresh)await window.ArcuvaAdminRefresh();
@@ -247,7 +251,7 @@
     if(profile && !$('page-pantallas')?.classList.contains('hidden'))loadData();
   },60_000);
   // API interna del portal de pruebas. Sin service-role y sin saltear políticas RLS.
-  window.ArcuvaPortalBase=Object.freeze({db,getProfile:()=>profile,getModel:()=>model,reload:loadData,escapeHtml,empty,dates});
+  window.ArcuvaPortalBase=Object.freeze({db,getProfile:()=>profile,getModel:()=>model,reload:loadData,screenConnection,escapeHtml,empty,dates});
   $('loginForm').addEventListener('submit',async e=>{
     e.preventDefault();$('loginError').classList.add('hidden');$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';
     try{
