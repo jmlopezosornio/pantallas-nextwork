@@ -4703,6 +4703,44 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
     $('modalRoot').innerHTML = '';
   }
 
+  // Refresco de datos al navegar entre secciones, sin recargar la página.
+  // Protege contra solicitudes simultáneas si se cambia de sección rápidamente.
+  const pageRefreshInFlight = new Set();
+  async function refreshPageData(page){
+    if(!currentProfile || pageRefreshInFlight.has(page)) return;
+    pageRefreshInFlight.add(page);
+    try{
+      switch(page){
+        case 'dashboard':
+          await Promise.all([loadPantallas(), loadCampanias()]);
+          await loadDashboard();
+          break;
+        case 'pantallas':
+          await loadPantallas();
+          break;
+        case 'campanias':
+          await Promise.all([loadCampanias(), loadPantallas()]);
+          break;
+        case 'clientes':
+          await loadClientes();
+          break;
+        case 'reproducciones':
+          await loadReproducciones();
+          break;
+        case 'grupos':
+          await loadGrupos();
+          break;
+        case 'usuarios':
+          await loadUsuarios();
+          break;
+      }
+    }catch(err){
+      console.error('NextWork: no se pudo actualizar la sección '+page,err);
+    }finally{
+      pageRefreshInFlight.delete(page);
+    }
+  }
+
   function showPage(page){
     const allowed = new Set(allowedPagesForCurrentRole());
     if(!allowed.has(page)) page = 'dashboard';
@@ -4724,6 +4762,7 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
       usuarios:'Usuarios'
     };
     $('pageTitle').textContent = titles[page] || page;
+    void refreshPageData(page);
   }
 
   $('btnLogin').addEventListener('click', login);
