@@ -86,9 +86,11 @@
     document.body.appendChild(s);
   }
 
-  loadScript('script[data-nextwork-v30]','./system-enhancements-v30.js?v=2','nextworkV30');
-  loadScript('script[data-nextwork-v31]','./dashboard-layout-v31.js?v=1','nextworkV31');
-  loadScript('script[data-nextwork-clients-v31]','./clients-enhancements-v31.js?v=1','nextworkClientsV31');
-  loadScript('script[data-nextwork-reports]','./reports-admin.js?v=3','nextworkReports');
-  loadScript('script[data-nextwork-company-settings]','./company-settings.js?v=1','nextworkCompanySettings');
+  // Los módulos auxiliares también deben cargarse frescos después de cada publicación.
+  const resourceVersion = Date.now().toString(36);
+  loadScript('script[data-nextwork-v30]','./system-enhancements-v30.js?v='+resourceVersion,'nextworkV30');
+  loadScript('script[data-nextwork-v31]','./dashboard-layout-v31.js?v='+resourceVersion,'nextworkV31');
+  loadScript('script[data-nextwork-clients-v31]','./clients-enhancements-v31.js?v='+resourceVersion,'nextworkClientsV31');
+  loadScript('script[data-nextwork-reports]','./reports-admin.js?v='+resourceVersion,'nextworkReports');
+  loadScript('script[data-nextwork-company-settings]','./company-settings.js?v='+resourceVersion,'nextworkCompanySettings');
 })();
