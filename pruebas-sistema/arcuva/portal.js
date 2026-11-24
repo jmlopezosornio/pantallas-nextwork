@@ -11,6 +11,8 @@
   const dates=value=>{if(!value)return '—';const x=String(value).slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(x)?x.slice(8)+'/'+x.slice(5,7)+'/'+x.slice(0,4):escapeHtml(x);};
   let profile=null,epoch=0,model={screens:[],campaigns:[],clients:[]};
   let taurusSyncBusy=false,lastTaurusSyncAt=0;
+  const SCREEN_REFRESH_MS=15*60*1000;
+  let lastScreenRefreshAt=0,initialDataLoaded=false;
   function applyBrand(logo){$('loginLogo').src=logo;$('sidebarLogo').src=logo;}
   applyBrand(LOGO);
   function error(message){$('loginError').textContent=message;$('loginError').classList.remove('hidden');}
@@ -33,6 +35,9 @@
     $('page-gerencia')?.classList.toggle('hidden',!gerente||page!=='resumen');
     document.querySelectorAll('.nav[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
     $('pageTitle').textContent=titles[page];
+    // Al abrir las vistas de estado, consultar datos vigentes a demanda.
+    // El primer ingreso ya hace la consulta inicial en enter().
+    if(initialDataLoaded&&(page==='resumen'||page==='pantallas'))void loadData();
     if(page==='resumen')window.dispatchEvent(new Event('arcuva-page-resumen'));
     if(page==='campanias')window.dispatchEvent(new Event('arcuva-page-campanias'));
     if(page==='reportes')window.dispatchEvent(new Event('arcuva-page-reportes'));
@@ -118,6 +123,8 @@
       }else playerRows=rows||[];
     }
     model={screens:allowedScreens,campaigns,clients,playerRows,playerQueryFailed};
+    lastScreenRefreshAt=Date.now();
+    initialDataLoaded=true;
     render();window.dispatchEvent(new Event('arcuva-data-loaded'));
 
     if(window.ArcuvaAdminRefresh)await window.ArcuvaAdminRefresh();
@@ -202,10 +209,15 @@
       ?renderTable(['Campaña','Cliente','Vigencia','Pantallas','Participación'],campaigns.map(c=>'<tr><td><strong>'+escapeHtml(c.campania)+'</strong><span class="tiny">'+escapeHtml(c.estado||'')+'</span></td><td>'+escapeHtml(c.cliente)+'</td><td>'+dates(c.fecha_desde)+' – '+dates(c.fecha_hasta)+'</td><td>'+escapeHtml(c.pantallas.join(', '))+'</td><td>'+escapeHtml(c.porcentaje)+'%</td></tr>'))
       :empty(search?'No hay campañas que coincidan con la búsqueda.':'No hay campañas visibles de Arcuva.');
   }
-  // Los datos de conexión caducan; refrescar sin volver a abrir la página.
+  // Solo consultar automáticamente cada 15 minutos con la página visible.
+  // La entrada al sistema y la navegación hacia Dashboard/Pantallas consultan a demanda.
   setInterval(()=>{
-    if(profile && !$('page-pantallas')?.classList.contains('hidden'))loadData();
-  },60_000);
+    if(profile&&!document.hidden&&Date.now()-lastScreenRefreshAt>=SCREEN_REFRESH_MS)void loadData();
+  },SCREEN_REFRESH_MS);
+  // Al volver a la pestaña después de un rato, actualizar solo si pasaron 15 min.
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden&&profile&&initialDataLoaded&&Date.now()-lastScreenRefreshAt>=SCREEN_REFRESH_MS)void loadData();
+  });
   // API interna del portal de pruebas. Sin service-role y sin saltear políticas RLS.
   window.ArcuvaPortalBase=Object.freeze({db,getProfile:()=>profile,getModel:()=>model,reload:loadData,escapeHtml,empty,dates});
   $('loginForm').addEventListener('submit',async e=>{
