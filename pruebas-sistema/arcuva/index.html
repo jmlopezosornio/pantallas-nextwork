@@ -13,7 +13,7 @@
   <script>
     (() => {
       const stamp = Date.now().toString(36);
-      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./dashboard-gerencial.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"script","path":"./certificaciones-publicidad.js"},{"tag":"link","path":"./portal-admin.css"},{"tag":"link","path":"./dashboard-compact.css"},{"tag":"link","path":"./dashboard-gerencial.css"}];
+      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./dashboard-gerencial.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"script","path":"./certificaciones-publicidad.js"},{"tag":"script","path":"./certificaciones-integracion.js"},{"tag":"link","path":"./portal-admin.css"},{"tag":"link","path":"./dashboard-compact.css"},{"tag":"link","path":"./dashboard-gerencial.css"}];
       for (const file of files) {
         const local = file.path.startsWith('./');
         const source = local ? file.path + '?nw=' + stamp : file.path;
@@ -25,7 +25,19 @@
       }
     })();
   </script>
-</head>
+<style id="arcuva-cert-integration">
+#cert-integracion .cert-toolbar,.cert-integration-dialog .cert-actions{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+#cert-integracion .cert-card,.cert-integration-dialog .cert-card{background:#fff;border:1px solid #dce4ed;border-radius:12px;padding:16px;margin:12px 0;overflow-wrap:anywhere}
+#cert-integracion .cert-card p,.cert-integration-dialog .cert-card p{margin:8px 0}
+.cert-integration-dialog{width:min(850px,94vw);max-height:90vh;border:1px solid #dce4ed;border-radius:16px;padding:22px;background:#fff;color:#152b43;overflow:auto;margin:auto}
+.cert-integration-dialog::backdrop{background:#152b4380}.cert-integration-dialog .cert-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.cert-integration-dialog .cert-request-form{display:grid;gap:12px}.cert-integration-dialog label{display:grid;gap:6px}
+.cert-integration-dialog select,.cert-integration-dialog input:not([type=checkbox]),.cert-integration-dialog textarea,#cert-integracion select,#cert-integracion input{padding:10px;border:1px solid #ccd5e0;border-radius:8px;max-width:100%;font:inherit}
+.cert-integration-dialog fieldset{padding:12px;border:1px solid #dce4ed;border-radius:8px}.cert-integration-dialog .cert-check{display:flex;align-items:center;gap:8px;padding:6px}
+.cert-integration-dialog .cert-photos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.cert-integration-dialog .cert-photos img{width:100%;height:220px;object-fit:contain;background:#eef3f8}
+.cert-integration-dialog textarea{width:100%}.cert-pilot-note{color:#64748b;margin:12px 0}
+@media(max-width:600px){#cert-integracion .cert-toolbar>*{width:100%}.cert-integration-dialog{padding:14px}.cert-integration-dialog .cert-photos img{height:150px}}
+</style></head>
 <body>
   <section id="loginView" class="login">
     <div class="login-art">
@@ -72,6 +84,7 @@
         <button type="button" class="nav" data-page="clientes">Clientes</button>
         <button type="button" class="nav" data-page="reportes">Reportes</button>
         <button type="button" class="nav" data-page="ordenes">Órdenes de trabajo</button>
+        <button type="button" class="nav hidden" data-page="certificaciones">Certificaciones</button>
         <button type="button" class="nav hidden" id="superadminUsersNav" data-page="usuarios">Usuarios</button>
       </nav>
       
@@ -182,6 +195,7 @@
           </div>
         </section>
         <div id="userWhatsappDialog" hidden></div>
+        <section id="page-certificaciones" class="hidden"><div class="page-top"><div><span class="kicker">Control de publicidad</span><h2>Certificaciones</h2><p class="lead">Solicitudes, fotografías y revisión de trabajos.</p></div></div><div id="cert-integracion"></div></section>
         <section id="page-ordenes" class="hidden">
           <div class="ot-heading">
             <div><span class="kicker">Mantenimiento y servicio</span><h2>Órdenes de trabajo</h2><p class="lead">Prepará órdenes para las pantallas de Arcuva y compartilas por WhatsApp.</p></div>
