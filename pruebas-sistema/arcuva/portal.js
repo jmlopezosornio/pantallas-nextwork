@@ -16,21 +16,22 @@
   function applyBrand(logo){$('loginLogo').src=logo;$('sidebarLogo').src=logo;}
   applyBrand(LOGO);
   function error(message){$('loginError').textContent=message;$('loginError').classList.remove('hidden');}
-  function showLogin(){profile=null;if(window.ArcuvaAdminReset)window.ArcuvaAdminReset();$('loginView').classList.remove('hidden');$('appView').classList.add('hidden');$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar';}
+  function showLogin(){profile=null;window.dispatchEvent(new Event('arcuva-cert-reset'));if(window.ArcuvaAdminReset)window.ArcuvaAdminReset();$('loginView').classList.remove('hidden');$('appView').classList.add('hidden');$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar';}
   function showApp(){
     $('loginError').classList.add('hidden');$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');
     $('userName').textContent=profile.nombre||profile.email||'Usuario';
     const superadmin=profile.es_superadmin===true;
     const gerente=profile.rol==='gerencia'&&!superadmin;
+    document.querySelector('.nav[data-page="certificaciones"]')?.classList.toggle('hidden',!superadmin);
     document.querySelector('.nav[data-page="ordenes"]')?.classList.toggle('hidden',gerente);
     $('superadminUsersNav')?.classList.toggle('hidden',!(superadmin||['administrativo','administrador'].includes(profile.rol)));
     $('superadminScreenTools')?.classList.toggle('hidden',!superadmin);
     showPage('resumen');
   }
   function showPage(page){
-    const titles={resumen:'Dashboard',pantallas:'Pantallas',campanias:'Campañas',clientes:'Clientes',reportes:'Reportes',ordenes:'Órdenes de trabajo',usuarios:'Usuarios'};
+    const titles={resumen:'Dashboard',pantallas:'Pantallas',campanias:'Campañas',clientes:'Clientes',reportes:'Reportes',ordenes:'Órdenes de trabajo',certificaciones:'Certificaciones',usuarios:'Usuarios'};
     const gerente=profile?.rol==='gerencia'&&profile.es_superadmin!==true;
-    if(!profile||!titles[page]||(gerente&&(page==='ordenes'||page==='usuarios'))||(page==='usuarios'&&!(profile.es_superadmin===true||['administrativo','administrador'].includes(profile.rol))))return;
+    if(!profile||!titles[page]||(page==='certificaciones'&&profile.es_superadmin!==true)||(gerente&&(page==='ordenes'||page==='usuarios'))||(page==='usuarios'&&!(profile.es_superadmin===true||['administrativo','administrador'].includes(profile.rol))))return;
     Object.keys(titles).forEach(key=>$('page-'+key).classList.toggle('hidden',key!==page||gerente&&page==='resumen'));
     $('page-gerencia')?.classList.toggle('hidden',!gerente||page!=='resumen');
     document.querySelectorAll('.nav[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
@@ -43,6 +44,7 @@
     if(page==='reportes')window.dispatchEvent(new Event('arcuva-page-reportes'));
     if(page==='ordenes')window.dispatchEvent(new Event('arcuva-page-ordenes'));
     if(page==='usuarios')window.dispatchEvent(new Event('arcuva-page-usuarios'));
+    if(page==='certificaciones')window.dispatchEvent(new Event('arcuva-page-certificaciones'));
   }
   async function verifyUser(authUser){
     const {data,error:err}=await db.from('usuarios').select('id,nombre,email,rol,activo,empresa_id,es_superadmin').eq('id',authUser.id).single();
