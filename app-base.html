@@ -1455,7 +1455,9 @@
     .license-suspended{background:#fef3c7;color:#92400e}
 
 </style>
-</head>
+<style>
+#cert-integracion{padding:12px 0}.cert-toolbar,.cert-actions{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:14px}.cert-card{background:#fff;border:1px solid #dce4ed;border-radius:12px;padding:16px;margin:12px 0;overflow-wrap:anywhere}.cert-card p{margin:8px 0}.cert-integration-dialog{width:min(850px,94vw);max-height:90vh;border:1px solid #dce4ed;border-radius:16px;padding:22px;background:#fff;color:#152b43;overflow:auto}.cert-integration-dialog::backdrop{background:#152b4380}.cert-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.cert-request-form{display:grid;gap:12px}.cert-request-form label,.cert-modal-body label{display:grid;gap:6px}.cert-request-form select,.cert-request-form input:not([type=checkbox]),.cert-request-form textarea,.cert-modal-body textarea,#cert-integracion select,#cert-integracion input{padding:10px;border:1px solid #ccd5e0;border-radius:8px;max-width:100%}.cert-request-form fieldset{padding:12px;border:1px solid #dce4ed;border-radius:8px}.cert-request-form .cert-check{display:flex;align-items:center;gap:8px;padding:6px}.cert-photos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.cert-photos img{width:100%;height:220px;object-fit:contain;background:#eef3f8}.cert-modal-body textarea{width:100%}
+</style></head>
 <body>
 
 <section id="loginView" class="login-wrap">
@@ -1526,6 +1528,7 @@
       <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
       <span class="nav-label">Clientes</span>
     </button>
+    <button class="nav-btn superadmin-only hidden" data-page="certificaciones"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2m-6 9 2 2 4-5"/></svg></span><span class="nav-label">Certificaciones</span></button>
     <button class="nav-btn" data-page="reproducciones">
       <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4z"/></svg></span>
       <span class="nav-label">Reproducciones</span>
@@ -1658,6 +1661,7 @@
         </div>
       </section>
 
+      <section id="page-certificaciones" class="page hidden"><div id="cert-integracion"></div></section>
       <section id="page-reproducciones" class="page hidden">
         <div class="repro-filter-card">
           <div class="repro-field"><label>Desde</label><input id="reproDesde" type="date"></div>
@@ -1812,6 +1816,7 @@
   }
 
   function allowedPagesForCurrentRole(){
+    if(isSuperAdmin()) return ['dashboard','pantallas','campanias','clientes','certificaciones','reproducciones','grupos','usuarios'];
     if(isAdmin()) return ['dashboard','pantallas','campanias','clientes','reproducciones','grupos','usuarios'];
     if(isOperator()) return ['dashboard','pantallas','campanias','clientes','reproducciones'];
     if(isAdministrative()) return ['dashboard','campanias','reproducciones'];
@@ -4724,6 +4729,9 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
         case 'clientes':
           await loadClientes();
           break;
+        case 'certificaciones':
+          if(window.loadCertIntegration) await window.loadCertIntegration();
+          break;
         case 'reproducciones':
           await loadReproducciones();
           break;
@@ -4757,6 +4765,7 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
       pantallas:'Pantallas',
       campanias:isAdministrative() ? 'Publicidades' : 'Campañas',
       clientes:'Clientes',
+      certificaciones:'Certificaciones',
       reproducciones:'Reproducciones',
       grupos:'Grupos',
       usuarios:'Usuarios'
@@ -4858,5 +4867,6 @@ Taurus sincronizados: ${ok}/${results.length}. Podés reintentar desde Pantallas
     }
   })();
 </script>
+<script src="./certificaciones-integracion.js?v=1"></script>
 </body>
 </html>
