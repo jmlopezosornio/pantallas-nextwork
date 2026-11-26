@@ -4098,21 +4098,33 @@
     await Promise.all([loadUsuarios(), loadGrupos()]);
   }
 
+  // Alta ampliada de clientes (solo pruebas; esquema SQL pendiente de habilitación).
+  const OPCIONES_IVA_CLIENTE=["IVA Responsable Inscripto","IVA Sujeto Exento","Consumidor Final","Responsable Monotributo","Sujeto No Categorizado","Proveedor del Exterior","Cliente del Exterior","IVA Liberado - Ley Nº 19.640","Monotributista Social","IVA No Alcanzado","Monotributista Trabajador Independiente Promovido"];
+  const OPCIONES_VENTA_CLIENTE=["Contado","Tarjeta de Débito","Tarjeta de Crédito","Cuenta Corriente","Cheque","Transferencia Bancaria","Otra","Otros medios de pago electrónico"];
+
   function openClienteModal(){
     if(!canWriteCampaign()) return;
     $('modalRoot').innerHTML = `
       <div class="modal-backdrop">
-        <div class="modal">
+        <div class="modal" style="max-width:720px;max-height:90vh;overflow-y:auto">
           <h3>Nuevo cliente</h3>
-          <div class="field">
-            <label>Nombre</label>
-            <input id="clienteNombre" placeholder="Ej. Sanchu Alvarez">
-          </div>
-          <div class="field">
-            <label>Grupo</label>
-            <select id="clienteGrupo">
-              ${cacheGrupos.filter(g => g.activo).map(g => `<option value="${g.id}">${escapeHtml(g.nombre)}</option>`).join('')}
-            </select>
+          <div class="form-grid">
+            <div class="field"><label for="clienteNombre">Nombre Comercial *</label><input id="clienteNombre" maxlength="160" placeholder="Nombre de fantasía" required></div>
+            <div class="field"><label for="clienteRazonSocial">Razón Social *</label><input id="clienteRazonSocial" maxlength="200" required></div>
+            <div class="field"><label for="clienteCuit">CUIT *</label><input id="clienteCuit" inputmode="numeric" maxlength="13" placeholder="XX-XXXXXXXX-X" required></div>
+            <div class="field"><label for="clienteIva">IVA *</label><select id="clienteIva" required><option value="">Seleccionar...</option>${OPCIONES_IVA_CLIENTE.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}</select></div>
+            <div class="field full"><label for="clienteDomicilio">Domicilio *</label><input id="clienteDomicilio" maxlength="250" required></div>
+            <div class="field full"><label>Condición de venta *</label>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px;margin-top:8px">
+              ${OPCIONES_VENTA_CLIENTE.map(x=>`<label style="display:flex;align-items:center;gap:8px;font-weight:500"><input type="checkbox" name="clienteCondicionVenta" value="${escapeHtml(x)}" style="width:auto">${escapeHtml(x)}</label>`).join('')}
+              </div>
+            </div>
+            <div class="field"><label for="clienteEmail">Correo Electrónico *</label><input id="clienteEmail" type="email" maxlength="254" required></div>
+            <div class="field"><label for="clienteTelefono">Teléfono *</label><input id="clienteTelefono" type="tel" maxlength="50" required></div>
+            <div class="field full"><label for="clienteGrupo">Grupo de pertenencia *</label><select id="clienteGrupo" required>
+              <option value="">Seleccionar grupo...</option>
+              ${cacheGrupos.filter(g=>g.activo).map(g=>`<option value="${escapeHtml(g.id)}">${escapeHtml(g.nombre)}</option>`).join('')}
+            </select></div>
           </div>
           <div class="actions">
             <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
@@ -4124,12 +4136,26 @@
 
   async function saveCliente(){
     if(!canWriteCampaign()) return;
-    const nombre = $('clienteNombre').value.trim();
-    const grupo_id = $('clienteGrupo')?.value;
-    if(!nombre) return;
-    if(!grupo_id){ alert('Seleccioná un grupo.'); return; }
-    const { error } = await sb.from('clientes').insert({nombre, grupo_id});
-    if(error){ alert(error.message); return; }
+    const valor=id=>$(id)?.value.trim()||'';
+    const nombre=valor('clienteNombre'), razon_social=valor('clienteRazonSocial');
+    const cuit=valor('clienteCuit'), condicion_iva=valor('clienteIva');
+    const direccion=valor('clienteDomicilio'), email=valor('clienteEmail');
+    const telefono=valor('clienteTelefono'), grupo_id=valor('clienteGrupo');
+    const condiciones_venta=[...document.querySelectorAll('input[name="clienteCondicionVenta"]:checked')].map(el=>el.value);
+    if(!nombre||!razon_social||!cuit||!condicion_iva||!direccion||!email||!telefono||!grupo_id||!condiciones_venta.length){
+      alert('Completá todos los campos y seleccioná al menos una condición de venta.');return;
+    }
+    if(!/^\\d{11}$/.test(cuit.replace(/\\D/g,''))){alert('El CUIT debe tener 11 dígitos.');return;}
+    if(!$('clienteEmail').checkValidity()){alert('Ingresá un correo electrónico válido.');return;}
+    // El guardado ampliado requiere columnas nuevas, todavía no aplicadas a la base compartida.
+    const payload={nombre,razon_social,cuit:cuit.replace(/\\D/g,''),condicion_iva,direccion,
+      condiciones_venta,email,telefono,grupo_id};
+    const {error}=await sb.from('clientes').insert(payload);
+    if(error){
+      const missing=/column|schema cache|42703|PGRST204/i.test(error.message||'');
+      alert(missing?'La ficha está lista en pruebas, pero faltan habilitar los campos nuevos en la base de datos. No se guardó el cliente.':error.message);
+      return;
+    }
     closeModal();
     await loadClientes();
   }
