@@ -4145,7 +4145,7 @@
     if(!nombre||!razon_social||!cuit||!condicion_iva||!direccion||!email||!telefono||!grupo_id||!condiciones_venta.length){
       alert('Completá todos los campos y seleccioná al menos una condición de venta.');return;
     }
-    if(!/^\\d{11}$/.test(cuit.replace(/\\D/g,''))){alert('El CUIT debe tener 11 dígitos.');return;}
+    if(!/^\d{11}$/.test(cuit.replace(/\D/g,''))){alert('El CUIT debe tener 11 dígitos.');return;}
     if(!$('clienteEmail').checkValidity()){alert('Ingresá un correo electrónico válido.');return;}
     // El guardado ampliado requiere columnas nuevas, todavía no aplicadas a la base compartida.
     const payload={nombre,razon_social,cuit:cuit.replace(/\\D/g,''),condicion_iva,direccion,
