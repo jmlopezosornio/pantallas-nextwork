@@ -262,7 +262,7 @@
     groupScreens=(gp.data||[]).filter(r=>screenIds.includes(r.pantalla_id));
     scopeIds=new Set(groups.map(g=>g.id));
     validGroup=groupForScreen(screenIds[0])||groups.find(g=>g.nombre==='Arcuva')?.id||groups[0]?.id||'';
-    const qClients=db.from('clientes').select('id,nombre,grupo_id,cuit,tipo_factura,direccion,telefono,email').in('grupo_id',scopeIds.size?[...scopeIds]:['00000000-0000-0000-0000-000000000000']).order('nombre');
+    const qClients=db.from('clientes').select('*').in('grupo_id',scopeIds.size?[...scopeIds]:['00000000-0000-0000-0000-000000000000']).order('nombre');
     const ids=base.getModel().campaigns.map(c=>c.id);
     const qCampaigns=db.from('campanias').select('id,grupo_id,cliente_id,nombre,tipo_contenido,archivo_url,duracion_seg,fecha_desde,fecha_hasta,porcentaje,pausada,eliminada').in('id',ids.length?ids:['00000000-0000-0000-0000-000000000000']);
     const [cl,ca]=await Promise.all([qClients,qCampaigns]);
@@ -312,29 +312,49 @@
     if(user.rol==='administrador'||(clientOnly&&user.rol==='administrativo'&&memberships.some(m=>m.grupo_id===groupId&&m.rol_grupo==='administrativo')))return;
     if(err||!['operador','administrador'].includes(roleRow?.rol_grupo))throw Error('Tu permiso de edición ya no está activo.');
   }
+  // Ficha comercial/fiscal de Arcuva, aislada en /pruebas-sistema/arcuva/.
+  const CLIENTE_IVA_OPCIONES=["IVA Responsable Inscripto","IVA Sujeto Exento","Consumidor Final","Responsable Monotributo","Sujeto No Categorizado","Proveedor del Exterior","Cliente del Exterior","IVA Liberado - Ley Nº 19.640","Monotributista Social","IVA No Alcanzado","Monotributista Trabajador Independiente Promovido"];
+  const CLIENTE_VENTA_OPCIONES=["Contado","Tarjeta de Débito","Tarjeta de Crédito","Cuenta Corriente","Cheque","Transferencia Bancaria","Otra","Otros medios de pago electrónico"];
   function openClient(id=''){
     if(!canEditClients)return;
     const item=id?clients.find(c=>c.id===id):null;
     if(id&&!item)return;
     const groupId=item?.grupo_id||validGroup;
     if(!clientWritable(groupId))return alert('No tenés permiso de edición de clientes en este grupo.');
+    const ivaActual=item?.condicion_iva||'';
+    const ventasActuales=Array.isArray(item?.condiciones_venta)?item.condiciones_venta:[];
     currentDialog='client';
     modal(id?'Editar cliente':'Nuevo cliente','<div class="admin-grid">'
-      +'<div class="admin-field full"><label for="clientName">Nombre comercial *</label><input id="clientName" name="clientName" maxlength="120" required value="'+htmlAttr(item?.nombre||'')+'"></div>'
-      +'<div class="admin-field"><label for="clientCuit">CUIT</label><input id="clientCuit" maxlength="32" value="'+htmlAttr(item?.cuit||'')+'"></div>'
-      +'<div class="admin-field"><label for="clientInvoice">Condición / Facturación</label><input id="clientInvoice" maxlength="60" value="'+htmlAttr(item?.tipo_factura||'')+'"></div>'
-      +'<div class="admin-field"><label for="clientEmail">Email</label><input id="clientEmail" type="email" maxlength="150" value="'+htmlAttr(item?.email||'')+'"></div>'
-      +'<div class="admin-field"><label for="clientPhone">Teléfono</label><input id="clientPhone" maxlength="60" value="'+htmlAttr(item?.telefono||'')+'"></div>'
-      +'<div class="admin-field full"><label for="clientAddress">Dirección</label><input id="clientAddress" maxlength="220" value="'+htmlAttr(item?.direccion||'')+'"></div>'
-      +'</div>',()=>saveClient(id,groupId));
+      +'<div class="admin-field"><label for="clientName">Nombre Comercial *</label><input id="clientName" maxlength="120" required value="'+htmlAttr(item?.nombre||'')+'"></div>'
+      +'<div class="admin-field"><label for="clientLegalName">Razón Social *</label><input id="clientLegalName" maxlength="200" required value="'+htmlAttr(item?.razon_social||'')+'"></div>'
+      +'<div class="admin-field"><label for="clientCuit">CUIT *</label><input id="clientCuit" inputmode="numeric" maxlength="13" placeholder="XX-XXXXXXXX-X" required value="'+htmlAttr(item?.cuit||'')+'"></div>'
+      +'<div class="admin-field"><label for="clientIVA">IVA *</label><select id="clientIVA" required><option value="">Seleccionar...</option>'
+        +CLIENTE_IVA_OPCIONES.map(x=>'<option value="'+htmlAttr(x)+'"'+(ivaActual===x?' selected':'')+'>'+esc(x)+'</option>').join('')
+      +'</select></div>'
+      +'<div class="admin-field full"><label for="clientAddress">Domicilio *</label><input id="clientAddress" maxlength="220" required value="'+htmlAttr(item?.direccion||'')+'"></div>'
+      +'<div class="admin-field full"><label>Condición de venta * <small>(podés marcar más de una)</small></label><div class="client-sale-options">'
+        +CLIENTE_VENTA_OPCIONES.map(x=>'<label class="client-sale-option"><input type="checkbox" name="clientSaleOption" value="'+htmlAttr(x)+'"'+(ventasActuales.includes(x)?' checked':'')+'><span>'+esc(x)+'</span></label>').join('')
+      +'</div></div>'
+      +'<div class="admin-field"><label for="clientEmail">Correo Electrónico *</label><input id="clientEmail" type="email" maxlength="150" required value="'+htmlAttr(item?.email||'')+'"></div>'
+      +'<div class="admin-field"><label for="clientPhone">Teléfono *</label><input id="clientPhone" type="tel" maxlength="60" required value="'+htmlAttr(item?.telefono||'')+'"></div>'
+      +'</div>'
+      +'<div class="message notice" style="margin-top:14px">Pruebas: los campos fiscales adicionales requieren habilitar su almacenamiento en Supabase. Si todavía no están disponibles, el sistema no guardará una ficha incompleta.</div>'
+      ,()=>saveClient(id,groupId));
+    const btn=$('adminSaveBtn');if(btn)btn.textContent=id?'Guardar cambios':'Guardar cliente';
   }
   async function saveClient(id,groupId){
     if(pending)return;
-    const nombre=$('clientName').value.trim();
-    if(!nombre){fail('Ingresá el nombre del cliente.');return;}
-    if(nombre.length>120){fail('El nombre es demasiado largo.');return;}
-    const payload={nombre,cuit:$('clientCuit').value.trim()||null,tipo_factura:$('clientInvoice').value.trim()||null,
-      email:$('clientEmail').value.trim()||null,telefono:$('clientPhone').value.trim()||null,direccion:$('clientAddress').value.trim()||null};
+    const get=id=>$(id)?.value.trim()||'';
+    const nombre=get('clientName'),razon_social=get('clientLegalName'),rawCuit=get('clientCuit');
+    const cuit=rawCuit.replace(/\D/g,''),condicion_iva=get('clientIVA');
+    const direccion=get('clientAddress'),email=get('clientEmail'),telefono=get('clientPhone');
+    const condiciones_venta=[...document.querySelectorAll('input[name="clientSaleOption"]:checked')].map(x=>x.value);
+    if(!nombre||!razon_social||!cuit||!condicion_iva||!direccion||!email||!telefono||!condiciones_venta.length){
+      fail('Completá todos los campos y seleccioná al menos una condición de venta.');return;
+    }
+    if(!/^\d{11}$/.test(cuit)){fail('El CUIT debe contener 11 dígitos.');return;}
+    if(!$('clientEmail').checkValidity()){fail('Ingresá un correo electrónico válido.');return;}
+    const payload={nombre,razon_social,cuit,condicion_iva,condiciones_venta,direccion,email,telefono};
     saving(true);
     try{
       await permission(groupId,true);
@@ -350,9 +370,12 @@
         if(data?.length!==1)throw Error('No se pudo confirmar el alta del cliente.');
       }
       closeDialog();await base.reload();
-    }catch(err){fail(err.message||'No se pudo guardar el cliente.');}
-    finally{saving(false);}
+    }catch(err){
+      if(/column|schema cache|42703|PGRST204/i.test(err.message||''))fail('Los nuevos campos todavía no están habilitados en Supabase. No se guardaron cambios. La ficha permanece abierta para evitar pérdida de información.');
+      else fail(err.message||'No se pudo guardar el cliente.');
+    }finally{saving(false);}
   }
+
   function screenCheckboxes(selectedIds=[]){
     const list=getActiveScreens().filter(p=>groupForScreen(p.id)===validGroup);
     if(!list.length)return '<div class="empty">No hay pantallas autorizadas para Arcuva.</div>';
