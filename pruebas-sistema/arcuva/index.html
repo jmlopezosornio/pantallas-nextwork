@@ -13,7 +13,7 @@
   <script>
     (() => {
       const stamp = Date.now().toString(36);
-      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./dashboard-gerencial.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"script","path":"./certificaciones-publicidad.js"},{"tag":"link","path":"./portal-admin.css"},{"tag":"link","path":"./dashboard-compact.css"},{"tag":"link","path":"./dashboard-gerencial.css"}];
+      const files = [{"tag":"link","path":"./portal.css"},{"tag":"script","path":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"},{"tag":"script","path":"./portal.js"},{"tag":"script","path":"./portal-admin.js"},{"tag":"script","path":"./facturacion.js"},{"tag":"script","path":"./dashboard-operativo.js"},{"tag":"script","path":"./dashboard-gerencial.js"},{"tag":"script","path":"./reports-empresa.js"},{"tag":"script","path":"./superadmin-usuarios.js"},{"tag":"script","path":"./ordenes-trabajo.js"},{"tag":"script","path":"./certificaciones-publicidad.js"},{"tag":"link","path":"./portal-admin.css"},{"tag":"link","path":"./facturacion.css"},{"tag":"link","path":"./dashboard-compact.css"},{"tag":"link","path":"./dashboard-gerencial.css"}];
       for (const file of files) {
         const local = file.path.startsWith('./');
         const source = local ? file.path + '?nw=' + stamp : file.path;
@@ -70,6 +70,7 @@
         <button type="button" class="nav" data-page="pantallas">Pantallas</button>
         <button type="button" class="nav" data-page="campanias">Campañas</button>
         <button type="button" class="nav" data-page="clientes">Clientes</button>
+        <button type="button" class="nav" data-page="facturacion">Facturación</button>
         <button type="button" class="nav" data-page="reportes">Reportes</button>
         <button type="button" class="nav" data-page="ordenes">Órdenes de trabajo</button>
         <button type="button" class="nav hidden" id="superadminUsersNav" data-page="usuarios">Usuarios</button>
@@ -172,6 +173,8 @@
           <div class="page-top"><div><span class="kicker">Cartera</span><h2>Clientes</h2><p class="lead">Clientes registrados de Arcuva.</p></div><button type="button" class="primary hidden" id="addClientBtn">+ Nuevo cliente</button></div>
           <div id="clientTable" class="panel"><div class="empty">Cargando clientes…</div></div>
         </section>
+
+        <section id="page-facturacion" class="hidden"><div id="facturacionRoot" class="facturacion-root"></div></section>
 
         <section id="page-usuarios" class="hidden">
           <div class="page-top"><div><span class="kicker">Contactos y accesos</span><h2>Usuarios</h2><p class="lead">Consultá usuarios y actualizá sus teléfonos de WhatsApp para las órdenes de trabajo.</p></div></div>
