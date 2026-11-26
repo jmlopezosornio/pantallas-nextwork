@@ -7,30 +7,33 @@ const COMPANY_ID='b59ddc55-40f0-48d0-842a-2bee9ea26a41';
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pesos=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS'}).format(n);
-let clients=[],loading=false,initialized=false;
+let clients=[],loading=false,initialized=false,campaignChoices=[];
 function init(){
  root.innerHTML='<div class="fact-head"><div><span class="kicker">Administración comercial</span><h2>Facturación</h2><p>Preparación de facturas de servicios publicitarios.</p></div><span class="fact-status">SIMULACIÓN · SIN EMISIÓN</span></div>'+
  '<div class="fact-notice"><strong>Entorno de desarrollo:</strong> esta sección NO envía datos a ARCA, NO genera CAE, NO asigna numeración fiscal y NO guarda facturas.</div>'+
  '<div class="fact-layout"><div class="fact-card"><h3>Datos del borrador</h3><div class="fact-grid">'+
  '<label class="fact-field fact-full"><span>Cliente de Arcuva</span><select id="factCliente"><option value="">Cargando clientes…</option></select></label>'+
  '<div class="fact-client-info fact-full" id="factClienteInfo">Seleccioná un cliente.</div>'+
+ '<label class="fact-field fact-full"><span>Campaña vinculada (opcional)</span><select id="factCampania"><option value="">Sin campaña vinculada</option></select></label>'+
  '<label class="fact-field"><span>Comprobante orientativo</span><select id="factTipo"><option value="A">Factura A</option><option value="B">Factura B</option></select></label>'+
  '<label class="fact-field"><span>Fecha del borrador</span><input type="date" id="factFecha"></label>'+
  '<label class="fact-field fact-full"><span>Concepto de facturación</span><input id="factConcepto" maxlength="250" value="Servicio de publicidad en pantalla LED"></label>'+
  '<label class="fact-field"><span>Importe neto ($)</span><input type="number" id="factNeto" min="0.01" step="0.01" value="100000"></label>'+
  '<label class="fact-field"><span>IVA para simulación</span><select id="factIVA"><option value="21">21 %</option><option value="10.5">10,5 %</option><option value="27">27 %</option><option value="0">0 %</option></select></label>'+
- '</div><div class="fact-actions"><button type="button" id="factCalcular" class="primary">Actualizar cálculo</button><button type="button" id="factLimpiar" class="secondary">Limpiar</button></div></div>'+
+ '</div><div class="fact-actions"><button type="button" id="factCalcular" class="primary">Actualizar cálculo</button><button type="button" id="factImprimir" class="secondary">Imprimir simulación</button><button type="button" id="factLimpiar" class="secondary">Limpiar</button></div></div>'+
  '<aside class="fact-card fact-preview"><div class="fact-preview-top"><span>VISTA PREVIA · SIN VALIDEZ FISCAL</span><strong id="factPreviewType">FACTURA A</strong></div><h3>ARCUVA</h3><p>Responsable Inscripto · Emisor pendiente de configuración</p><hr>'+
  '<div class="fact-preview-data"><span>Cliente</span><strong id="factPreviewClient">—</strong></div><div class="fact-preview-data"><span>Concepto</span><strong id="factPreviewConcept">—</strong></div>'+
- '<div class="fact-preview-data"><span>Fecha</span><strong id="factPreviewDate">—</strong></div><hr>'+
+ '<div class="fact-preview-data"><span>Fecha</span><strong id="factPreviewDate">—</strong></div><div class="fact-preview-data"><span>Campaña</span><strong id="factPreviewCampaign">Sin vincular</strong></div><hr>'+
  '<div class="fact-preview-data"><span>Neto</span><strong id="factPreviewNeto">$ 0,00</strong></div>'+
  '<div class="fact-preview-data"><span id="factPreviewIVATitle">IVA (21 %)</span><strong id="factPreviewIVA">$ 0,00</strong></div>'+
  '<div class="fact-total"><span>Total estimado</span><strong id="factPreviewTotal">$ 0,00</strong></div>'+
  '<p class="fact-disclaimer">No es una factura electrónica. El tipo de comprobante y los importes definitivos requieren validación fiscal. No incluye percepciones ni regímenes especiales.</p></aside></div>';
  $('factFecha').value=new Date().toLocaleDateString('en-CA');
- ['factCliente','factTipo','factFecha','factConcepto','factNeto','factIVA'].forEach(id=>$(id).addEventListener('input',calculate));
+ ['factCliente','factCampania','factTipo','factFecha','factConcepto','factNeto','factIVA'].forEach(id=>$(id).addEventListener('input',calculate));
  $('factCalcular').addEventListener('click',calculate);
- $('factLimpiar').addEventListener('click',()=>{$('factCliente').value='';$('factTipo').value='A';$('factConcepto').value='Servicio de publicidad en pantalla LED';$('factNeto').value='100000';$('factIVA').value='21';calculate();});
+ $('factCliente').addEventListener('change',()=>{updateCampaigns();calculate();});
+ $('factImprimir').addEventListener('click',printDraft);
+ $('factLimpiar').addEventListener('click',()=>{$('factCliente').value='';updateCampaigns();$('factTipo').value='A';$('factConcepto').value='Servicio de publicidad en pantalla LED';$('factNeto').value='100000';$('factIVA').value='21';calculate();});
  initialized=true;calculate();
 }
 async function loadClients(){
@@ -48,9 +51,34 @@ async function loadClients(){
  const selected=$('factCliente').value;
  $('factCliente').innerHTML='<option value="">Seleccionar cliente…</option>'+clients.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.nombre)+'</option>').join('');
  if(clients.some(c=>c.id===selected))$('factCliente').value=selected;
+ updateCampaigns();
  calculate();
  }catch(err){$('factCliente').innerHTML='<option value="">No se pudieron consultar los clientes</option>';$('factClienteInfo').textContent='Error al consultar clientes: '+(err.message||'Desconocido');}
  finally{loading=false;}
+}
+function updateCampaigns(){
+ const select=$('factCampania');
+ if(!select)return;
+ const selected=select.value,clientId=$('factCliente').value;
+ campaignChoices=(base.getModel()?.campaigns||[]).filter(c=>c.cliente_id===clientId&&c.eliminada!==true);
+ select.innerHTML='<option value="">Sin campaña vinculada</option>'+campaignChoices.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.campania||'Campaña')+' ('+esc(c.fecha_desde||'')+' / '+esc(c.fecha_hasta||'')+')</option>').join('');
+ if(campaignChoices.some(c=>c.id===selected))select.value=selected;
+}
+function printDraft(){
+ const client=clients.find(c=>c.id===$('factCliente').value);
+ const amount=Number($('factNeto').value),concept=$('factConcepto').value.trim();
+ if(!client||!Number.isFinite(amount)||amount<=0||!concept){alert('Seleccioná un cliente e ingresá un concepto y un importe válido.');return;}
+ const net=Math.round(amount*100)/100,rate=Number($('factIVA').value);
+ const tax=Math.round(net*rate)/100,total=Math.round((net+tax)*100)/100;
+ const campaign=campaignChoices.find(c=>c.id===$('factCampania').value);
+ const w=window.open('','_blank','width=750,height=800');
+ if(!w){alert('Habilitá las ventanas emergentes para imprimir.');return;}
+ const rows=[['Cliente',client.nombre],['CUIT',client.cuit||'Pendiente'],['Fecha',$('factFecha').value||'—'],['Campaña',campaign?.campania||'Sin vincular'],['Concepto',concept],['Neto',pesos(net)],['IVA simulado ('+rate+' %)',pesos(tax)],['TOTAL ESTIMADO',pesos(total)]];
+ const content='<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Simulación Arcuva</title><style>body{font:14px Arial;color:#18365c;margin:40px}h1{margin-bottom:4px}.warn{margin:25px 0;padding:18px;border:2px solid #a22;color:#a22;text-align:center;font-size:20px;font-weight:bold}.line{display:flex;justify-content:space-between;gap:30px;padding:12px 0;border-bottom:1px solid #dce5f0}.line b{text-align:right}small{color:#687b95}@media print{button{display:none}}</style></head><body>'+
+ '<h1>ARCUVA</h1><small>Borrador de facturación · Responsable Inscripto</small><div class="warn">NO VÁLIDO COMO FACTURA<br><small>Sin CAE, sin numeración fiscal y sin autorización ARCA</small></div>'+
+ '<strong>Simulación tipo '+esc($('factTipo').value)+'</strong>'+rows.map(([a,b])=>'<div class="line"><span>'+esc(a)+'</span><b>'+esc(b)+'</b></div>').join('')+
+ '<p><small>Documento de prueba. No incluye percepciones, retenciones ni regímenes especiales.</small></p><button onclick="window.print()">Imprimir / Guardar PDF</button></body></html>';
+ w.document.open();w.document.write(content);w.document.close();
 }
 function calculate(){
  const client=clients.find(c=>c.id===$('factCliente').value);
@@ -63,6 +91,7 @@ function calculate(){
  $('factPreviewClient').textContent=client?.nombre||'Sin seleccionar';
  $('factPreviewConcept').textContent=$('factConcepto').value.trim()||'—';
  $('factPreviewDate').textContent=$('factFecha').value||'—';
+ $('factPreviewCampaign').textContent=campaignChoices.find(c=>c.id===$('factCampania').value)?.campania||'Sin vincular';
  $('factPreviewNeto').textContent=pesos(net);
  $('factPreviewIVATitle').textContent='IVA ('+String(rate).replace('.',',')+' %)';
  $('factPreviewIVA').textContent=pesos(tax);
