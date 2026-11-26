@@ -14,7 +14,7 @@ function optionList(){const id=$('factCliente')?.value||'';campaigns=(base.getMo
 function init(){
  root.innerHTML='<div class="fact-head"><div><span class="kicker">Administración comercial</span><h2>Facturación</h2><p>Borradores de facturación vinculados a clientes y campañas de Arcuva.</p></div><span class="fact-status">PRUEBAS · SIN ARCA</span></div>'+
  '<div class="fact-notice"><strong>Modo borrador.</strong> No genera una factura válida, número fiscal ni CAE. No envía nada a ARCA. Los importes son estimativos; el tratamiento tributario definitivo debe validarse antes de emitir.</div>'+
- '<div class="fact-card fact-arca-status"><div class="fact-items-head"><div><h3>Conexión ARCA · Homologación</h3><p class="fact-arca-caption">Verifica la preparación del backend. No solicita CAE ni genera facturas.</p></div><button type="button" class="secondary" id="factCheckARCA">Verificar configuración</button></div><div id="factARCAResult" role="status">Sin verificar. Las credenciales y el certificado deben configurarse exclusivamente en Supabase.</div></div>'+
+ '<div class="fact-card fact-arca-status"><div class="fact-items-head"><div><h3>Conexión ARCA · Homologación</h3><p class="fact-arca-caption">Verifica la preparación del backend. No solicita CAE ni genera facturas.</p></div><button type="button" class="secondary" id="factCheckARCA">Verificar configuración</button><button type="button" class="secondary" id="factTestWSAA">Probar autenticación WSAA</button></div><div id="factARCAResult" role="status">Sin verificar. Las credenciales y el certificado deben configurarse exclusivamente en Supabase.</div></div>'+
  '<div class="fact-layout"><div class="fact-card"><div class="fact-topline"><h3 id="factTitle">Nuevo borrador</h3><span id="factMessage" role="status"></span></div><div class="fact-grid">'+
  '<label class="fact-field fact-full"><span>Cliente *</span><select id="factCliente"><option value="">Cargando clientes…</option></select></label>'+
  '<div class="fact-client-info fact-full" id="factClienteInfo">Seleccioná un cliente.</div>'+
@@ -37,6 +37,7 @@ function init(){
  $('factNew').addEventListener('click',()=>reset());
  $('factRefresh').addEventListener('click',loadDrafts);
  $('factCheckARCA').addEventListener('click',checkARCA);
+ $('factTestWSAA').addEventListener('click',testWSAA);
  reset();
  ready=true;
 }
@@ -77,6 +78,19 @@ function preview(){
  $('factClienteInfo').textContent=client?'CUIT: '+(client.cuit||'Pendiente')+' · Razón social: '+(client.razon_social||'Pendiente')+' · IVA: '+(client.condicion_iva||'Pendiente'):'Seleccioná un cliente.';
  $('factPreviewRows').innerHTML=items.map(it=>'<div class="fact-preview-data"><span>'+esc(it.concepto||'Sin descripción')+' ('+esc(it.cantidad)+' × '+esc(pesos(it.precio))+', IVA '+esc(it.iva)+'%)</span><strong>'+esc(pesos(money(it.cantidad*it.precio)))+'</strong></div>').join('');
  const t=totals();$('factNet').textContent=pesos(t.net);$('factTax').textContent=pesos(t.tax);$('factTotal').textContent=pesos(t.total);
+}
+async function testWSAA(){
+ const target=$('factARCAResult'),btn=$('factTestWSAA');
+ if(!confirm('Se realizará una autenticación real contra ARCA HOMOLOGACIÓN con tu certificado personal de pruebas. No se emitirán facturas. ¿Continuar?'))return;
+ btn.disabled=true;target.textContent='Solicitando ticket de acceso de homologación WSAA…';
+ try{
+ const {data,error}=await base.db.functions.invoke('arca-homologacion-arcuva-test',{body:{action:'login-test'}});
+ if(error)throw error;
+ if(!data?.ok){target.textContent='No se pudo autenticar: '+(data?.codigo?data.codigo+' · ':'')+(data?.mensaje||'Respuesta no válida');return;}
+ target.innerHTML='<strong>Autenticación WSAA correcta</strong><p>Ambiente: Homologación · Servicio: wsfe · CUIT: 20-29399906-7.</p>'+
+ '<p>Ticket válido hasta: '+esc(data.expira||'No informado')+'</p><p>Token y Sign permanecen en el servidor. No se emitieron comprobantes.</p>';
+ }catch(err){target.textContent='La prueba WSAA no se completó: '+(err.message||err);}
+ finally{btn.disabled=false;}
 }
 async function checkARCA(){
  const el=$('factARCAResult'),btn=$('factCheckARCA');
