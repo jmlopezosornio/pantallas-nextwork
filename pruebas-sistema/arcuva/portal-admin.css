@@ -289,3 +289,10 @@
 .cert-arcuva-history-row small{font-size:11px;color:#6a7d97;margin-top:3px}
 .cert-arcuva-history-row button{white-space:nowrap}
 @media(max-width:600px){.cert-arcuva-overlay{padding:0}.cert-arcuva-dialog{height:100dvh;max-height:100dvh;width:100%;border-radius:0;padding:16px}.cert-arcuva-heading{align-items:center}.cert-arcuva-buttons{grid-template-columns:1fr}}
+
+/* Ficha de clientes: opciones de venta con selección múltiple. */
+.client-sale-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:9px}
+.client-sale-option{display:flex!important;align-items:center;gap:9px;padding:10px 12px;border:1px solid #dbe5f0;border-radius:10px;background:#f8fafd;font-size:12px!important;font-weight:650!important;cursor:pointer;margin:0!important}
+.client-sale-option input[type=checkbox]{width:17px!important;height:17px!important;min-height:17px!important;flex:0 0 17px;accent-color:var(--navy);margin:0}
+.client-sale-option span{line-height:1.4}
+@media(max-width:650px){.client-sale-options{grid-template-columns:1fr}}
