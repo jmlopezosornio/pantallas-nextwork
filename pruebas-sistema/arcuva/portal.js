@@ -28,7 +28,7 @@
     showPage('resumen');
   }
   function showPage(page){
-    const titles={resumen:'Dashboard',pantallas:'Pantallas',campanias:'Campañas',clientes:'Clientes',reportes:'Reportes',ordenes:'Órdenes de trabajo',usuarios:'Usuarios'};
+    const titles={resumen:'Dashboard',pantallas:'Pantallas',campanias:'Campañas',clientes:'Clientes',facturacion:'Facturación',reportes:'Reportes',ordenes:'Órdenes de trabajo',usuarios:'Usuarios'};
     const gerente=profile?.rol==='gerencia'&&profile.es_superadmin!==true;
     if(!profile||!titles[page]||(gerente&&(page==='ordenes'||page==='usuarios'))||(page==='usuarios'&&!(profile.es_superadmin===true||['administrativo','administrador'].includes(profile.rol))))return;
     Object.keys(titles).forEach(key=>$('page-'+key).classList.toggle('hidden',key!==page||gerente&&page==='resumen'));
@@ -41,6 +41,7 @@
     if(page==='resumen')window.dispatchEvent(new Event('arcuva-page-resumen'));
     if(page==='campanias')window.dispatchEvent(new Event('arcuva-page-campanias'));
     if(page==='reportes')window.dispatchEvent(new Event('arcuva-page-reportes'));
+    if(page==='facturacion')window.dispatchEvent(new Event('arcuva-page-facturacion'));
     if(page==='ordenes')window.dispatchEvent(new Event('arcuva-page-ordenes'));
     if(page==='usuarios')window.dispatchEvent(new Event('arcuva-page-usuarios'));
   }
