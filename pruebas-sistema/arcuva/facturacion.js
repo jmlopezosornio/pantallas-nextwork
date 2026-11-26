@@ -85,8 +85,13 @@ async function queryWSFE(action,id){
  btn.disabled=true;target.textContent='Consultando WSFEv1 de homologación…';
  try{
    const {data,error}=await base.db.functions.invoke('arca-homologacion-arcuva-test',{body:{action}});
-   if(error)throw error;
-   if(!data?.ok){target.textContent='No se pudo completar la consulta: '+(data?.error||data?.mensaje||'')+' '+(data?.errores||[]).map(e=>e.codigo+': '+e.mensaje).join('; ');return;}
+   if(error){
+     const context=error.context;
+     let diagnostic='';
+     if(context&&typeof context.json==='function'){try{const detail=await context.json();diagnostic=detail?.detalle||detail?.error||'';}catch{}}
+     throw Error(diagnostic||error.message||'Error de conexión');
+   }
+   if(!data?.ok){target.textContent='No se pudo completar la consulta: '+(data?.error||data?.mensaje||'')+(data?.codigo?' ['+data.codigo+']':'')+(data?.detalle?' · '+data.detalle:'')+' '+(data?.errores||[]).map(e=>e.codigo+': '+e.mensaje).join('; ');return;}
    if(action==='wsfe-dummy'){
      target.innerHTML='<strong>Infraestructura WSFEv1 de homologación</strong>'+
       '<div class="fact-arca-grid"><span>Aplicación</span><strong>'+esc(data.servidor||'Sin dato')+'</strong>'+
