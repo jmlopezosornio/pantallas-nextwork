@@ -287,7 +287,7 @@
     const root=$('adminModalRoot');
     root.innerHTML='<div class="admin-backdrop" role="presentation"><div class="admin-dialog" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><div class="dialog-head"><h3>'+esc(title)+'</h3><button class="secondary" type="button" id="closeAdminDialog" aria-label="Cerrar">×</button></div>'
       +'<div class="message notice"><strong>Atención:</strong> este portal está conectado a la base real. Guardar datos produce cambios efectivos en Arcuva. Recursos Hídricos no se modifica.</div>'
-      +'<form id="adminForm">'+content+'<div class="dialog-error hidden" id="adminError" role="alert"></div><div class="dialog-actions"><button type="button" class="secondary" id="cancelAdminDialog">Cancelar</button><button type="submit" class="primary" id="adminSaveBtn">Guardar campaña</button></div></form></div></div>';
+      +'<form id="adminForm">'+content+'<div class="dialog-error hidden" id="adminError" role="alert"></div><div class="dialog-actions"><button type="button" class="secondary" id="cancelAdminDialog">Cancelar</button><button type="submit" class="primary" id="adminSaveBtn">'+(currentDialog==='client'?'Guardar cliente':'Guardar campaña')+'</button></div></form></div></div>';
     $('closeAdminDialog').addEventListener('click',closeDialog);
     $('cancelAdminDialog').addEventListener('click',closeDialog);
     $('adminForm').addEventListener('submit',e=>{e.preventDefault();saveHandler();});
@@ -299,7 +299,7 @@
   }
   function saving(value){
     pending=value;
-    const btn=$('adminSaveBtn');if(btn){btn.disabled=value;btn.textContent=value?'Guardando…':'Guardar campaña';}
+    const btn=$('adminSaveBtn');if(btn){btn.disabled=value;btn.textContent=value?'Guardando…':(currentDialog==='client'?'Guardar cliente':'Guardar campaña');}
   }
   async function permission(groupId,clientOnly=false){
     const user=base.getProfile();
@@ -338,7 +338,6 @@
       +'<div class="admin-field"><label for="clientEmail">Correo Electrónico *</label><input id="clientEmail" type="email" maxlength="150" required value="'+htmlAttr(item?.email||'')+'"></div>'
       +'<div class="admin-field"><label for="clientPhone">Teléfono *</label><input id="clientPhone" type="tel" maxlength="60" required value="'+htmlAttr(item?.telefono||'')+'"></div>'
       +'</div>'
-      +'<div class="message notice" style="margin-top:14px">Pruebas: los campos fiscales adicionales requieren habilitar su almacenamiento en Supabase. Si todavía no están disponibles, el sistema no guardará una ficha incompleta.</div>'
       ,()=>saveClient(id,groupId));
     const btn=$('adminSaveBtn');if(btn)btn.textContent=id?'Guardar cambios':'Guardar cliente';
   }
