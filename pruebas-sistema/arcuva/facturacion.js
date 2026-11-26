@@ -14,7 +14,7 @@ function optionList(){const id=$('factCliente')?.value||'';campaigns=(base.getMo
 function init(){
  root.innerHTML='<div class="fact-head"><div><span class="kicker">Administración comercial</span><h2>Facturación</h2><p>Borradores de facturación vinculados a clientes y campañas de Arcuva.</p></div><span class="fact-status">PRUEBAS · SIN ARCA</span></div>'+
  '<div class="fact-notice"><strong>Modo borrador.</strong> No genera una factura válida, número fiscal ni CAE. No envía nada a ARCA. Los importes son estimativos; el tratamiento tributario definitivo debe validarse antes de emitir.</div>'+
- '<div class="fact-card fact-arca-status"><div class="fact-items-head"><div><h3>Conexión ARCA · Homologación</h3><p class="fact-arca-caption">Verifica la preparación del backend. No solicita CAE ni genera facturas.</p></div><button type="button" class="secondary" id="factCheckARCA">Verificar configuración</button><button type="button" class="secondary" id="factTestWSAA">Probar autenticación WSAA</button></div><div id="factARCAResult" role="status">Sin verificar. Las credenciales y el certificado deben configurarse exclusivamente en Supabase.</div></div>'+
+ '<div class="fact-card fact-arca-status"><div class="fact-items-head"><div><h3>Conexión ARCA · Homologación</h3><p class="fact-arca-caption">Verifica la preparación del backend. No solicita CAE ni genera facturas.</p></div><button type="button" class="secondary" id="factCheckARCA">Verificar configuración</button><button type="button" class="secondary" id="factTestWSAA">Probar autenticación WSAA</button><button type="button" class="secondary" id="factWSFEStatus">Estado WSFEv1</button><button type="button" class="secondary" id="factWSFETypes">Tipos de comprobante</button><button type="button" class="secondary" id="factWSFEPoints">Puntos de venta</button></div><div id="factARCAResult" role="status">Sin verificar. Las credenciales y el certificado deben configurarse exclusivamente en Supabase.</div></div>'+
  '<div class="fact-layout"><div class="fact-card"><div class="fact-topline"><h3 id="factTitle">Nuevo borrador</h3><span id="factMessage" role="status"></span></div><div class="fact-grid">'+
  '<label class="fact-field fact-full"><span>Cliente *</span><select id="factCliente"><option value="">Cargando clientes…</option></select></label>'+
  '<div class="fact-client-info fact-full" id="factClienteInfo">Seleccioná un cliente.</div>'+
@@ -38,6 +38,7 @@ function init(){
  $('factRefresh').addEventListener('click',loadDrafts);
  $('factCheckARCA').addEventListener('click',checkARCA);
  $('factTestWSAA').addEventListener('click',testWSAA);
+ ['factWSFEStatus','factWSFETypes','factWSFEPoints'].forEach((id,i)=>$(id).addEventListener('click',()=>queryWSFE(['wsfe-dummy','wsfe-types','wsfe-points'][i],id)));
  reset();
  ready=true;
 }
@@ -78,6 +79,31 @@ function preview(){
  $('factClienteInfo').textContent=client?'CUIT: '+(client.cuit||'Pendiente')+' · Razón social: '+(client.razon_social||'Pendiente')+' · IVA: '+(client.condicion_iva||'Pendiente'):'Seleccioná un cliente.';
  $('factPreviewRows').innerHTML=items.map(it=>'<div class="fact-preview-data"><span>'+esc(it.concepto||'Sin descripción')+' ('+esc(it.cantidad)+' × '+esc(pesos(it.precio))+', IVA '+esc(it.iva)+'%)</span><strong>'+esc(pesos(money(it.cantidad*it.precio)))+'</strong></div>').join('');
  const t=totals();$('factNet').textContent=pesos(t.net);$('factTax').textContent=pesos(t.tax);$('factTotal').textContent=pesos(t.total);
+}
+async function queryWSFE(action,id){
+ const btn=$(id),target=$('factARCAResult');
+ btn.disabled=true;target.textContent='Consultando WSFEv1 de homologación…';
+ try{
+   const {data,error}=await base.db.functions.invoke('arca-homologacion-arcuva-test',{body:{action}});
+   if(error)throw error;
+   if(!data?.ok){target.textContent='No se pudo completar la consulta: '+(data?.error||data?.mensaje||'')+' '+(data?.errores||[]).map(e=>e.codigo+': '+e.mensaje).join('; ');return;}
+   if(action==='wsfe-dummy'){
+     target.innerHTML='<strong>Infraestructura WSFEv1 de homologación</strong>'+
+      '<div class="fact-arca-grid"><span>Aplicación</span><strong>'+esc(data.servidor||'Sin dato')+'</strong>'+
+      '<span>Base de datos</span><strong>'+esc(data.bd||'Sin dato')+'</strong>'+
+      '<span>Autenticación</span><strong>'+esc(data.autenticacion||'Sin dato')+'</strong></div>';
+   }else if(action==='wsfe-types'){
+     const list=data.comprobantes||[];
+     target.innerHTML='<strong>Tipos de comprobante ('+list.length+' resultados)</strong>'+
+       '<div class="fact-arca-grid">'+list.map(x=>'<span>'+esc(x.id)+'</span><strong>'+esc(x.nombre)+'</strong>').join('')+'</div>';
+   }else{
+     const list=data.puntos||[];
+     target.innerHTML='<strong>Puntos de venta de homologación ('+list.length+')</strong>'+
+       '<div class="fact-arca-grid">'+list.map(x=>'<span>Punto '+esc(x.numero)+'</span><strong>'+esc(x.tipo)+'</strong>').join('')+'</div>'+
+       (list.length?'':'<p>No se informaron puntos de venta. Podría ser necesario habilitarlos para homologación.</p>');
+   }
+ }catch(e){target.textContent='No se pudo consultar WSFEv1: '+(e.message||e);}
+ finally{btn.disabled=false;}
 }
 async function testWSAA(){
  const target=$('factARCAResult'),btn=$('factTestWSAA');
