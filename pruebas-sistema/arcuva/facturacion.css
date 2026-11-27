@@ -61,3 +61,12 @@
 .fact-arca-actions{display:flex;flex:1 1 600px;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:9px}
 .fact-arca-actions button{white-space:nowrap;font-size:12px;padding:10px 13px}
 @media(max-width:800px){.fact-arca-actions{justify-content:flex-start;flex-basis:100%}}
+
+/* Historial comercial: búsqueda, orden y total visible por borrador */
+.fact-history-tools{display:grid;grid-template-columns:minmax(240px,2fr) minmax(170px,1fr) auto;align-items:end;gap:12px;margin:12px 0 20px}
+.fact-history-count{font-size:12px;font-weight:700;color:#647b96;padding-bottom:13px;white-space:nowrap}
+.fact-draft-meta{min-width:0;flex:1}
+.fact-draft-total{display:block;color:#1d467b;font-size:15px;font-weight:800;margin-top:7px;font-variant-numeric:tabular-nums}
+.fact-draft-actions button{white-space:nowrap}
+@media(max-width:720px){.fact-history-tools{grid-template-columns:1fr 1fr}.fact-history-count{grid-column:1/-1;padding-bottom:0}}
+@media(max-width:520px){.fact-history-tools{grid-template-columns:1fr}.fact-history-count{grid-column:auto}}
