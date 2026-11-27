@@ -451,30 +451,41 @@
     }
   }
   const pendingStatuses=['borrador','enviada','en_proceso'];
-  async function populatePendingOrders(tipo,selectId='campaignWorkOrder'){
+  async function populatePendingOrders(tipos,selectId='campaignWorkOrder'){
     const select=$(selectId);
     if(!select)return;
+    const allowed=Array.isArray(tipos)?tipos:[tipos];
     const {data,error}=await db.from('ordenes_trabajo')
-      .select('id,tipo_solicitud,descripcion,pantalla_ids,fecha_solicitud,estado')
-      .eq('empresa_id',COMPANY_ID).eq('tipo_solicitud',tipo)
+      .select('id,tipo_solicitud,cliente_nombre,descripcion,pantalla_ids,fecha_solicitud,estado')
+      .eq('empresa_id',COMPANY_ID).in('tipo_solicitud',allowed)
       .in('estado',pendingStatuses).order('creada_en',{ascending:false}).limit(100);
     if(!$(selectId)||$(selectId)!==select)return;
-    if(error){select.innerHTML='<option value="">No se pudieron consultar órdenes pendientes</option>';return;}
+    if(error){select.innerHTML='<option value="">Error al consultar órdenes: '+esc(error.message)+'</option>';return;}
     const screens=new Map(base.getModel().screens.map(p=>[p.id,p.nombre]));
     select.innerHTML='<option value="">Sin orden asociada (opcional)</option>'+
-      (data||[]).map(o=>'<option value="'+esc(o.id)+'">OT-'+esc(o.id.slice(0,8).toUpperCase())+
+      (data||[]).map(o=>'<option value="'+esc(o.id)+'" data-tipo="'+esc(o.tipo_solicitud)+'">OT-'+esc(o.id.slice(0,8).toUpperCase())+
+       ' · '+esc(o.tipo_solicitud==='alta'?'Alta':o.tipo_solicitud==='actualizacion'?'Actualización':'Baja')+
+       (o.cliente_nombre?' · '+esc(o.cliente_nombre):'')+
        ' · '+esc((o.pantalla_ids||[]).map(id=>screens.get(id)||id).join(', '))+
        ' · '+esc((o.descripcion||'').slice(0,55))+'</option>').join('');
+    if(!(data||[]).length)select.innerHTML='<option value="">No hay órdenes pendientes de '+esc(allowed.join(' / '))+'</option>';
   }
   function pendingOrderField(){
     return '<div class="admin-field full"><label for="campaignWorkOrder">Orden de trabajo pendiente (opcional)</label>'+
      '<select id="campaignWorkOrder"><option value="">Cargando órdenes pendientes…</option></select>'+
-     '<small>Si seleccionás una orden, se marcará cumplida únicamente después de guardar la operación. Debe corresponder al tipo de solicitud y a todas sus pantallas. Esto no confirma reproducción en Taurus.</small></div>';
+     '<small>Al editar una campaña podés vincular órdenes pendientes de Alta o Actualización. La orden seleccionada se marcará cumplida al guardar, utilizando su tipo real. Revisá cliente y pantallas antes de asociarla; esto no confirma reproducción.</small></div>';
   }
   async function fulfillWorkOrder(orderId,campaignId,type){
     if(!orderId)return '';
+    // La operación administrativa (editar campaña) puede cumplir una OT de alta
+    // que se creó después de la campaña; la RPC exige el tipo REAL de esa OT.
+    const option=$('campaignWorkOrder')?.selectedOptions?.[0];
+    const requestedType=option?.value===orderId?option?.dataset?.tipo:type;
+    const allowedTypes=type==='actualizacion'?['alta','actualizacion']:[type];
+    if(!allowedTypes.includes(requestedType))
+      return 'No se marcó cumplida la orden: su tipo no corresponde a esta operación.';
     const {error}=await db.rpc('arcuva_cumplir_orden_trabajo',{
-      p_orden_id:orderId,p_campania_id:campaignId,p_accion:type
+      p_orden_id:orderId,p_campania_id:campaignId,p_accion:requestedType
     });
     if(error)return 'La campaña se guardó, pero NO se marcó cumplida la orden: '+error.message;
     window.ArcuvaOrders?.load?.();
@@ -513,7 +524,7 @@
       +'<div class="admin-field"><label for="campaignEnd">Fecha hasta *</label><input id="campaignEnd" type="date" value="'+esc(ending)+'" required></div>'
       +extra+pendingOrderField()+'<div class="admin-field full"><div id="fileDetails" class="tiny"></div></div>'
       +'</div>',()=>saveCampaign(id));
-    populatePendingOrders(id?'actualizacion':'alta');
+    populatePendingOrders(id?['alta','actualizacion']:['alta']);
     const select=$('campaignType');
     select.addEventListener('change',()=>{
       // Nunca se hereda un archivo de un tipo anterior.
