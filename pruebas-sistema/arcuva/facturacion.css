@@ -77,3 +77,11 @@
 .fact-dirty.pending::before{content:"";display:block;width:7px;height:7px;border-radius:50%;background:#d38a1f}
 .fact-draft-actions{flex-wrap:wrap;justify-content:flex-end}
 @media(max-width:600px){.fact-draft-actions{justify-content:flex-start}}
+
+/* Facturación: selección de varias campañas del mismo cliente */
+.fact-campaign-picker{border:1px solid #d0dced;border-radius:11px;background:#fff;padding:8px 12px;display:grid;gap:4px;max-height:196px;overflow-y:auto}
+.fact-campaign-option{display:flex;align-items:center;gap:10px;padding:7px 5px;color:#233853;font-size:13px;font-weight:500;cursor:pointer;border-radius:6px}
+.fact-campaign-option:hover{background:#f2f6fc}
+.fact-campaign-option input{width:17px;height:17px;min-height:0;flex:0 0 17px;accent-color:#2263aa;margin:0}
+.fact-campaign-empty{font-size:12px;color:#71849c;padding:8px 2px}
+.fact-preview-data[hidden]{display:none!important}
