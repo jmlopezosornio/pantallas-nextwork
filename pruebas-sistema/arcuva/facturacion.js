@@ -8,14 +8,18 @@ const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,
 const pesos=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS'}).format(n);
 const money=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
 const dateToday=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');};
-let clients=[],campaigns=[],drafts=[],items=[],currentId=null,ready=false,busy=false;
+let clients=[],campaigns=[],drafts=[],items=[],currentId=null,ready=false,busy=false,baseline='',isDirty=false;
+function formSnapshot(){return JSON.stringify({cliente:$('factCliente')?.value||'',campania:$('factCampania')?.value||'',tipo:$('factTipo')?.value||'',fecha:$('factFecha')?.value||'',items});}
+function rememberSaved(){baseline=formSnapshot();isDirty=false;updateDirty();}
+function updateDirty(){if(!ready)return;isDirty=formSnapshot()!==baseline;const indicator=$('factDirty');if(indicator){indicator.textContent=isDirty?'Cambios sin guardar':currentId?'Borrador guardado':'Nuevo borrador';indicator.classList.toggle('pending',isDirty);} }
+function allowReplace(){return !isDirty||confirm('Tenés cambios sin guardar. Si continuás se perderán. ¿Querés continuar?');}
 function blankItem(){return {concepto:'Servicio de publicidad en pantalla LED',cantidad:1,precio:100000,iva:21};}
 function optionList(){const id=$('factCliente')?.value||'';campaigns=(base.getModel()?.campaigns||[]).filter(c=>c.cliente_id===id&&c.eliminada!==true);const select=$('factCampania');if(!select)return;let previous=select.value;select.innerHTML='<option value="">Sin campaña vinculada</option>'+campaigns.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.campania)+'</option>').join('');if(campaigns.some(c=>c.id===previous))select.value=previous;}
 function init(){
  root.innerHTML='<div class="fact-head"><div><span class="kicker">Administración comercial</span><h2>Facturación</h2><p>Borradores de facturación vinculados a clientes y campañas de Arcuva.</p></div><span class="fact-status">PRUEBAS · SIN ARCA</span></div>'+
  '<div class="fact-notice"><strong>Modo borrador.</strong> No genera una factura válida, número fiscal ni CAE. No envía nada a ARCA. Los importes son estimativos; el tratamiento tributario definitivo debe validarse antes de emitir.</div>'+
  '<div class="fact-card fact-arca-status"><div class="fact-arca-header"><div><h3>Conexión ARCA · Homologación</h3><p class="fact-arca-caption">Verifica la preparación del backend. No solicita CAE ni genera facturas.</p></div><div class="fact-arca-actions"><button type="button" class="secondary" id="factCheckARCA">Verificar configuración</button><button type="button" class="secondary" id="factTestWSAA">Probar autenticación WSAA</button><button type="button" class="secondary" id="factWSFEStatus">Estado WSFEv1</button><button type="button" class="secondary" id="factWSFETypes">Tipos de comprobante</button><button type="button" class="secondary" id="factWSFEPoints">Puntos de venta</button></div></div><div id="factARCAResult" role="status">Sin verificar. Las credenciales y el certificado deben configurarse exclusivamente en Supabase.</div></div>'+
- '<div class="fact-layout"><div class="fact-card"><div class="fact-topline"><h3 id="factTitle">Nuevo borrador</h3><span id="factMessage" role="status"></span></div><div class="fact-grid">'+
+ '<div class="fact-layout"><div class="fact-card"><div class="fact-topline"><h3 id="factTitle">Nuevo borrador</h3><span id="factDirty" class="fact-dirty">Nuevo borrador</span><span id="factMessage" role="status"></span></div><div class="fact-grid">'+
  '<label class="fact-field fact-full"><span>Cliente *</span><select id="factCliente"><option value="">Cargando clientes…</option></select></label>'+
  '<div class="fact-client-info fact-full" id="factClienteInfo">Seleccioná un cliente.</div>'+
  '<label class="fact-field fact-full"><span>Campaña asociada (opcional)</span><select id="factCampania"><option value="">Sin campaña vinculada</option></select></label>'+
@@ -31,10 +35,11 @@ function init(){
  $('factCliente').addEventListener('change',()=>{optionList();preview();});
  $('factCampania').addEventListener('change',preview);
  $('factTipo').addEventListener('change',preview);
+ $('factFecha').addEventListener('input',preview);
  $('factAddItem').addEventListener('click',()=>{if(items.length>=30)return message('Máximo 30 conceptos.',true);items.push(blankItem());renderItems();});
  $('factSave').addEventListener('click',save);
  $('factPrint').addEventListener('click',printDraft);
- $('factNew').addEventListener('click',()=>reset());
+ $('factNew').addEventListener('click',()=>{if(allowReplace())reset();});
  $('factRefresh').addEventListener('click',loadDrafts);
  $('factSearch').addEventListener('input',renderHistory);
  $('factSort').addEventListener('change',renderHistory);
@@ -43,10 +48,11 @@ function init(){
  ['factWSFEStatus','factWSFETypes','factWSFEPoints'].forEach((id,i)=>$(id).addEventListener('click',()=>queryWSFE(['wsfe-dummy','wsfe-types','wsfe-points'][i],id)));
  reset();
  ready=true;
+ rememberSaved();
 }
 function reset(){
  currentId=null;items=[blankItem()];
- $('factTitle').textContent='Nuevo borrador';$('factCliente').value='';$('factTipo').value='A';$('factFecha').value=dateToday();optionList();renderItems();message('');
+ $('factTitle').textContent='Nuevo borrador';$('factCliente').value='';$('factTipo').value='A';$('factFecha').value=dateToday();optionList();renderItems();message('');rememberSaved();
 }
 function message(s,error=false){const e=$('factMessage');e.textContent=s;e.style.color=error?'#a1263e':'#236c4e';}
 function renderItems(){
@@ -83,6 +89,7 @@ function preview(){
  $('factClienteInfo').textContent=client?'CUIT: '+(client.cuit||'Pendiente')+' · Razón social: '+(client.razon_social||'Pendiente')+' · IVA: '+(client.condicion_iva||'Pendiente'):'Seleccioná un cliente.';
  $('factPreviewRows').innerHTML=items.map(it=>'<div class="fact-preview-data"><span>'+esc(it.concepto||'Sin descripción')+' ('+esc(it.cantidad)+' × '+esc(pesos(it.precio))+', IVA '+esc(it.iva)+'%)</span><strong>'+esc(pesos(money(it.cantidad*it.precio)))+'</strong></div>').join('');
  const t=totals();$('factNet').textContent=pesos(t.net);$('factTax').textContent=pesos(t.tax);$('factTotal').textContent=pesos(t.total);
+ updateDirty();
 }
 async function queryWSFE(action,id){
  const btn=$(id),target=$('factARCAResult');
@@ -180,16 +187,35 @@ function renderHistory(){
  const sort=$('factSort')?.value||'recent';
  filtered.sort((a,b)=>sort==='client'?name(a).localeCompare(name(b),'es'):sort==='old'?String(a.actualizado_en).localeCompare(String(b.actualizado_en)):String(b.actualizado_en).localeCompare(String(a.actualizado_en)));
  $('factHistoryCount').textContent=filtered.length+' de '+drafts.length+' borradores';
- box.innerHTML=filtered.length?'<div class="fact-history-list">'+filtered.map(d=>'<div class="fact-draft"><div class="fact-draft-meta"><strong>'+esc(name(d))+'</strong><small>Tipo '+esc(d.tipo)+' · '+esc(d.fecha)+' · '+esc(Array.isArray(d.items)?d.items.length:0)+' concepto(s)</small><span class="fact-draft-total">'+esc(pesos(draftTotal(d)))+'</span></div><div class="fact-draft-actions"><button class="secondary" type="button" data-edit="'+esc(d.id)+'">Abrir</button><button class="secondary" type="button" data-delete="'+esc(d.id)+'">Descartar</button></div></div>').join('')+'</div>':'<div class="empty">'+(drafts.length?'No hay borradores que coincidan con la búsqueda.':'Todavía no hay borradores guardados.')+'</div>';
+ box.innerHTML=filtered.length?'<div class="fact-history-list">'+filtered.map(d=>'<div class="fact-draft"><div class="fact-draft-meta"><strong>'+esc(name(d))+'</strong><small>Tipo '+esc(d.tipo)+' · '+esc(d.fecha)+' · '+esc(Array.isArray(d.items)?d.items.length:0)+' concepto(s)</small><span class="fact-draft-total">'+esc(pesos(draftTotal(d)))+'</span></div><div class="fact-draft-actions"><button class="secondary" type="button" data-edit="'+esc(d.id)+'">Abrir</button><button class="secondary" type="button" data-copy="'+esc(d.id)+'">Duplicar</button><button class="secondary" type="button" data-delete="'+esc(d.id)+'">Descartar</button></div></div>').join('')+'</div>':'<div class="empty">'+(drafts.length?'No hay borradores que coincidan con la búsqueda.':'Todavía no hay borradores guardados.')+'</div>';
  box.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openDraft(b.dataset.edit)));
+ box.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>duplicateDraft(b.dataset.copy)));
  box.querySelectorAll('[data-delete]').forEach(b=>b.addEventListener('click',()=>discard(b.dataset.delete)));
 }
 function openDraft(id){
- const d=drafts.find(x=>x.id===id);if(!d)return;
+ const d=drafts.find(x=>x.id===id);if(!d||!allowReplace())return;
  currentId=d.id;$('factTitle').textContent='Editar borrador';
  $('factCliente').value=d.cliente_id;$('factTipo').value=d.tipo;$('factFecha').value=d.fecha;
  optionList();$('factCampania').value=campaigns.some(c=>c.id===d.campania_id)?d.campania_id:'';
- items=structuredClone(d.items);renderItems();message('Borrador recuperado.');root.scrollIntoView({behavior:'smooth',block:'start'});
+ items=structuredClone(d.items);renderItems();rememberSaved();message('Borrador recuperado.');root.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function duplicateDraft(id){
+ const d=drafts.find(x=>x.id===id);
+ if(!d||!allowReplace())return;
+ currentId=null;
+ $('factTitle').textContent='Nuevo borrador (copia)';
+ $('factCliente').value=d.cliente_id;
+ $('factTipo').value=d.tipo;
+ $('factFecha').value=dateToday();
+ optionList();
+ $('factCampania').value=campaigns.some(c=>c.id===d.campania_id)?d.campania_id:'';
+ items=structuredClone(d.items);
+ renderItems();
+ // La copia nunca reutiliza el ID original: el primer guardado genera una fila nueva.
+ isDirty=true;
+ baseline='';updateDirty();
+ message('Copia preparada. Revisá los datos y presioná Guardar borrador para crear uno nuevo.');
+ root.scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function save(){
  if(busy)return;const error=valid();if(error)return message(error,true);
@@ -201,7 +227,7 @@ async function save(){
  if(currentId){result=await base.db.from(TABLE).update(data).eq('id',currentId).eq('empresa_id',EMP).select('id').single();}
  else result=await base.db.from(TABLE).insert(data).select('id').single();
  if(result.error)throw result.error;
- currentId=result.data?.id||currentId;$('factTitle').textContent='Editar borrador';message('Borrador guardado correctamente.');await loadDrafts();
+ currentId=result.data?.id||currentId;$('factTitle').textContent='Editar borrador';rememberSaved();message('Borrador guardado correctamente.');await loadDrafts();
  }catch(e){message('No se pudo guardar: '+(e.message||e),true);}
  finally{busy=false;$('factSave').disabled=false;}
 }
