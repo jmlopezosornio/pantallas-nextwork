@@ -9,12 +9,22 @@ const pesos=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS'}).
 const money=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
 const dateToday=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');};
 let clients=[],campaigns=[],drafts=[],items=[],currentId=null,ready=false,busy=false,baseline='',isDirty=false;
-function formSnapshot(){return JSON.stringify({cliente:$('factCliente')?.value||'',campania:$('factCampania')?.value||'',tipo:$('factTipo')?.value||'',fecha:$('factFecha')?.value||'',items});}
+function formSnapshot(){return JSON.stringify({cliente:$('factCliente')?.value||'',campanias:selectedCampaignIds(),tipo:$('factTipo')?.value||'',fecha:$('factFecha')?.value||'',items});}
 function rememberSaved(){baseline=formSnapshot();isDirty=false;updateDirty();}
 function updateDirty(){if(!ready)return;isDirty=formSnapshot()!==baseline;const indicator=$('factDirty');if(indicator){indicator.textContent=isDirty?'Cambios sin guardar':currentId?'Borrador guardado':'Nuevo borrador';indicator.classList.toggle('pending',isDirty);} }
 function allowReplace(){return !isDirty||confirm('Tenés cambios sin guardar. Si continuás se perderán. ¿Querés continuar?');}
 function blankItem(){return {concepto:'Servicio de publicidad en pantalla LED',cantidad:1,precio:100000,iva:21};}
-function optionList(){const id=$('factCliente')?.value||'';campaigns=(base.getModel()?.campaigns||[]).filter(c=>c.cliente_id===id&&c.eliminada!==true);const select=$('factCampania');if(!select)return;let previous=select.value;select.innerHTML='<option value="">Sin campaña vinculada</option>'+campaigns.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.campania)+'</option>').join('');if(campaigns.some(c=>c.id===previous))select.value=previous;}
+function selectedCampaignIds(){return [...document.querySelectorAll('#factCampanias input[data-campaign-id]:checked')].map(el=>el.dataset.campaignId);}
+function optionList(ids=null){
+ const clientId=$('factCliente')?.value||'';
+ const preserve=new Set(Array.isArray(ids)?ids:selectedCampaignIds());
+ campaigns=(base.getModel()?.campaigns||[]).filter(c=>c.cliente_id===clientId&&c.eliminada!==true);
+ const el=$('factCampanias');if(!el)return;
+ el.innerHTML=campaigns.length?campaigns.map(c=>'<label class="fact-campaign-option"><input type="checkbox" data-campaign-id="'+esc(c.id)+'" '+(preserve.has(c.id)?'checked':'')+'><span>'+esc(c.campania||'Campaña sin nombre')+'</span></label>').join(''):'<span class="fact-campaign-empty">Este cliente no tiene campañas disponibles para vincular.</span>';
+ el.querySelectorAll('input[data-campaign-id]').forEach(input=>input.addEventListener('change',preview));
+}
+function selectedCampaigns(){const ids=new Set(selectedCampaignIds());return campaigns.filter(c=>ids.has(c.id));}
+
 function init(){
  root.innerHTML='<div class="fact-head"><div><span class="kicker">Administración comercial</span><h2>Facturación</h2><p>Borradores de facturación vinculados a clientes y campañas de Arcuva.</p></div><span class="fact-status">PRUEBAS · SIN ARCA</span></div>'+
  '<div class="fact-notice"><strong>Modo borrador.</strong> No genera una factura válida, número fiscal ni CAE. No envía nada a ARCA. Los importes son estimativos; el tratamiento tributario definitivo debe validarse antes de emitir.</div>'+
@@ -22,18 +32,17 @@ function init(){
  '<div class="fact-layout"><div class="fact-card"><div class="fact-topline"><h3 id="factTitle">Nuevo borrador</h3><span id="factDirty" class="fact-dirty">Nuevo borrador</span><span id="factMessage" role="status"></span></div><div class="fact-grid">'+
  '<label class="fact-field fact-full"><span>Cliente *</span><select id="factCliente"><option value="">Cargando clientes…</option></select></label>'+
  '<div class="fact-client-info fact-full" id="factClienteInfo">Seleccioná un cliente.</div>'+
- '<label class="fact-field fact-full"><span>Campaña asociada (opcional)</span><select id="factCampania"><option value="">Sin campaña vinculada</option></select></label>'+
+ '<div class="fact-field fact-full"><span>Campañas asociadas (opcional · podés elegir varias)</span><div id="factCampanias" class="fact-campaign-picker" role="group" aria-label="Campañas del cliente"></div></div>'+
  '<label class="fact-field"><span>Tipo orientativo</span><select id="factTipo"><option value="A">Factura A</option><option value="B">Factura B</option></select></label>'+
  '<label class="fact-field"><span>Fecha de borrador</span><input id="factFecha" type="date"></label>'+
  '</div><div class="fact-items-head"><h3>Conceptos</h3><button type="button" class="secondary" id="factAddItem">+ Agregar concepto</button></div>'+
  '<div id="factItems"></div><div class="fact-actions"><button class="primary" type="button" id="factSave">Guardar borrador</button><button class="secondary" type="button" id="factPrint">Imprimir simulación</button><button class="secondary" type="button" id="factNew">Nuevo</button></div></div>'+
  '<aside class="fact-card fact-preview"><div class="fact-preview-top"><span>VISTA PREVIA · SIN VALIDEZ FISCAL</span><strong id="factPreviewType">TIPO A</strong></div><h3>ARCUVA</h3><p>Responsable Inscripto · Sin autorización de ARCA</p><hr>'+
- '<div class="fact-preview-data"><span>Cliente / Razón social</span><strong id="factPreviewClient">—</strong></div><div class="fact-preview-data"><span>CUIT</span><strong id="factPreviewCuit">—</strong></div><div class="fact-preview-data"><span>Condición IVA</span><strong id="factPreviewIVACond">—</strong></div><div class="fact-preview-data"><span>Campaña</span><strong id="factPreviewCampaign">—</strong></div><div id="factPreviewRows"></div><hr>'+
- '<div class="fact-preview-data"><span>Importe neto</span><strong id="factNet">—</strong></div><div class="fact-preview-data"><span>IVA estimado</span><strong id="factTax">—</strong></div>'+
- '<div class="fact-total"><span>Total estimado</span><strong id="factTotal">—</strong></div><p class="fact-disclaimer">NO VÁLIDO COMO FACTURA. Sin CAE, numeración ni autorización de ARCA. No incluye percepciones, retenciones ni regímenes especiales.</p></aside></div>'+
+ '<div class="fact-preview-data"><span>Cliente / Razón social</span><strong id="factPreviewClient">—</strong></div><div class="fact-preview-data"><span>CUIT</span><strong id="factPreviewCuit">—</strong></div><div class="fact-preview-data"><span>Condición IVA</span><strong id="factPreviewIVACond">—</strong></div><div class="fact-preview-data" id="factPreviewCampaignRow" hidden><span>Campañas</span><strong id="factPreviewCampaign">—</strong></div><div id="factPreviewRows"></div><hr>'+
+ '<div class="fact-preview-data"><span>Subtotal</span><strong id="factSubtotal">—</strong></div><div class="fact-preview-data"><span>Subtotal Neto</span><strong id="factNet">—</strong></div><div id="factTaxLines"></div>'+
+ '<div class="fact-total"><span>Importe Total</span><strong id="factTotal">—</strong></div><p class="fact-disclaimer">NO VÁLIDO COMO FACTURA. Sin CAE, numeración ni autorización de ARCA. No incluye percepciones, retenciones ni regímenes especiales.</p></aside></div>'+
  '<div class="fact-card fact-history"><div class="fact-items-head"><h3>Borradores guardados</h3><button class="secondary" type="button" id="factRefresh">Actualizar lista</button></div><div class="fact-history-tools"><label class="fact-field"><span>Buscar por cliente, CUIT o concepto</span><input type="search" id="factSearch" placeholder="Buscar borrador…"></label><label class="fact-field"><span>Orden</span><select id="factSort"><option value="recent">Más recientes</option><option value="old">Más antiguos</option><option value="client">Cliente A–Z</option></select></label><span id="factHistoryCount" class="fact-history-count"></span></div><div id="factHistory">Cargando…</div></div>';
  $('factCliente').addEventListener('change',()=>{optionList();preview();});
- $('factCampania').addEventListener('change',preview);
  $('factTipo').addEventListener('change',preview);
  $('factFecha').addEventListener('input',preview);
  $('factAddItem').addEventListener('click',()=>{if(items.length>=30)return message('Máximo 30 conceptos.',true);items.push(blankItem());renderItems();});
@@ -66,9 +75,12 @@ function renderItems(){
  preview();
 }
 function totals(){
- let net=0,tax=0;
- for(const i of items){const sub=money(Number(i.cantidad)*Number(i.precio));net=money(net+sub);tax=money(tax+money(sub*Number(i.iva)/100));}
- return {net,tax,total:money(net+tax)};
+ let net=0,tax=0;const taxes=new Map();
+ for(const i of items){
+   const sub=money(Number(i.cantidad)*Number(i.precio)),rate=Number(i.iva),vat=money(sub*rate/100);
+   net=money(net+sub);tax=money(tax+vat);taxes.set(rate,money((taxes.get(rate)||0)+vat));
+ }
+ return {net,tax,total:money(net+tax),taxes};
 }
 function valid(){
  if(!clients.some(c=>c.id===$('factCliente').value))return 'Seleccioná un cliente válido de Arcuva.';
@@ -79,16 +91,19 @@ function valid(){
  return '';
 }
 function preview(){
- const client=clients.find(c=>c.id===$('factCliente').value),camp=campaigns.find(c=>c.id===$('factCampania').value);
+ const client=clients.find(c=>c.id===$('factCliente').value),selected=selectedCampaigns();
  if(!$('factNet'))return;
  $('factPreviewType').textContent='TIPO '+$('factTipo').value;
  $('factPreviewClient').textContent=client?(client.razon_social||client.nombre):'Sin seleccionar';
- $('factPreviewCampaign').textContent=camp?.campania||'Sin vincular';
+ $('factPreviewCampaignRow').hidden=selected.length===0;
+ $('factPreviewCampaign').textContent=selected.map(c=>c.campania).join(' · ');
  $('factPreviewCuit').textContent=client?.cuit||'Pendiente';
  $('factPreviewIVACond').textContent=client?.condicion_iva||'Sin registrar';
  $('factClienteInfo').textContent=client?'CUIT: '+(client.cuit||'Pendiente')+' · Razón social: '+(client.razon_social||'Pendiente')+' · IVA: '+(client.condicion_iva||'Pendiente'):'Seleccioná un cliente.';
  $('factPreviewRows').innerHTML=items.map(it=>'<div class="fact-preview-data"><span>'+esc(it.concepto||'Sin descripción')+' ('+esc(it.cantidad)+' × '+esc(pesos(it.precio))+', IVA '+esc(it.iva)+'%)</span><strong>'+esc(pesos(money(it.cantidad*it.precio)))+'</strong></div>').join('');
- const t=totals();$('factNet').textContent=pesos(t.net);$('factTax').textContent=pesos(t.tax);$('factTotal').textContent=pesos(t.total);
+ const t=totals();$('factSubtotal').textContent=pesos(t.net);$('factNet').textContent=pesos(t.net);
+ $('factTaxLines').innerHTML=[...t.taxes.entries()].sort((a,b)=>b[0]-a[0]).map(([rate,tax])=>'<div class="fact-preview-data"><span>Importe IVA ('+esc(String(rate).replace('.',','))+' %)</span><strong>'+esc(pesos(tax))+'</strong></div>').join('');
+ $('factTotal').textContent=pesos(t.total);
  updateDirty();
 }
 async function queryWSFE(action,id){
@@ -168,7 +183,7 @@ async function loadClients(){
 }
 async function loadDrafts(){
  try{
- const {data,error}=await base.db.from(TABLE).select('id,cliente_id,campania_id,tipo,fecha,items,creado_en,actualizado_en').eq('empresa_id',EMP).order('actualizado_en',{ascending:false}).limit(100);
+ const {data,error}=await base.db.from(TABLE).select('id,cliente_id,campania_id,campania_ids,tipo,fecha,items,creado_en,actualizado_en').eq('empresa_id',EMP).order('actualizado_en',{ascending:false}).limit(100);
  if(error)throw error;drafts=data||[];
  renderHistory();
  }catch(e){$('factHistory').textContent='No se pudieron consultar los borradores: '+(e.message||e);}
@@ -196,7 +211,7 @@ function openDraft(id){
  const d=drafts.find(x=>x.id===id);if(!d||!allowReplace())return;
  currentId=d.id;$('factTitle').textContent='Editar borrador';
  $('factCliente').value=d.cliente_id;$('factTipo').value=d.tipo;$('factFecha').value=d.fecha;
- optionList();$('factCampania').value=campaigns.some(c=>c.id===d.campania_id)?d.campania_id:'';
+ optionList(Array.isArray(d.campania_ids)&&d.campania_ids.length?d.campania_ids:(d.campania_id?[d.campania_id]:[]));
  items=structuredClone(d.items);renderItems();rememberSaved();message('Borrador recuperado.');root.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function duplicateDraft(id){
@@ -207,8 +222,7 @@ function duplicateDraft(id){
  $('factCliente').value=d.cliente_id;
  $('factTipo').value=d.tipo;
  $('factFecha').value=dateToday();
- optionList();
- $('factCampania').value=campaigns.some(c=>c.id===d.campania_id)?d.campania_id:'';
+ optionList(Array.isArray(d.campania_ids)&&d.campania_ids.length?d.campania_ids:(d.campania_id?[d.campania_id]:[]));
  items=structuredClone(d.items);
  renderItems();
  // La copia nunca reutiliza el ID original: el primer guardado genera una fila nueva.
@@ -222,7 +236,8 @@ async function save(){
  busy=true;$('factSave').disabled=true;message('Guardando…');
  try{
  const {data:{user},error:authError}=await base.db.auth.getUser();if(authError||!user)throw Error('La sesión no está activa.');
- const data={empresa_id:EMP,creado_por:user.id,cliente_id:$('factCliente').value,campania_id:$('factCampania').value||null,tipo:$('factTipo').value,fecha:$('factFecha').value,items:items.map(i=>({concepto:i.concepto.trim(),cantidad:Number(i.cantidad),precio:Number(i.precio),iva:Number(i.iva)})),actualizado_en:new Date().toISOString()};
+ const selectedIds=selectedCampaignIds();
+ const data={empresa_id:EMP,creado_por:user.id,cliente_id:$('factCliente').value,campania_id:selectedIds[0]||null,campania_ids:selectedIds,tipo:$('factTipo').value,fecha:$('factFecha').value,items:items.map(i=>({concepto:i.concepto.trim(),cantidad:Number(i.cantidad),precio:Number(i.precio),iva:Number(i.iva)})),actualizado_en:new Date().toISOString()};
  let result;
  if(currentId){result=await base.db.from(TABLE).update(data).eq('id',currentId).eq('empresa_id',EMP).select('id').single();}
  else result=await base.db.from(TABLE).insert(data).select('id').single();
@@ -240,7 +255,7 @@ async function discard(id){
 function printDraft(){
  const warning=valid();if(warning){message(warning,true);return;}
  const client=clients.find(c=>c.id===$('factCliente').value);
- const campaign=campaigns.find(c=>c.id===$('factCampania').value);
+ const selected=selectedCampaigns();
  const values=totals(),type=$('factTipo').value,date=$('factFecha').value;
  const logo=$('sidebarLogo')?.currentSrc||$('sidebarLogo')?.src||'';
  const logoSafe=/^https:\/\/qkstdmskuiclbcrncfun\.supabase\.co\/storage\/v1\/object\/public\/company-branding\//i.test(logo)?logo:'';
@@ -254,7 +269,7 @@ function printDraft(){
    const net=money(Number(item.cantidad)*Number(item.precio));
    taxGroups.set(rate,money((taxGroups.get(rate)||0)+money(net*rate/100)));
  }
- const taxRows=[...taxGroups.entries()].sort((a,b)=>b[0]-a[0]).map(([rate,tax])=>'<div class="total-row"><span>IVA '+esc(String(rate).replace('.',','))+' % (estimado)</span><strong>'+esc(pesos(tax))+'</strong></div>').join('');
+ const taxRows=[...taxGroups.entries()].sort((a,b)=>b[0]-a[0]).map(([rate,tax])=>'<div class="total-row"><span>Importe IVA ('+esc(String(rate).replace('.',','))+' %)</span><strong>'+esc(pesos(tax))+'</strong></div>').join('');
  const rows=items.map(item=>{
    const subtotal=money(Number(item.cantidad)*Number(item.precio));
    return '<tr><td>'+show(item.concepto)+'</td><td class="num">'+show(item.cantidad)+'</td><td class="num">'+esc(pesos(item.precio))+'</td><td class="num">'+esc(String(item.iva).replace('.',','))+' %</td><td class="num">'+esc(pesos(subtotal))+'</td></tr>';
@@ -296,9 +311,9 @@ function printDraft(){
  '<div class="data-line"><b>Domicilio:</b> '+show(client.direccion)+'</div>'+
  '<div class="data-line"><b>Condición de venta:</b> '+show(Array.isArray(client.condiciones_venta)?client.condiciones_venta.join(', '):'')+'</div></div></div></section>'+
  '<section class="details"><table><thead><tr><th>Descripción</th><th class="num">Cantidad</th><th class="num">Precio unit.</th><th class="num">IVA</th><th class="num">Importe</th></tr></thead>'+
- '<tbody>'+rows+'</tbody></table><div class="campaign-note">Campaña asociada: '+show(campaign?.campania||'Sin vincular')+'</div></section>'+
- '<section class="totals"><div class="total-row"><span>Subtotal neto</span><strong>'+esc(pesos(values.net))+'</strong></div>'+taxRows+
- '<div class="total-row grand"><span>TOTAL ESTIMADO</span><strong>'+esc(pesos(values.total))+'</strong></div></section>'+
+ '<tbody>'+rows+'</tbody></table>'+(selected.length?'<div class="campaign-note">Campañas asociadas: '+selected.map(c=>show(c.campania)).join(' · ')+'</div>':'')+'</section>'+
+ '<section class="totals"><div class="total-row"><span>Subtotal</span><strong>'+esc(pesos(values.net))+'</strong></div><div class="total-row"><span>Subtotal Neto</span><strong>'+esc(pesos(values.net))+'</strong></div>'+taxRows+
+ '<div class="total-row grand"><span>Importe Total</span><strong>'+esc(pesos(values.total))+'</strong></div></section>'+
  '<div class="spacer"></div><footer class="footer"><div class="footer-grid"><div class="qr-placeholder">QR disponible solo con comprobante autorizado</div>'+
  '<div><p><b>CAE:</b> No emitido</p><p><b>Vencimiento CAE:</b> No corresponde</p>'+
  '<p>Estos datos se completarán únicamente después de recibir autorización de ARCA.</p></div></div>'+
