@@ -159,7 +159,7 @@ async function loadClients(){
  const ids=(gs||[]).map(g=>g.id);
  if(!ids.length)clients=[];
  else{
- const {data,error}=await base.db.from('clientes').select('id,nombre,razon_social,cuit,condicion_iva,grupo_id').in('grupo_id',ids).order('nombre');
+ const {data,error}=await base.db.from('clientes').select('id,nombre,razon_social,cuit,condicion_iva,direccion,condiciones_venta,grupo_id').in('grupo_id',ids).order('nombre');
  if(error)throw error;clients=(data||[]).filter(c=>ids.includes(c.grupo_id));
  }
  const selected=$('factCliente').value;
@@ -238,12 +238,74 @@ async function discard(id){
  if(currentId===id)reset();await loadDrafts();
 }
 function printDraft(){
- const msg=valid();if(msg)return message(msg,true);
- const client=clients.find(c=>c.id===$('factCliente').value),camp=campaigns.find(c=>c.id===$('factCampania').value),t=totals();
- const w=window.open('','_blank','width=750,height=830');if(!w)return message('Permití ventanas emergentes para imprimir.',true);
- const lines=items.map(i=>'<tr><td>'+esc(i.concepto)+'</td><td>'+esc(i.cantidad)+'</td><td>'+esc(pesos(i.precio))+'</td><td>'+esc(i.iva)+' %</td><td>'+esc(pesos(money(i.cantidad*i.precio)))+'</td></tr>').join('');
- w.document.open();w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Simulación ARCUVA</title><style>body{font:13px Arial;color:#17365e;margin:30px}.warn{border:2px solid #b33;color:#b22;padding:18px;text-align:center;font-size:20px;font-weight:bold;margin:25px 0}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #dde5ee;padding:10px}td:last-child{text-align:right}.total{font-size:20px;font-weight:bold;text-align:right;margin-top:22px}small{color:#637b95}@media print{button{display:none}}</style></head><body><h1>ARCUVA</h1><small>Simulación de comprobante tipo '+esc($('factTipo').value)+' · '+esc($('factFecha').value)+'</small><div class="warn">NO VÁLIDO COMO FACTURA<br><small>Sin CAE ni numeración fiscal · No autorizado por ARCA</small></div><p><b>Cliente:</b> '+esc(client.nombre)+' · <b>Razón social:</b> '+esc(client.razon_social||'No informada')+'<br><b>CUIT:</b> '+esc(client.cuit||'Pendiente')+' · <b>Condición IVA:</b> '+esc(client.condicion_iva||'No informada')+'</p><p><b>Campaña:</b> '+esc(camp?.campania||'Sin vincular')+'</p><table><thead><tr><th>Concepto</th><th>Cant.</th><th>Precio neto</th><th>IVA</th><th>Subtotal</th></tr></thead><tbody>'+lines+'</tbody></table><p>Neto: '+esc(pesos(t.net))+'<br>IVA estimado: '+esc(pesos(t.tax))+'</p><div class="total">TOTAL ESTIMADO: '+esc(pesos(t.total))+'</div><p><small>Documento de prueba sin validez fiscal. No incluye retenciones, percepciones ni regímenes especiales.</small></p><button onclick="window.print()">Imprimir / Guardar PDF</button></body></html>');
- w.document.close();
+ const warning=valid();if(warning){message(warning,true);return;}
+ const client=clients.find(c=>c.id===$('factCliente').value);
+ const campaign=campaigns.find(c=>c.id===$('factCampania').value);
+ const values=totals(),type=$('factTipo').value,date=$('factFecha').value;
+ const logo=$('sidebarLogo')?.currentSrc||$('sidebarLogo')?.src||'';
+ const logoSafe=/^https:\/\/qkstdmskuiclbcrncfun\.supabase\.co\/storage\/v1\/object\/public\/company-branding\//i.test(logo)?logo:'';
+ // Datos fiscales no suministrados: nunca se inventan domicilio, CAE, número ni QR.
+ const issuer={name:'ARCUVA',cuit:'30-71680941-9',iva:'Responsable Inscripto'};
+ const show=v=>esc(String(v??'').trim()||'No informado');
+ const showDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v)?v.slice(8,10)+'/'+v.slice(5,7)+'/'+v.slice(0,4):show(v);
+ const taxGroups=new Map();
+ for(const item of items){
+   const rate=Number(item.iva);
+   const net=money(Number(item.cantidad)*Number(item.precio));
+   taxGroups.set(rate,money((taxGroups.get(rate)||0)+money(net*rate/100)));
+ }
+ const taxRows=[...taxGroups.entries()].sort((a,b)=>b[0]-a[0]).map(([rate,tax])=>'<div class="total-row"><span>IVA '+esc(String(rate).replace('.',','))+' % (estimado)</span><strong>'+esc(pesos(tax))+'</strong></div>').join('');
+ const rows=items.map(item=>{
+   const subtotal=money(Number(item.cantidad)*Number(item.precio));
+   return '<tr><td>'+show(item.concepto)+'</td><td class="num">'+show(item.cantidad)+'</td><td class="num">'+esc(pesos(item.precio))+'</td><td class="num">'+esc(String(item.iva).replace('.',','))+' %</td><td class="num">'+esc(pesos(subtotal))+'</td></tr>';
+ }).join('');
+ const html='<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
+ '<title>Borrador Arcuva - '+esc(client.nombre)+'</title>'+
+ '<style>'+
+ '@page{size:A4 portrait;margin:12mm}*{box-sizing:border-box}body{margin:0;background:#eef1f4;font-family:Arial,Helvetica,sans-serif;color:#171717;font-size:11px;line-height:1.36}'+
+ '.toolbar{max-width:210mm;margin:16px auto 10px;display:flex;justify-content:space-between;align-items:center;gap:14px;font-size:12px}'+
+ '.toolbar button{border:1px solid #1e3c5e;background:#1e3c5e;color:white;border-radius:5px;padding:10px 17px;cursor:pointer;font-weight:bold}'+
+ '.sheet{width:210mm;min-height:297mm;margin:0 auto 24px;background:white;padding:12mm;display:flex;flex-direction:column;box-shadow:0 5px 24px #0002}'+
+ '.header{display:grid;grid-template-columns:1fr 66px 1fr;gap:16px;min-height:111px;padding-bottom:13px;border-bottom:1px solid #292929;align-items:start}'+
+ '.brand img{display:block;max-width:165px;max-height:75px;object-fit:contain;object-position:left center;margin:0 0 12px}.brand strong{font-size:14px}'+
+ '.data-line{margin:4px 0;overflow-wrap:anywhere}.data-line b{display:inline-block;min-width:85px}'+
+ '.type{text-align:center;border:1px solid #444;margin-top:2px;align-self:start}.type strong{display:block;font-size:36px;line-height:1.1;padding:6px 12px}.type small{display:block;border-top:1px solid #555;padding:4px 6px;white-space:nowrap}'+
+ '.receipt{padding-left:6px}.receipt h1{font-size:22px;margin:0 0 2px;font-weight:700}.receipt h2{font-size:13px;margin:0 0 16px;font-weight:normal}.receipt .data-line b{min-width:103px}'+
+ '.section{border:1px solid #555;margin-top:16px;padding:10px 12px;break-inside:avoid}.section-title{font-size:11px;font-weight:bold;text-transform:uppercase;border-bottom:1px solid #ddd;padding-bottom:6px;margin-bottom:6px}'+
+ '.customer-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:16px}.customer-grid .data-line b{min-width:98px}'+
+ '.details{margin-top:19px;border:1px solid #555;min-height:220px;display:flex;flex-direction:column}.details table{border-collapse:collapse;width:100%;table-layout:fixed}'+
+ '.details th{background:#ededed;font-size:10px;text-align:left;font-weight:bold;padding:10px 7px;border-bottom:1px solid #666}.details td{padding:9px 7px;border-bottom:1px solid #d9d9d9;vertical-align:top;overflow-wrap:anywhere}'+
+ '.details th+th,.details td+td{border-left:1px solid #ddd}.details th:first-child{width:43%}.details th:nth-child(2){width:10%}.details th:nth-child(3){width:20%}.details th:nth-child(4){width:10%}.details th:nth-child(5){width:17%}.num{text-align:right;white-space:nowrap}'+
+ '.campaign-note{padding:10px 8px;margin-top:auto;border-top:1px solid #eee;color:#555;font-size:10px}'+
+ '.totals{width:48%;margin:15px 0 16px auto;border:1px solid #666;break-inside:avoid}.total-row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #ddd;padding:9px 11px}.total-row:last-child{border-bottom:0}.total-row strong{white-space:nowrap}.grand{background:#ededed;font-size:14px;font-weight:bold}'+
+ '.spacer{flex:1;min-height:23px}.footer{border-top:1px solid #555;padding-top:12px;break-inside:avoid}.footer-grid{display:grid;grid-template-columns:98px 1fr;gap:16px;align-items:center;min-height:88px}.qr-placeholder{width:87px;height:87px;border:1px solid #aaa;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;color:#555;padding:7px}.footer p{margin:4px 0}.nonfiscal{border:1px solid #999;padding:8px;text-align:center;font-weight:bold;margin:12px 0 0;letter-spacing:.04em}'+
+ '@media screen and (max-width:820px){.sheet{width:100%;min-height:0;padding:24px 15px}.header{grid-template-columns:1fr 60px 1fr;gap:9px}.receipt h1{font-size:17px}.customer-grid{grid-template-columns:1fr}.totals{width:100%}.details{overflow-x:auto}.details table{min-width:590px}.toolbar{padding:0 14px}}'+
+ '@media print{html,body{background:#fff}.toolbar{display:none}.sheet{margin:0;width:auto;min-height:273mm;padding:0;box-shadow:none}.header,.section,.totals,.footer{break-inside:avoid}.details tr{break-inside:avoid}.spacer{min-height:10px}}'+
+ '</style></head><body><div class="toolbar"><strong>Vista previa de borrador · Arcuva</strong><button type="button" onclick="window.print()">Imprimir / Guardar PDF</button></div>'+
+ '<main class="sheet"><header class="header"><div class="brand">'+(logoSafe?'<img src="'+esc(logoSafe)+'" alt="Logo oficial de Arcuva">':'<strong>ARCUVA</strong>')+
+ '<div class="data-line"><b>Emisor:</b> '+issuer.name+'</div><div class="data-line"><b>CUIT:</b> '+issuer.cuit+'</div><div class="data-line"><b>IVA:</b> '+issuer.iva+'</div>'+
+ '<div class="data-line"><b>Domicilio fiscal:</b> Pendiente de configuración</div></div>'+
+ '<div class="type"><strong>'+esc(type)+'</strong><small>Código '+(type==='A'?'01':'06')+'</small></div>'+
+ '<div class="receipt"><h1>FACTURA</h1><h2>Modelo de borrador</h2>'+
+ '<div class="data-line"><b>Punto de venta:</b> No asignado</div><div class="data-line"><b>Comprobante N.º:</b> No asignado</div>'+
+ '<div class="data-line"><b>Fecha:</b> '+showDate(date)+'</div></div></header>'+
+ '<section class="section"><div class="section-title">Datos del cliente</div><div class="customer-grid"><div>'+
+ '<div class="data-line"><b>Cliente:</b> '+show(client.nombre)+'</div><div class="data-line"><b>Razón social:</b> '+show(client.razon_social)+'</div>'+
+ '<div class="data-line"><b>CUIT:</b> '+show(client.cuit)+'</div></div><div>'+
+ '<div class="data-line"><b>Condición IVA:</b> '+show(client.condicion_iva)+'</div>'+
+ '<div class="data-line"><b>Domicilio:</b> '+show(client.direccion)+'</div>'+
+ '<div class="data-line"><b>Condición de venta:</b> '+show(Array.isArray(client.condiciones_venta)?client.condiciones_venta.join(', '):'')+'</div></div></div></section>'+
+ '<section class="details"><table><thead><tr><th>Descripción</th><th class="num">Cantidad</th><th class="num">Precio unit.</th><th class="num">IVA</th><th class="num">Importe</th></tr></thead>'+
+ '<tbody>'+rows+'</tbody></table><div class="campaign-note">Campaña asociada: '+show(campaign?.campania||'Sin vincular')+'</div></section>'+
+ '<section class="totals"><div class="total-row"><span>Subtotal neto</span><strong>'+esc(pesos(values.net))+'</strong></div>'+taxRows+
+ '<div class="total-row grand"><span>TOTAL ESTIMADO</span><strong>'+esc(pesos(values.total))+'</strong></div></section>'+
+ '<div class="spacer"></div><footer class="footer"><div class="footer-grid"><div class="qr-placeholder">QR disponible solo con comprobante autorizado</div>'+
+ '<div><p><b>CAE:</b> No emitido</p><p><b>Vencimiento CAE:</b> No corresponde</p>'+
+ '<p>Estos datos se completarán únicamente después de recibir autorización de ARCA.</p></div></div>'+
+ '<p class="nonfiscal">BORRADOR – SIN VALIDEZ FISCAL</p></footer></main></body></html>';
+ const windowRef=window.open('','_blank','width=900,height=850');
+ if(!windowRef)return message('El navegador bloqueó la ventana de impresión. Habilitá las ventanas emergentes para este sitio.',true);
+ windowRef.document.open();windowRef.document.write(html);windowRef.document.close();
 }
 window.addEventListener('arcuva-page-facturacion',async()=>{
  if(!base.getProfile())return;if(!ready)init();
