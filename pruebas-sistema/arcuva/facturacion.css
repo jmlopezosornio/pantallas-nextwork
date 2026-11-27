@@ -53,3 +53,11 @@
 .fact-arca-grid{display:grid;grid-template-columns:minmax(120px,1fr) minmax(180px,1fr);gap:9px 20px;background:#f6f9fd;border:1px solid #e0e9f5;border-radius:12px;padding:15px}
 .fact-arca-grid strong{color:#294967}
 @media(max-width:550px){.fact-arca-grid{grid-template-columns:1fr;gap:2px}.fact-arca-grid strong{margin-bottom:8px}}
+
+/* Homologación ARCA: cabecera y controles alineados sin botón huérfano */
+.fact-arca-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:18px}
+.fact-arca-header>div:first-child{flex:1 1 260px;min-width:220px}
+.fact-arca-header h3{margin:0}
+.fact-arca-actions{display:flex;flex:1 1 600px;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:9px}
+.fact-arca-actions button{white-space:nowrap;font-size:12px;padding:10px 13px}
+@media(max-width:800px){.fact-arca-actions{justify-content:flex-start;flex-basis:100%}}
