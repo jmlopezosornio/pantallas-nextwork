@@ -24,10 +24,10 @@ function init(){
  '</div><div class="fact-items-head"><h3>Conceptos</h3><button type="button" class="secondary" id="factAddItem">+ Agregar concepto</button></div>'+
  '<div id="factItems"></div><div class="fact-actions"><button class="primary" type="button" id="factSave">Guardar borrador</button><button class="secondary" type="button" id="factPrint">Imprimir simulación</button><button class="secondary" type="button" id="factNew">Nuevo</button></div></div>'+
  '<aside class="fact-card fact-preview"><div class="fact-preview-top"><span>VISTA PREVIA · SIN VALIDEZ FISCAL</span><strong id="factPreviewType">TIPO A</strong></div><h3>ARCUVA</h3><p>Responsable Inscripto · Sin autorización de ARCA</p><hr>'+
- '<div class="fact-preview-data"><span>Cliente</span><strong id="factPreviewClient">—</strong></div><div class="fact-preview-data"><span>Campaña</span><strong id="factPreviewCampaign">—</strong></div><div id="factPreviewRows"></div><hr>'+
+ '<div class="fact-preview-data"><span>Cliente / Razón social</span><strong id="factPreviewClient">—</strong></div><div class="fact-preview-data"><span>CUIT</span><strong id="factPreviewCuit">—</strong></div><div class="fact-preview-data"><span>Condición IVA</span><strong id="factPreviewIVACond">—</strong></div><div class="fact-preview-data"><span>Campaña</span><strong id="factPreviewCampaign">—</strong></div><div id="factPreviewRows"></div><hr>'+
  '<div class="fact-preview-data"><span>Importe neto</span><strong id="factNet">—</strong></div><div class="fact-preview-data"><span>IVA estimado</span><strong id="factTax">—</strong></div>'+
  '<div class="fact-total"><span>Total estimado</span><strong id="factTotal">—</strong></div><p class="fact-disclaimer">NO VÁLIDO COMO FACTURA. Sin CAE, numeración ni autorización de ARCA. No incluye percepciones, retenciones ni regímenes especiales.</p></aside></div>'+
- '<div class="fact-card fact-history"><div class="fact-items-head"><h3>Borradores guardados</h3><button class="secondary" type="button" id="factRefresh">Actualizar lista</button></div><div id="factHistory">Cargando…</div></div>';
+ '<div class="fact-card fact-history"><div class="fact-items-head"><h3>Borradores guardados</h3><button class="secondary" type="button" id="factRefresh">Actualizar lista</button></div><div class="fact-history-tools"><label class="fact-field"><span>Buscar por cliente, CUIT o concepto</span><input type="search" id="factSearch" placeholder="Buscar borrador…"></label><label class="fact-field"><span>Orden</span><select id="factSort"><option value="recent">Más recientes</option><option value="old">Más antiguos</option><option value="client">Cliente A–Z</option></select></label><span id="factHistoryCount" class="fact-history-count"></span></div><div id="factHistory">Cargando…</div></div>';
  $('factCliente').addEventListener('change',()=>{optionList();preview();});
  $('factCampania').addEventListener('change',preview);
  $('factTipo').addEventListener('change',preview);
@@ -36,6 +36,8 @@ function init(){
  $('factPrint').addEventListener('click',printDraft);
  $('factNew').addEventListener('click',()=>reset());
  $('factRefresh').addEventListener('click',loadDrafts);
+ $('factSearch').addEventListener('input',renderHistory);
+ $('factSort').addEventListener('change',renderHistory);
  $('factCheckARCA').addEventListener('click',checkARCA);
  $('factTestWSAA').addEventListener('click',testWSAA);
  ['factWSFEStatus','factWSFETypes','factWSFEPoints'].forEach((id,i)=>$(id).addEventListener('click',()=>queryWSFE(['wsfe-dummy','wsfe-types','wsfe-points'][i],id)));
@@ -74,8 +76,10 @@ function preview(){
  const client=clients.find(c=>c.id===$('factCliente').value),camp=campaigns.find(c=>c.id===$('factCampania').value);
  if(!$('factNet'))return;
  $('factPreviewType').textContent='TIPO '+$('factTipo').value;
- $('factPreviewClient').textContent=client?.nombre||'Sin seleccionar';
+ $('factPreviewClient').textContent=client?(client.razon_social||client.nombre):'Sin seleccionar';
  $('factPreviewCampaign').textContent=camp?.campania||'Sin vincular';
+ $('factPreviewCuit').textContent=client?.cuit||'Pendiente';
+ $('factPreviewIVACond').textContent=client?.condicion_iva||'Sin registrar';
  $('factClienteInfo').textContent=client?'CUIT: '+(client.cuit||'Pendiente')+' · Razón social: '+(client.razon_social||'Pendiente')+' · IVA: '+(client.condicion_iva||'Pendiente'):'Seleccioná un cliente.';
  $('factPreviewRows').innerHTML=items.map(it=>'<div class="fact-preview-data"><span>'+esc(it.concepto||'Sin descripción')+' ('+esc(it.cantidad)+' × '+esc(pesos(it.precio))+', IVA '+esc(it.iva)+'%)</span><strong>'+esc(pesos(money(it.cantidad*it.precio)))+'</strong></div>').join('');
  const t=totals();$('factNet').textContent=pesos(t.net);$('factTax').textContent=pesos(t.tax);$('factTotal').textContent=pesos(t.total);
@@ -159,10 +163,26 @@ async function loadDrafts(){
  try{
  const {data,error}=await base.db.from(TABLE).select('id,cliente_id,campania_id,tipo,fecha,items,creado_en,actualizado_en').eq('empresa_id',EMP).order('actualizado_en',{ascending:false}).limit(100);
  if(error)throw error;drafts=data||[];
- $('factHistory').innerHTML=drafts.length?'<div class="fact-history-list">'+drafts.map(d=>{const name=clients.find(c=>c.id===d.cliente_id)?.nombre||'Cliente no encontrado';return '<div class="fact-draft"><div><strong>'+esc(name)+'</strong><small>Tipo '+esc(d.tipo)+' · '+esc(d.fecha)+' · '+esc(d.items.length)+' concepto(s)</small></div><div class="fact-draft-actions"><button class="secondary" type="button" data-edit="'+esc(d.id)+'">Abrir</button><button class="secondary" type="button" data-delete="'+esc(d.id)+'">Descartar</button></div></div>';}).join('')+'</div>':'<div class="empty">Todavía no hay borradores guardados.</div>';
- $('factHistory').querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openDraft(b.dataset.edit)));
- $('factHistory').querySelectorAll('[data-delete]').forEach(b=>b.addEventListener('click',()=>discard(b.dataset.delete)));
+ renderHistory();
  }catch(e){$('factHistory').textContent='No se pudieron consultar los borradores: '+(e.message||e);}
+}
+function draftTotal(d){
+ return (Array.isArray(d.items)?d.items:[]).reduce((sum,it)=>money(sum+money(Number(it.cantidad||0)*Number(it.precio||0)*(1+Number(it.iva||0)/100))),0);
+}
+function renderHistory(){
+ const box=$('factHistory');if(!box)return;
+ const search=($('factSearch')?.value||'').trim().toLocaleLowerCase('es');
+ const name=d=>clients.find(c=>c.id===d.cliente_id)?.nombre||'Cliente no encontrado';
+ const filtered=drafts.filter(d=>{
+   const client=clients.find(c=>c.id===d.cliente_id);
+   return [name(d),client?.razon_social,client?.cuit,...(Array.isArray(d.items)?d.items.map(it=>it.concepto):[])].join(' ').toLocaleLowerCase('es').includes(search);
+ });
+ const sort=$('factSort')?.value||'recent';
+ filtered.sort((a,b)=>sort==='client'?name(a).localeCompare(name(b),'es'):sort==='old'?String(a.actualizado_en).localeCompare(String(b.actualizado_en)):String(b.actualizado_en).localeCompare(String(a.actualizado_en)));
+ $('factHistoryCount').textContent=filtered.length+' de '+drafts.length+' borradores';
+ box.innerHTML=filtered.length?'<div class="fact-history-list">'+filtered.map(d=>'<div class="fact-draft"><div class="fact-draft-meta"><strong>'+esc(name(d))+'</strong><small>Tipo '+esc(d.tipo)+' · '+esc(d.fecha)+' · '+esc(Array.isArray(d.items)?d.items.length:0)+' concepto(s)</small><span class="fact-draft-total">'+esc(pesos(draftTotal(d)))+'</span></div><div class="fact-draft-actions"><button class="secondary" type="button" data-edit="'+esc(d.id)+'">Abrir</button><button class="secondary" type="button" data-delete="'+esc(d.id)+'">Descartar</button></div></div>').join('')+'</div>':'<div class="empty">'+(drafts.length?'No hay borradores que coincidan con la búsqueda.':'Todavía no hay borradores guardados.')+'</div>';
+ box.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openDraft(b.dataset.edit)));
+ box.querySelectorAll('[data-delete]').forEach(b=>b.addEventListener('click',()=>discard(b.dataset.delete)));
 }
 function openDraft(id){
  const d=drafts.find(x=>x.id===id);if(!d)return;
@@ -196,7 +216,7 @@ function printDraft(){
  const client=clients.find(c=>c.id===$('factCliente').value),camp=campaigns.find(c=>c.id===$('factCampania').value),t=totals();
  const w=window.open('','_blank','width=750,height=830');if(!w)return message('Permití ventanas emergentes para imprimir.',true);
  const lines=items.map(i=>'<tr><td>'+esc(i.concepto)+'</td><td>'+esc(i.cantidad)+'</td><td>'+esc(pesos(i.precio))+'</td><td>'+esc(i.iva)+' %</td><td>'+esc(pesos(money(i.cantidad*i.precio)))+'</td></tr>').join('');
- w.document.open();w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Simulación ARCUVA</title><style>body{font:13px Arial;color:#17365e;margin:30px}.warn{border:2px solid #b33;color:#b22;padding:18px;text-align:center;font-size:20px;font-weight:bold;margin:25px 0}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #dde5ee;padding:10px}td:last-child{text-align:right}.total{font-size:20px;font-weight:bold;text-align:right;margin-top:22px}small{color:#637b95}@media print{button{display:none}}</style></head><body><h1>ARCUVA</h1><small>Simulación de comprobante tipo '+esc($('factTipo').value)+' · '+esc($('factFecha').value)+'</small><div class="warn">NO VÁLIDO COMO FACTURA<br><small>Sin CAE ni numeración fiscal · No autorizado por ARCA</small></div><p><b>Cliente:</b> '+esc(client.nombre)+' · <b>CUIT:</b> '+esc(client.cuit||'Pendiente')+'</p><p><b>Campaña:</b> '+esc(camp?.campania||'Sin vincular')+'</p><table><thead><tr><th>Concepto</th><th>Cant.</th><th>Precio neto</th><th>IVA</th><th>Subtotal</th></tr></thead><tbody>'+lines+'</tbody></table><p>Neto: '+esc(pesos(t.net))+'<br>IVA estimado: '+esc(pesos(t.tax))+'</p><div class="total">TOTAL ESTIMADO: '+esc(pesos(t.total))+'</div><p><small>Documento de prueba sin validez fiscal. No incluye retenciones, percepciones ni regímenes especiales.</small></p><button onclick="window.print()">Imprimir / Guardar PDF</button></body></html>');
+ w.document.open();w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Simulación ARCUVA</title><style>body{font:13px Arial;color:#17365e;margin:30px}.warn{border:2px solid #b33;color:#b22;padding:18px;text-align:center;font-size:20px;font-weight:bold;margin:25px 0}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #dde5ee;padding:10px}td:last-child{text-align:right}.total{font-size:20px;font-weight:bold;text-align:right;margin-top:22px}small{color:#637b95}@media print{button{display:none}}</style></head><body><h1>ARCUVA</h1><small>Simulación de comprobante tipo '+esc($('factTipo').value)+' · '+esc($('factFecha').value)+'</small><div class="warn">NO VÁLIDO COMO FACTURA<br><small>Sin CAE ni numeración fiscal · No autorizado por ARCA</small></div><p><b>Cliente:</b> '+esc(client.nombre)+' · <b>Razón social:</b> '+esc(client.razon_social||'No informada')+'<br><b>CUIT:</b> '+esc(client.cuit||'Pendiente')+' · <b>Condición IVA:</b> '+esc(client.condicion_iva||'No informada')+'</p><p><b>Campaña:</b> '+esc(camp?.campania||'Sin vincular')+'</p><table><thead><tr><th>Concepto</th><th>Cant.</th><th>Precio neto</th><th>IVA</th><th>Subtotal</th></tr></thead><tbody>'+lines+'</tbody></table><p>Neto: '+esc(pesos(t.net))+'<br>IVA estimado: '+esc(pesos(t.tax))+'</p><div class="total">TOTAL ESTIMADO: '+esc(pesos(t.total))+'</div><p><small>Documento de prueba sin validez fiscal. No incluye retenciones, percepciones ni regímenes especiales.</small></p><button onclick="window.print()">Imprimir / Guardar PDF</button></body></html>');
  w.document.close();
 }
 window.addEventListener('arcuva-page-facturacion',async()=>{
